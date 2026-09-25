@@ -2,111 +2,95 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="robots" content="noindex,nofollow">
-<title>무사귀환 · 프로토 v4</title>
+<title>무사귀환 · 프로토 v3</title>
 <link rel="icon" href="data:,">
+<meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Gothic+Coding:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
-:root{--bg:#18110d;--panel:#2a1d14;--panel2:#33241a;--line:#4a3424;--paper:#eadfc6;--paper2:#d8c8a6;--paper-ink:#3b2f27;--pmute:#7a6b58;--gold:#d9b46c;--brass:#cda65f;--brass2:#9c7a3c;--brass-hi:#f0d492;--ol:#382c2b;--ink:#f2e8d4;--mute:#bfae90;--red:#b0402f;--green:#4f8a5a;--teal:#2f7a80;--inkred:#a8322a;--inkblue:#2f4f9a;--drop:0 10px 22px #0008;--kr:"Pretendard Variable","Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;--mag:"Gowun Batang","AppleMyungjo","Batang",serif;--ari:"Gowun Dodum","Apple SD Gothic Neo",sans-serif;--mono:"Nanum Gothic Coding",monospace;
- --tex:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='.6' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .36  0 0 0 0 .26  0 0 0 0 .16  0 0 0 .38 -.15'/></filter><rect width='100%' height='100%' filter='url(%23p)'/></svg>");
- --grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='.4 .4 .4 0 -.1  .4 .4 .4 0 -.1  .4 .4 .4 0 -.1  0 0 0 0 1'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
- --wood:repeating-linear-gradient(180deg,#0000 0 11px,#0000001c 11px 12px,#0000 12px 23px,#ffffff09 23px 24px)}
+:root{--bg:#0f1012;--panel:#18191c;--panel2:#222328;--line:#2e3036;--paper:#e6dac0;--paper-ink:#3b3127;--gold:#d9b46c;--ink:#f2efe7;--mute:#8f8b82;--red:#c9493a;--green:#5a9e6f;--teal:#3f8f8a;--kr:"Pretendard Variable","Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;--mag:"Gowun Batang","AppleMyungjo","Batang",serif;--ari:"Gowun Dodum","Apple SD Gothic Neo",sans-serif;--mono:"Nanum Gothic Coding",monospace}
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
-body{background:repeating-linear-gradient(90deg,#0000 0 139px,#00000066 139px 141px,#ffffff07 141px 142px),linear-gradient(180deg,#241913,#18110d 60%,#130d0a);color:var(--ink);font-family:var(--kr);min-width:1100px;overflow:hidden}
+body{background:var(--bg);color:var(--ink);font-family:var(--kr);min-width:1100px;overflow:hidden}
 button{font-family:var(--kr);touch-action:manipulation}
-/* 상단 HUD: 나무 간판 + 명판 */
-header{display:flex;align-items:center;gap:8px;padding:0 14px;height:52px;white-space:nowrap;position:relative;z-index:10;background:var(--wood),linear-gradient(#58392a,#402a1c);border-bottom:3px solid var(--ol);box-shadow:inset 0 2px 0 #7a5638,0 4px 0 #0006}
-header h1{flex:none;font-size:19px;font-weight:900;color:var(--brass-hi);text-shadow:0 2px 0 var(--ol);margin-right:4px}
-header h1 small{font-size:11.5px;font-weight:800;margin-left:8px;color:var(--ol);background:var(--brass);border:2px solid var(--ol);border-radius:4px;padding:1px 6px;text-shadow:none;vertical-align:3px}
-.sp{flex:1}
-.stat{font-size:12px;color:#dcc6a0;display:flex;align-items:center;gap:5px;height:32px;padding:0 9px;background:#221710;border:2px solid var(--ol);border-radius:6px;box-shadow:inset 0 2px 0 #0007,0 1px 0 #7a5638}
-.stat b{font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums}
-.stat.gold b{color:var(--brass-hi)}.stat.r b{color:#f19a8b}
-.hi{display:inline-flex;line-height:0}.hi:empty{display:none}
-.gauge{display:inline-block;position:relative;width:100px;height:13px;background:#0e0a07;border-radius:7px;overflow:hidden;border:2px solid var(--ol);box-shadow:inset 0 2px 3px #000c}
-.gauge::after{content:"";position:absolute;left:5px;right:5px;top:2px;height:2px;border-radius:2px;background:#ffffff30}
-.gauge i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7a5ec9,#c9493a);box-shadow:inset 0 -3px 0 #0003;transition:width 1.2s ease}
-#snd,#flt{background:linear-gradient(#f3d995,#d4ae62);border:2px solid var(--ol);color:var(--ol);font-weight:800;font-size:12px;border-radius:6px;padding:4px 9px;cursor:pointer;box-shadow:0 2px 0 var(--ol)}
-#snd:active,#flt:active{transform:translateY(2px);box-shadow:none}
-#snd.off,#flt.off{background:#3a2a1f;color:#bfae90}
-.momoMini{width:26px;height:31px;display:inline-block;line-height:0}.momoMini svg{width:26px;height:31px}
-/* 밤: 창구 */
-main.night{display:grid;grid-template-columns:minmax(250px,300px) minmax(0,1fr) minmax(280px,340px);gap:14px;padding:12px 14px;height:calc(100vh - 52px)}
-.left{display:flex;flex-direction:column;gap:12px;min-height:0}
-.reg{background:var(--tex),var(--paper);color:var(--paper-ink);border:2.5px solid var(--ol);border-radius:6px;padding:11px 12px 10px;flex:none;position:relative;box-shadow:0 4px 0 var(--ol),var(--drop)}
-.reg::before{content:"";position:absolute;right:46px;top:-10px;width:11px;height:30px;border:2.5px solid #9aa0a8;border-radius:6px;box-shadow:0 0 0 1.5px var(--ol),inset 0 0 0 1.5px var(--ol);pointer-events:none}
-.reg h3,.dep h3{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--pmute);margin-bottom:8px;padding-bottom:5px;border-bottom:1.5px dashed #b9a57f}
+header{display:flex;align-items:center;gap:18px;padding:0 20px;border-bottom:1px solid var(--line);background:var(--panel);height:52px;white-space:nowrap}
+header h1{font-size:18px;font-weight:800}header h1 small{font-size:12px;color:var(--gold);font-weight:600;margin-left:8px}
+.sp{flex:1}.stat{font-size:12.5px;color:var(--mute);display:flex;align-items:center;gap:6px}.stat b{font-size:17px;color:var(--ink)}
+.stat.gold b{color:var(--gold)}.stat.r b{color:#f19a8b}
+.gauge{display:inline-block;width:110px;height:10px;background:#2a2b30;border-radius:5px;overflow:hidden;border:1px solid #3a3b42}
+.gauge i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7a5ec9,#c9493a);transition:width 1.2s ease}
+#snd{background:none;border:1px solid var(--line);color:var(--mute);border-radius:5px;padding:3px 9px;cursor:pointer}
+.momoMini{width:30px;height:36px;display:inline-block;line-height:0}
+main.night{display:grid;grid-template-columns:minmax(250px,300px) minmax(0,1fr) minmax(280px,340px);gap:12px;padding:10px 14px;height:calc(100vh - 52px)}
+.left{display:flex;flex-direction:column;gap:10px;min-height:0}
+.reg{background:var(--paper);color:var(--paper-ink);border-radius:8px;padding:10px 12px;flex:none;position:relative}
+.reg h3,.dep h3{font-size:12px;letter-spacing:.1em;color:#7a6b58;margin-bottom:6px}
 .reg .top{display:grid;grid-template-columns:104px 1fr;gap:10px;align-items:start}
-.reg .ph{width:104px;height:125px;background:#d9c7a0;border:4px solid #f7f1e3;box-shadow:0 0 0 2px var(--ol),0 3px 0 2px var(--ol);border-radius:2px;overflow:hidden;line-height:0;transform:rotate(-1.5deg)}
+.reg .ph{width:104px;height:125px;background:#d6c7a6;border:3px solid #3b3127;border-radius:4px;overflow:hidden;line-height:0}
 .reg .ph svg{width:100%;height:100%}
-.reg .nm{font-size:19px;font-weight:900;color:var(--ol)}.reg .rc{font-size:12px;color:var(--pmute);margin-bottom:4px}
-.cardRow{display:grid;grid-template-columns:40px 1fr;font-size:13px;padding:1px 0;line-height:1.5}
-.cardRow>span:first-child{color:var(--pmute)}
+.reg .nm{font-size:18px;font-weight:800}.reg .rc{font-size:12px;color:#7a6b58;margin-bottom:4px}
+.cardRow{display:grid;grid-template-columns:40px 1fr;font-size:12.5px;padding:1px 0;line-height:1.5}
+.cardRow>span:first-child{color:#7a6b58}
 .cardRow .no{font-family:var(--mono);font-weight:700;font-size:14px;letter-spacing:.05em}
-.knotSw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px;border:1.5px solid var(--ol)}
-.eyeSw{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:4px;border:1.5px solid var(--ol)}
-.reg .fl{font-size:13px;border-top:1.5px dashed #b9a57f;padding-top:6px;margin-top:7px}
-.reg .memo{font-family:var(--ari);color:var(--inkblue);font-size:14px;line-height:1.5;margin-top:4px}
+.knotSw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px;border:1px solid #0005}
+.eyeSw{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin-right:4px;border:1px solid #0006}
+.reg .fl{font-size:12.5px;border-top:1px solid #cdbf9f;padding-top:5px;margin-top:6px}
+.reg .memo{font-family:var(--ari);color:#2f4f9a;font-size:14px;line-height:1.5;margin-top:4px}
 .reg .empty{height:250px;display:grid;place-items:center;color:#8a7c66;font-size:14px;text-align:center;line-height:1.7}
 .wallBell{position:absolute;right:10px;top:8px;line-height:0;transform-origin:50% 0}
 .wallBell.ring,.bellMark.ring{animation:ring .45s ease-in-out 3}
 @keyframes ring{0%,100%{transform:rotate(0)}25%{transform:rotate(20deg)}75%{transform:rotate(-20deg)}}
-.stampMark{position:absolute;right:12px;top:36px;transform:rotate(12deg);border:3px solid var(--inkred);color:var(--inkred);font-weight:900;padding:2px 8px;border-radius:6px;font-size:14px;background:#eadfc6cc}
-.dep{background:var(--tex),linear-gradient(90deg,#0000 24px,#c0504070 24px 25.5px,#0000 25.5px),var(--paper);color:var(--paper-ink);border:2.5px solid var(--ol);border-radius:6px;padding:10px 12px 10px 32px;flex:1;min-height:0;overflow:auto;box-shadow:0 4px 0 var(--ol),var(--drop)}
-.dep .cnt{font-size:13px;color:var(--pmute);margin-bottom:4px}.dep .cnt b{color:var(--ol)}.dep .cnt.over b{color:var(--inkred)}
-.dep .row{display:grid;grid-template-columns:62px 1fr 64px;font-size:13px;padding:4px 2px;border-bottom:1px solid #c9b996;color:var(--paper-ink)}
-.dep .row .flc{color:#9a8b72}
-.dep .row .st{text-align:right;color:#9a8b72}.dep .row.back .st{color:var(--inkblue);font-family:var(--ari);font-size:14px}
-.dep .row.now{background:linear-gradient(transparent 52%,#f2c14e80 52%)}.dep .row.now .st{color:#8a5a14;font-weight:800}
-.dep .row.x,.dep .row.x .st{color:var(--inkred)}
-.dep .sulk{color:var(--inkred);font-size:11px;margin-left:3px}
+.stampMark{position:absolute;right:12px;top:36px;transform:rotate(12deg);border:3px solid #b3261e;color:#b3261e;font-weight:900;padding:2px 8px;border-radius:6px;font-size:14px;background:#e6dac0cc}
+.dep{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;flex:1;min-height:0;overflow:auto}
+.dep h3{color:var(--gold)}.dep .cnt{font-size:12.5px;color:var(--mute);margin-bottom:4px}.dep .cnt b{color:var(--ink)}.dep .cnt.over b{color:#f19a8b}
+.dep .row{display:grid;grid-template-columns:62px 1fr 64px;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line);color:#cfc9bc}
+.dep .row .st{text-align:right;color:var(--mute)}.dep .row.back .st{color:#8fd6a3}.dep .row.now{color:#fff}.dep .row.now .st{color:var(--gold)}.dep .row.x,.dep .row.x .st{color:#f19a8b}
+.dep .sulk{color:#f19a8b;font-size:11px;margin-left:3px}
 .stage{display:flex;flex-direction:column;min-width:0;min-height:0}
-.win{position:relative;flex:1;overflow:hidden;border:10px solid #4a3222;border-bottom:0;border-radius:8px 8px 0 0;background:radial-gradient(circle at 22% 8%,#ffb45a2e,transparent 36%),linear-gradient(#1d1a17,#0a0908);box-shadow:inset 0 0 0 2.5px var(--ol),0 0 0 2.5px var(--ol)}
+.win{position:relative;flex:1;overflow:hidden;border:12px solid #3a291f;border-bottom:0;border-radius:10px 10px 0 0;background:radial-gradient(circle at 22% 8%,#ffb45a2e,transparent 36%),linear-gradient(#1d1a17,#0a0908)}
 .win .door{position:absolute;left:7%;top:20%;width:15%;height:80%;background:#00000055;border:2px solid #ffffff0a;border-bottom:0}.win .door.r{left:auto;right:7%}
 .win .lampL{position:absolute;left:21%;top:3%;width:14px;height:20px;background:#ffcf6a;border-radius:3px;box-shadow:0 0 34px 12px #ffb45a50}
 .win .vig{position:absolute;inset:0;box-shadow:inset 0 0 140px #000;pointer-events:none;z-index:4}
-.win .wall{position:absolute;inset:0;background:radial-gradient(ellipse 75% 70% at 50% 58%,#b98a58 0%,#7a522e 35%,#3a2616 62%,transparent 85%);opacity:0;transition:opacity .3s;z-index:1}
+.win .wall{position:absolute;inset:0;background:radial-gradient(ellipse at 42% 62%,#c99a62 0%,#8a5e36 30%,#3a2616 55%,transparent 75%);opacity:0;transition:opacity .4s;z-index:1}
 .win.lit .wall{opacity:1}
 .person{position:absolute;bottom:0;left:50%;transform:translateX(-50%);z-index:2;line-height:0}
 .person svg,.shadow svg{height:min(50vh,330px);width:auto}
+.fig{transform-box:fill-box;transform-origin:50% 100%;animation:sway 3s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-2.2deg) translateX(-5px)}50%{transform:rotate(2.2deg) translateX(5px)}}
 .shadow{position:absolute;bottom:0;left:50%;z-index:1;line-height:0;filter:brightness(0) blur(1px);opacity:.72;transform:translateX(-50%) translate(-150px,-34px) scale(.96) skewX(-8deg);display:none}
 .shadow.s2{transform:translateX(-50%) translate(150px,-30px) scale(.96) skewX(8deg)}
 .win.lit .shadow{display:block}
 .bellMark{position:absolute;z-index:3;left:calc(50% - 118px);bottom:22px;line-height:0;transform-origin:50% 0}
-.tray{position:absolute;right:16px;bottom:12px;z-index:6;background:var(--tex),var(--paper);color:var(--paper-ink);border:2.5px solid var(--ol);border-radius:6px;padding:8px 12px;display:flex;gap:10px;align-items:center;font-size:14px;box-shadow:0 3px 0 var(--ol),0 8px 18px #0008;transform:rotate(-2deg)}
-.tray b{font-size:16px;color:var(--ol)}.tray small{display:block;color:var(--pmute);font-size:12px}
-/* 말풍선: 그림과 같은 윤곽선 */
-.bubble{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:#fbf6ea;color:var(--ol);padding:10px 18px;border:2.5px solid var(--ol);border-radius:14px;box-shadow:0 3px 0 var(--ol);font-size:16px;font-weight:500;max-width:86%;text-align:center;z-index:6;line-height:1.5}
-.bubble::before{content:"";position:absolute;bottom:-13px;left:50%;margin-left:-10px;border:10px solid transparent;border-top-color:var(--ol);border-bottom:0}
-.bubble::after{content:"";position:absolute;bottom:-8px;left:50%;margin-left:-7px;border:7.5px solid transparent;border-top-color:#fbf6ea;border-bottom:0}
-.bubble.sys{background:#120d0acc;color:#e0d3bb;font-style:italic;border-color:#0009;box-shadow:none}.bubble.sys::before,.bubble.sys::after{display:none}
-.bubble .qq{display:block;font-size:12.5px;color:var(--pmute);margin-bottom:2px}
-.bubble.momo{background:#e3f0cc;color:#23401b;top:auto;bottom:18px;left:18px;transform:none;max-width:52%;text-align:left}
-.bubble.momo::before,.bubble.momo::after{display:none}
-.shutter{position:absolute;inset:0;z-index:5;background:repeating-linear-gradient(180deg,#50545b 0 3px,#3f4248 3px 18px,#2b2d31 18px 20px,#1d1e21 20px 23px);transition:transform .42s cubic-bezier(.55,0,.3,1);display:grid;place-items:center;cursor:pointer}
+.tray{position:absolute;right:16px;bottom:12px;z-index:6;background:#e6dac0;color:#3b3127;border:3px solid #6b4a36;border-radius:8px;padding:8px 12px;display:flex;gap:10px;align-items:center;font-size:14px;box-shadow:0 6px 20px #0008}
+.tray b{font-size:16px}.tray small{display:block;color:#7a6b58;font-size:12px}
+.bubble{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:#f4f1ea;color:#1d1d1d;padding:10px 18px;border-radius:8px;font-size:16px;max-width:86%;text-align:center;z-index:6;line-height:1.5}
+.bubble::after{content:"";position:absolute;bottom:-8px;left:50%;margin-left:-8px;border:8px solid transparent;border-top-color:#f4f1ea;border-bottom:0}
+.bubble.sys{background:#000000b0;color:#cfc9bc;font-style:italic}.bubble.sys::after{display:none}
+.bubble .qq{display:block;font-size:12.5px;color:#7a6b58;margin-bottom:2px}
+.bubble.momo{background:#dff0c8;color:#23401b;top:auto;bottom:18px;left:18px;transform:none;max-width:52%;text-align:left}
+.bubble.momo::after{display:none}
+.shutter{position:absolute;inset:0;z-index:5;background:repeating-linear-gradient(180deg,#3c3f45 0 20px,#2a2c30 20px 23px);transition:transform .42s cubic-bezier(.55,0,.3,1);display:grid;place-items:center;cursor:pointer}
 .shutter.up{transform:translateY(-101%)}.shutter.slam{transition:transform .12s ease-in}
-.knock{font-size:46px;font-weight:900;color:#ffffff40;letter-spacing:.35em;min-height:60px}
+.knock{font-size:46px;font-weight:900;color:#ffffff38;letter-spacing:.35em;min-height:60px}
 .knock span{display:inline-block;animation:kn .35s ease-out}
 @keyframes kn{0%{transform:scale(1.6);color:#ffffffbb}100%{transform:scale(1)}}
-.shutter .hint{position:absolute;bottom:20px;left:0;right:0;text-align:center;color:#ffffff66;font-size:13px}
-.stamp{position:absolute;top:42%;left:50%;z-index:6;border:5px solid;padding:4px 20px;font-size:40px;font-weight:900;letter-spacing:.08em;border-radius:8px;transform:translate(-50%,-50%) rotate(-10deg);animation:st .22s ease-out;background:#00000030}
+.shutter .hint{position:absolute;bottom:20px;left:0;right:0;text-align:center;color:#ffffff55;font-size:13px}
+.stamp{position:absolute;top:42%;left:50%;z-index:6;border:5px solid;padding:4px 20px;font-size:40px;font-weight:900;border-radius:8px;transform:translate(-50%,-50%) rotate(-10deg);animation:st .22s ease-out;background:#00000030}
 @keyframes st{0%{transform:translate(-50%,-50%) rotate(-10deg) scale(2);opacity:0}100%{transform:translate(-50%,-50%) rotate(-10deg) scale(1);opacity:1}}
 .stamp.pass{color:#8fd6a3;border-color:#8fd6a3}.stamp.treat{color:#7fd0c8;border-color:#7fd0c8}.stamp.iso{color:#ff8a78;border-color:#ff8a78}
 .cost{position:absolute;left:50%;top:40%;z-index:7;color:#ffd48a;font-weight:800;font-size:18px;animation:up 1s ease-out forwards;pointer-events:none}
 @keyframes up{to{transform:translateY(-40px);opacity:0}}
 /* 창구 책상: 서류 */
-.counter{flex:none;height:132px;background:var(--wood),linear-gradient(#654530,#523926);border-top:3px solid var(--ol);box-shadow:inset 0 3px 0 #8a6040;display:flex;gap:22px;align-items:center;justify-content:center;padding:6px 16px}
-.counter .none{color:#eed9b4cc;font-size:14px}
-.docLbl{font-size:11.5px;color:#f3e2c2;letter-spacing:.04em;margin-bottom:4px;display:flex;justify-content:space-between;text-shadow:0 1px 0 #0006}
-.docLbl kbd{font-family:var(--mono);font-size:10.5px;font-weight:700;background:var(--ol);color:var(--brass-hi);border-radius:3px;padding:0 4px;margin-left:3px;text-shadow:none}
+.counter{flex:none;height:132px;background:linear-gradient(#5a3d28,#4a3222);border-top:4px solid #6b4a36;display:flex;gap:22px;align-items:center;justify-content:center;padding:6px 16px}
+.counter .none{color:#c9b08a88;font-size:14px}
+.docLbl{font-size:11px;color:#e7d3b0bb;letter-spacing:.06em;margin-bottom:3px;display:flex;justify-content:space-between}
+.docLbl kbd{font-family:var(--kr);font-size:10px;border:1px solid currentColor;border-radius:3px;padding:0 3px}
 .tagWrap{perspective:700px;width:200px;height:96px;cursor:pointer}
 .tag{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
 .tag.flip{transform:rotateY(180deg)}
-.tagF,.tagB{position:absolute;inset:0;border-radius:10px;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:linear-gradient(135deg,#e4e8ec,#a3abb5 55%,#cfd4da);border:2.5px solid var(--ol);box-shadow:inset 0 1px 0 #fff8,0 3px 0 var(--ol),0 6px 10px #0006;color:#2a2f36;padding:7px 10px 7px 28px;overflow:hidden}
+.tagF,.tagB{position:absolute;inset:0;border-radius:10px;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:linear-gradient(135deg,#e4e8ec,#a3abb5 55%,#cfd4da);border:2px solid #5d6570;box-shadow:inset 0 1px 0 #fff8,0 3px 8px #0006;color:#2a2f36;padding:7px 10px 7px 28px;overflow:hidden}
 .tagB{transform:rotateY(180deg);display:flex;align-items:center;justify-content:space-around}
 .hole{position:absolute;left:9px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:#3a2a1e;box-shadow:inset 0 1px 2px #000}
 .tag .tn{font-weight:800;font-size:15px;line-height:1.3}.tag .tr{font-size:11px;color:#4a525c}
@@ -115,150 +99,93 @@ main.night{display:grid;grid-template-columns:minmax(250px,300px) minmax(0,1fr) 
 .tag .scr{position:absolute;inset:0;pointer-events:none}
 .tallyBox{cursor:pointer;line-height:0}
 .tallyBox g.ret{transition:transform .45s ease}
-.tlab{display:flex;justify-content:space-between;width:330px;font-size:11px;color:#f3e2c2;margin-top:2px}
-/* 책상 아래칸: 도구 패 + 고무도장 */
-.desk{height:96px;flex:none;background:var(--wood),linear-gradient(#4a3222,#3b2819);border-top:3px solid var(--ol);border-radius:0 0 8px 8px;box-shadow:0 0 0 2.5px var(--ol);display:flex;align-items:center;justify-content:center;gap:12px;padding:0 12px}
-.desk button{position:relative;font-weight:800;border:2.5px solid var(--ol);border-radius:7px;cursor:pointer;white-space:nowrap;box-shadow:0 4px 0 var(--ol);transition:transform .06s,box-shadow .06s}
-.desk button:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--ol)}
-.desk button:disabled{opacity:.42;cursor:default;box-shadow:0 1px 0 var(--ol);transform:translateY(3px)}
-.desk kbd{font-family:var(--mono);font-size:10.5px;font-weight:700;margin-left:6px;background:var(--ol);color:var(--brass-hi);border-radius:3px;padding:1px 4px;vertical-align:1px;text-shadow:none}
-.big{font-size:17px;padding:12px 18px}
-.tools{display:grid;grid-template-columns:repeat(4,auto);gap:8px 6px}
-.tools button{display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:12.5px;padding:5px 7px 5px 6px;border-width:2px;background:linear-gradient(#f3e7c9,#e3cfa4);color:var(--ol);box-shadow:0 3px 0 var(--ol)}
-.tools button .ti{display:inline-flex;line-height:0}
-.tools button.on{background:linear-gradient(#ffe7a3,#f2c14e);box-shadow:0 3px 0 var(--ol),0 0 16px #f2c14e99}
-.tools kbd{margin-left:3px}
-.desk .stampB{margin-top:10px}
-.desk .stampB::before{content:"";position:absolute;left:50%;top:-13px;width:40px;height:11px;margin-left:-20px;background:linear-gradient(#94694a,#6a4a30);border:2.5px solid var(--ol);border-bottom:0;border-radius:10px 10px 0 0}
-.b-open{background:linear-gradient(#f3d995,#d4ae62);color:var(--ol)}.b-ign{background:#2c2019;color:#e7dcc0}
-.b-pass,.b-treat,.b-iso,.b-conf{color:#fff8e6;text-shadow:0 2px 0 #0005}
-.b-pass{background:linear-gradient(#5f9d6a,#4a8456)}.b-treat{background:linear-gradient(#3d8e94,#2d747a)}.b-iso{background:linear-gradient(#c5533e,#a83e2d)}
-.b-buy{background:linear-gradient(#f3d995,#d4ae62);color:var(--ol)}.b-no{background:#2c2019;color:#f2e8d4}.b-conf{background:linear-gradient(#7d4d8c,#63386f)}
-.vb small{display:block;font-size:11px;font-weight:700;opacity:.92}
+.tlab{display:flex;justify-content:space-between;width:330px;font-size:11px;color:#e7d3b0bb;margin-top:2px}
+.desk{height:96px;flex:none;background:#46301f;border-top:3px solid #6b4a36;border-radius:0 0 10px 10px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 12px}
+.desk button{font-weight:800;border:0;border-radius:6px;cursor:pointer;white-space:nowrap}
+.desk button:disabled{opacity:.3;cursor:default}
+.desk kbd{font-family:var(--kr);font-size:11px;opacity:.75;margin-left:5px;border:1px solid currentColor;border-radius:3px;padding:0 4px}
+.big{font-size:17px;padding:13px 20px}
+.tools{display:grid;grid-template-columns:repeat(4,auto);gap:5px}
+.tools button{font-size:12.5px;padding:7px 9px;background:#e6dac0;color:#3b3127}
+.tools button.on{background:#ffd48a}
+.b-open{background:var(--gold);color:#2a1f0e}.b-ign{background:#23252a;color:#cfc9bc}
+.b-pass{background:var(--green);color:#fff}.b-treat{background:var(--teal);color:#fff}.b-iso{background:var(--red);color:#fff}
+.b-buy{background:var(--gold);color:#2a1f0e}.b-no{background:#3a3b42;color:#fff}.b-conf{background:#6a3a8a;color:#fff}
+.vb small{display:block;font-size:11px;font-weight:600;opacity:.9}
 .vb.over small{color:#ffe0a0}
-.sep{width:2px;height:58px;background:#0006;box-shadow:1px 0 0 #ffffff14;margin:0 4px}
-.tradeLbl{color:#f3e2c2;font-size:14px;margin-right:6px;text-align:right}.tradeLbl b{font-size:16px}
-/* 수칙집: 제본된 책 한 쪽 */
-.book{position:relative;background:var(--tex),linear-gradient(90deg,#0000003d,#0000 20px),repeating-linear-gradient(180deg,transparent 0 35px,#c9b99666 35px 36px),var(--paper);color:var(--paper-ink);border:2.5px solid var(--ol);border-radius:4px 8px 8px 4px;padding:14px 16px 12px 22px;overflow:auto;box-shadow:0 4px 0 var(--ol),var(--drop)}
-.book::before{content:"";position:absolute;top:0;right:18px;width:14px;height:44px;background:var(--inkred);clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%)}
-.book h2{font-size:17px;font-weight:900;color:var(--ol);padding-right:30px}.book .by{font-family:var(--mag);font-size:14px;color:#6e2a1c;margin:2px 0 8px}
-.pwBox{position:relative;background:#f6e7a6;color:var(--ol);border:2px solid var(--ol);border-radius:3px;padding:9px 12px;margin:8px 0 10px;font-size:13.5px;line-height:1.6;box-shadow:0 3px 0 var(--ol);transform:rotate(-.6deg)}
-.pwBox::before{content:"";position:absolute;top:-7px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:#c9493a;border:2px solid var(--ol)}
-.pwBox b{color:var(--inkred)}
-.ref{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--pmute);margin-bottom:10px;background:#e2d4b4aa;border:1.5px dashed #a8946c;border-radius:6px;padding:6px 8px;line-height:1.5}
+.sep{width:1px;height:54px;background:#ffffff22;margin:0 4px}
+.book{background:var(--paper);color:var(--paper-ink);border-radius:8px;padding:12px 14px;overflow:auto;background-image:repeating-linear-gradient(180deg,transparent 0 35px,#c9b99666 35px 36px)}
+.book h2{font-size:16px}.book .by{font-family:var(--mag);font-size:14px;color:#6e2a1c;margin:2px 0 8px}
+.pwBox{background:#2a221a;color:#f2e6cc;border-radius:6px;padding:8px 10px;margin:4px 0 8px;font-size:13.5px;line-height:1.6}
+.pwBox b{color:#ffd48a}
+.ref{display:flex;gap:10px;align-items:center;font-size:11.5px;color:#7a6b58;margin-bottom:10px;background:#efe5cf;border-radius:6px;padding:6px 8px;line-height:1.5}
 .book ol{list-style:none}
 .book li{display:grid;grid-template-columns:22px 1fr;gap:4px;margin-bottom:9px;line-height:1.5;position:relative;border-radius:4px}
-.book li .n{font-weight:800;font-size:14px;color:var(--pmute);padding-top:1px}
+.book li .n{font-weight:800;font-size:14px;color:#7a6b58;padding-top:1px}
 .ink-m{font-family:var(--mag);font-size:15.5px;color:#6e2a1c;line-height:1.55}
 .ink-k{font-family:var(--mono);font-size:13.5px;color:#222;line-height:1.55;letter-spacing:-.02em}
-.ink-a{font-family:var(--ari);font-size:15.5px;color:var(--inkblue);line-height:1.55}
+.ink-a{font-family:var(--ari);font-size:15.5px;color:#2f4f9a;line-height:1.55}
 .book li.red .ink-m{color:#b3261e}.book li.red{border-left:4px solid #b3261e;padding-left:4px}
-.book li.new::after{content:"새 줄";position:absolute;right:-4px;top:-8px;font-size:10.5px;font-weight:900;color:var(--inkred);background:#eadfc6;border:2px solid var(--inkred);padding:0 4px;border-radius:4px;transform:rotate(8deg);font-family:var(--kr)}
+.book li.new::after{content:"새 줄";position:absolute;right:-6px;top:-8px;font-size:10px;background:#b3261e;color:#fff;padding:1px 5px;border-radius:6px;font-family:var(--kr)}
 .book li.flash{animation:fl 1.1s ease-out 2}
 @keyframes fl{0%{background:#ffd48a}100%{background:transparent}}
-.toast{position:fixed;left:50%;top:62px;transform:translateX(-50%);padding:9px 18px;border-radius:6px;font-weight:700;z-index:40;font-size:15px;max-width:780px;text-align:center;background:var(--tex),var(--paper);color:var(--ol);border:2.5px solid var(--ol);border-left-width:9px;box-shadow:0 3px 0 var(--ol),0 10px 20px #0008}
-.toast.ok{border-left-color:#4a8456}.toast.bad{border-left-color:var(--inkred)}.toast.q{border-left-color:#5a4a8a}.toast.info{border-left-color:var(--brass2)}
-/* 오버레이: 종이 서류 */
-.overlay{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 40%,#1a110bcc,#070403ee);display:grid;place-items:center;z-index:30}
-.card{position:relative;background:var(--tex),var(--paper);color:var(--paper-ink);border:2.5px solid var(--ol);border-radius:6px;padding:24px 32px;width:780px;max-height:92vh;overflow:auto;line-height:1.7;box-shadow:0 6px 0 var(--ol),0 24px 60px #000c}
-.card h2{font-size:23px;font-weight:900;color:var(--ol);margin-bottom:10px;padding-bottom:8px;border-bottom:3px double #b9a57f}
-.card>ul{margin:8px 0 14px 20px;color:var(--paper-ink)}.card p{color:var(--paper-ink);margin:6px 0}
-.card .paper{background:#f5eddb;color:var(--paper-ink);border:1.5px solid #b9a57f;border-radius:4px;padding:12px 16px;margin:10px 0;box-shadow:inset 0 0 0 3px #f5eddb,inset 0 0 0 4px #ddd0b2}
+.toast{position:fixed;left:50%;top:60px;transform:translateX(-50%);padding:9px 18px;border-radius:6px;font-weight:700;z-index:40;font-size:15px;max-width:780px;text-align:center}
+.toast.ok{background:#2f5a3a}.toast.bad{background:#7a1f1a}.toast.q{background:#3a3a50}.toast.info{background:#4a3a1f}
+.overlay{position:fixed;inset:0;background:#000000dd;display:grid;place-items:center;z-index:30}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px 28px;width:780px;max-height:92vh;overflow:auto;line-height:1.7}
+.card h2{font-size:22px;margin-bottom:8px}.card>ul{margin:8px 0 14px 18px;color:#d6d1c4}.card p{color:#d6d1c4;margin:6px 0}
+.card .paper{background:var(--paper);color:var(--paper-ink);border-radius:6px;padding:12px 16px;margin:10px 0}
 .card .paper ul{margin-left:18px}.card .paper li{color:var(--paper-ink)}
-.card.over::after{content:"기록 중지";position:absolute;right:28px;top:20px;border:3px solid var(--inkred);color:var(--inkred);font-weight:900;font-size:17px;padding:1px 10px;border-radius:6px;transform:rotate(9deg);opacity:.85}
-.goH{color:var(--inkred)!important}.goP{font-size:16px}
-.secH{margin-top:14px;color:#8a5a14;font-size:16px}
-.docHead{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--pmute);letter-spacing:.06em;border-bottom:1.5px solid #b9a57f;padding-bottom:4px;margin-bottom:12px}
-.primary{background:linear-gradient(#f3d995,#d4ae62);color:var(--ol);border:2.5px solid var(--ol);border-radius:7px;padding:10px 22px;font-size:16px;font-weight:900;cursor:pointer;margin-top:12px;box-shadow:0 4px 0 var(--ol);transition:transform .06s,box-shadow .06s}
-.primary:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--ol)}
-.primary:disabled{opacity:.45;cursor:default}.ghost{background:#3a2a1f;color:#f2e8d4}
-.news{display:grid;grid-template-columns:162px 1fr;gap:20px;align-items:center;padding:4px 4px 8px}
-.news .pic{background:#3a2c22;line-height:0;overflow:hidden;border:6px solid #f7f1e3;box-shadow:0 0 0 2px var(--ol),0 4px 0 2px var(--ol);transform:rotate(-2deg);border-radius:2px}
+.primary{background:var(--gold);color:#2a1f0e;border:0;border-radius:6px;padding:11px 22px;font-size:16px;font-weight:800;cursor:pointer;margin-top:10px}
+.primary:disabled{opacity:.4;cursor:default}.ghost{background:#3a3a40;color:#fff}
+.news{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center;background:#0b0b0d;border:1px solid var(--line);border-radius:8px;padding:14px}
+.news .pic{background:#1d1a17;border-radius:6px;line-height:0;overflow:hidden}
 .news .pic svg{width:150px;height:180px}
-.news .nofig{height:180px;display:grid;place-items:center;color:#b9a57f;font-size:40px}
-.news .hl{font-family:var(--mag);font-weight:700;font-size:19px;line-height:1.65;color:var(--ol)}
-.resH{margin:14px 0 6px;font-size:15px;color:var(--ol)}.badN{color:var(--inkred)!important}
+.news .hl{font-size:18px;line-height:1.6;color:#fff}
 .calc{margin:12px 0;font-size:14px}
-.calc .row{display:flex;justify-content:space-between;border-bottom:1.5px dashed #c2b08a;padding:4px 2px;color:var(--paper-ink)}
-.calc .row b.up{color:var(--inkred)}.calc .row b.down{color:#3f7a4f}
-.gbig{display:flex;align-items:center;gap:10px;margin:8px 0 2px;font-size:14px;color:var(--pmute)}.gbig .gauge{width:260px;height:15px}.gbig b{color:var(--ol)}
-details{margin-top:8px;color:var(--paper-ink)}details summary{cursor:pointer;color:#8a5a14;font-weight:700}
+.calc .row{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:4px 0;color:#d6d1c4}
+.calc .row b.up{color:#f19a8b}.calc .row b.down{color:#8fd6a3}
+.gbig{display:flex;align-items:center;gap:10px;margin:6px 0 2px;font-size:14px;color:var(--mute)}.gbig .gauge{width:260px;height:14px}
+details{margin-top:8px;color:#bdb7aa}details summary{cursor:pointer;color:var(--gold)}
 .rep{list-style:none;margin:6px 0}
-.rep li{padding:6px 0;border-bottom:1.5px dashed #c9b996;font-size:13.5px;color:var(--paper-ink);display:grid;grid-template-columns:22px 1fr;gap:6px;line-height:1.5}
-.rep .ic{font-weight:900}.rep .ic.ok{color:#3f7a4f}.rep .ic.bad{color:var(--inkred)}.rep .ic.q{color:#5a4a8a}
-.tag2{font-size:11px;font-weight:800;padding:0 6px;border-radius:4px;margin-left:6px;border:1.5px solid currentColor;color:#6a5a48}
-.tag2.good{color:#3f7a4f}.tag2.ok{color:#8a6a14}.tag2.bad{color:var(--inkred)}.tag2.odd{color:#5a4a8a}
-.compose{font-family:var(--ari);font-size:18px;color:var(--inkblue);line-height:1.8}
-.compose .opt{display:inline-block;border:2px dashed #2f4f9a77;border-radius:6px;padding:0 10px;margin:3px 4px;cursor:pointer;font-family:var(--ari);font-size:17px;background:transparent;color:var(--inkblue)}
-.compose .opt.sel{background:var(--inkblue);color:#fff;border-style:solid}
-.q{margin:10px 0}.q label{margin-right:12px;display:inline-block}.q textarea{width:100%;height:54px;background:#fbf6ea;color:var(--ol);border:2px solid var(--ol);border-radius:5px;padding:8px;font-family:var(--kr)}
-.sum{display:flex;gap:10px;margin:10px 0 4px;flex-wrap:wrap}.sum div{background:#e2d4b4;border:2px solid var(--ol);border-radius:6px;box-shadow:0 2px 0 var(--ol);padding:8px 14px;text-align:center;font-size:12px;color:var(--pmute)}.sum b{display:block;font-size:20px;color:var(--ol)}
-.res{list-style:none;margin:6px 0 10px}
-.res li{padding:7px 10px;border-radius:5px;margin-bottom:5px;font-size:14px;line-height:1.5;display:grid;grid-template-columns:26px 1fr;gap:8px;color:var(--paper-ink);background:#f5eddb;border:1.5px solid #c9b996}
-.res .ic{display:grid;place-items:center;width:24px;height:24px;border:2px solid;border-radius:50%;font-weight:900;font-size:13px;transform:rotate(-8deg);margin-top:1px}
-.res li.ok .ic{color:#3f7a4f}.res li.bad{background:#f3ddd2;border-color:#d9a595}.res li.bad .ic{color:var(--inkred)}.res li.q .ic{color:#5a4a8a}
-.res small{color:var(--pmute)}
-/* 아침 사무소 */
-.office{display:grid;grid-template-columns:minmax(250px,300px) minmax(0,1fr) minmax(270px,320px);gap:14px;padding:12px 16px;height:calc(100vh - 52px);background:radial-gradient(ellipse 70% 60% at 18% 0%,#ffd9a024,transparent 70%)}
-.ocol{background:var(--wood),linear-gradient(#35251a,#2a1d14);border:2.5px solid var(--ol);border-radius:8px;padding:12px 14px;overflow:auto;min-height:0;box-shadow:inset 0 2px 0 #4f3726,0 4px 0 #0007}
-.ocol h3{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--brass-hi);margin:2px 0 10px;text-shadow:0 1px 0 #000a}
-.vis{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;background:var(--tex),var(--paper);color:var(--paper-ink);border:2px solid var(--ol);border-radius:6px;padding:8px;margin-bottom:10px;box-shadow:0 3px 0 var(--ol)}
-.vis .pp{width:64px;height:76px;background:#d9c7a0;border:3px solid #f7f1e3;box-shadow:0 0 0 1.5px var(--ol);border-radius:2px;overflow:hidden;line-height:0}
-.vis .pp svg{width:100%;height:100%}
-.vis b{display:block;font-size:14px;color:var(--ol)}.vis span{font-size:13px;color:var(--paper-ink);line-height:1.5}
-#storage{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;align-content:start}
-.inv{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:start;background:var(--tex),var(--paper);color:var(--paper-ink);border:2px solid var(--ol);border-radius:7px;padding:10px;box-shadow:0 3px 0 var(--ol)}
-.inv .ic{width:64px;height:64px;background:#f5eddb;border:2px solid #c9b996;border-radius:6px;line-height:0;display:grid;place-items:center}
-.inv .nm{font-size:15px;font-weight:800;color:var(--ol)}
-.inv .tg{font-size:11px;font-weight:800;padding:0 5px;border-radius:4px;margin-left:5px;border:1.5px solid currentColor;white-space:nowrap}
-.tg.contra{color:var(--inkred)}.tg.conf{color:#2d4a7a}.tg.spore{color:#4a6a2a}.tg.food{color:#8a6014}.tg.leaf{color:#777}
-.inv .bs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.inv .bs button{position:relative;font-size:12.5px;font-weight:800;border:2px solid var(--ol);border-radius:3px 10px 10px 3px;padding:4px 10px 4px 17px;cursor:pointer;background:#fbf3de;color:var(--ol);box-shadow:0 2px 0 var(--ol)}
-.inv .bs button::before{content:"";position:absolute;left:5px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:var(--paper2);border:1.5px solid var(--ol)}
-.inv .bs button:active{transform:translateY(2px);box-shadow:none}
-.inv .bs button.enoch{background:#dbe8d6}.inv .bs button.kane{background:#d8def0}.inv .bs button.helga{background:#f0dcc8}.inv .bs button.momo{background:#e3f0cc}.inv .bs button.dora{background:#f5e6c2}
-.nobuy{color:var(--pmute);font-size:12.5px}
-.emptyInv{color:#cdb48a;font-size:14px;padding:20px 0;text-align:center}
-.momoBox{display:grid;grid-template-columns:80px 1fr;gap:10px;align-items:center;background:var(--tex),#e3eccf;color:#23401b;border:2px solid var(--ol);border-radius:7px;padding:8px;box-shadow:0 3px 0 var(--ol)}
-.momoBox .pp{width:80px;height:96px;background:#cfdcb5;border:2px solid #9fb884;border-radius:6px;line-height:0}
-.momoBox b{color:var(--ol)}.momoSub{font-size:12.5px;color:#4a6a3a}
-.xp{height:10px;background:#0e0a07;border:2px solid var(--ol);border-radius:6px;overflow:hidden;margin-top:5px}.xp i{display:block;height:100%;background:#8fd66a}
-.inv2{display:flex;flex-direction:column;gap:8px}
-.inv2 button{font-size:13.5px;font-weight:800;border:2px solid var(--ol);background:var(--tex),#f3e9d2;color:var(--ol);border-radius:4px;padding:8px 10px;cursor:pointer;text-align:left;box-shadow:0 3px 0 var(--ol)}
-.inv2 button small{color:var(--pmute);font-weight:500}
-.inv2 button:disabled{opacity:.5;cursor:default;box-shadow:0 1px 0 var(--ol);transform:translateY(2px)}
-.rent{position:relative;margin-top:14px;background:var(--tex),#f3e3c8;border:2px solid var(--ol);border-radius:4px;padding:12px 12px 10px;font-size:13.5px;color:var(--paper-ink);line-height:1.6;box-shadow:0 3px 0 var(--ol);transform:rotate(.6deg)}
-.rent::before{content:"";position:absolute;top:-7px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:#c9493a;border:2px solid var(--ol)}
-.rent b{color:var(--inkred)}
-#toNight{font-size:17px;padding:12px}
-.dark{display:none}
-.person svg{filter:brightness(.42) saturate(.7);transition:filter .3s}
-.win.lit .person svg{filter:brightness(.52) saturate(.8)}
-.win.lit{cursor:crosshair;touch-action:none}
-.loupe{position:absolute;z-index:4;width:150px;height:150px;border-radius:50%;overflow:hidden;border:4px solid #cda65f;box-shadow:0 0 0 2.5px var(--ol),0 8px 24px #000c;pointer-events:none;background:#2a1d12;transform:translate(-50%,-50%)}
-.loupe .lin{position:absolute;line-height:0}.loupe .lin svg{display:block}
-.oilG i{background:linear-gradient(90deg,#f2c14e,#ffdf8a)}
-/* 아날로그 필터: 입자·색감·비네트. 돋보기 자리는 뚫는다 */
-.film{position:fixed;inset:0;pointer-events:none;z-index:95;-webkit-mask-image:radial-gradient(circle at var(--lx,-600px) var(--ly,-600px),#0000 var(--lr,0px),#000 calc(var(--lr,0px) + 3px));mask-image:radial-gradient(circle at var(--lx,-600px) var(--ly,-600px),#0000 var(--lr,0px),#000 calc(var(--lr,0px) + 3px))}
-.film-grain{background-image:var(--grain);mix-blend-mode:overlay;opacity:.42;animation:grain .5s steps(1) infinite}
-@keyframes grain{0%{background-position:0 0}25%{background-position:-37px 51px}50%{background-position:63px -18px}75%{background-position:-12px -77px}100%{background-position:29px 88px}}
-.film-tone{background:#ffae5c;mix-blend-mode:soft-light;opacity:.13}
-.film-lift{background:#1c120c;mix-blend-mode:lighten;opacity:.38}
-.film-vig{background:radial-gradient(ellipse 85% 80% at 50% 46%,#0000 58%,#0a0503a8 100%);animation:vflk 2.4s steps(1) infinite}
-@keyframes vflk{0%{opacity:1}30%{opacity:.93}55%{opacity:1}80%{opacity:.96}}
-.overlay:not([hidden])~.film-grain{opacity:.28}
-body.nofilm .film{display:none}
-@media (prefers-reduced-motion:reduce){.film-grain,.film-vig{animation:none}}
+.rep li{padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px;color:#d6d1c4;display:grid;grid-template-columns:22px 1fr;gap:6px;line-height:1.5}
+.rep .ic{font-weight:900}.rep .ic.ok{color:#8fd6a3}.rep .ic.bad{color:#f19a8b}.rep .ic.q{color:#c9c3f0}
+.tag2{font-size:11px;padding:1px 7px;border-radius:6px;margin-left:6px;background:#333;color:#fff}
+.tag2.good{background:#2f5a3a}.tag2.ok{background:#6a5520}.tag2.bad{background:#7a1f1a}.tag2.odd{background:#3a3a55}
+.compose{font-family:var(--ari);font-size:18px;color:#2f4f9a;line-height:1.8}
+.compose .opt{display:inline-block;border:2px dashed #2f4f9a77;border-radius:6px;padding:0 10px;margin:3px 4px;cursor:pointer;font-family:var(--ari);font-size:17px;background:transparent;color:#2f4f9a}
+.compose .opt.sel{background:#2f4f9a;color:#fff;border-style:solid}
+.q{margin:10px 0}.q label{margin-right:12px;display:inline-block}.q textarea{width:100%;height:54px;background:#101216;color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:8px;font-family:var(--kr)}
+.sum{display:flex;gap:10px;margin:10px 0 4px;flex-wrap:wrap}.sum div{background:var(--panel2);border-radius:6px;padding:8px 14px;text-align:center;font-size:12px;color:var(--mute)}.sum b{display:block;font-size:20px;color:var(--ink)}
+.office{display:grid;grid-template-columns:minmax(250px,300px) minmax(0,1fr) minmax(270px,320px);gap:14px;padding:12px 16px;height:calc(100vh - 52px)}
+.ocol{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow:auto;min-height:0}
+.ocol h3{font-size:12px;letter-spacing:.12em;color:var(--gold);margin:4px 0 8px}
+.vis{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:8px 0}
+.vis .pp{width:64px;height:76px;background:#2a2622;border-radius:6px;overflow:hidden;line-height:0}
+.vis b{display:block;font-size:14px}.vis span{font-size:13px;color:#d6d1c4;line-height:1.5}
+.inv{display:grid;grid-template-columns:52px 1fr;gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:8px 0}
+.inv .ic{width:52px;height:52px;background:#e6dac0;border-radius:6px;line-height:0}
+.inv .nm{font-size:15px;font-weight:700}.inv .tg{font-size:11px;padding:1px 6px;border-radius:5px;margin-left:5px;background:#444}
+.tg.contra{background:#7a1f1a}.tg.conf{background:#3a4a6a}.tg.spore{background:#4a6a2a}.tg.food{background:#6a5520}.tg.leaf{background:#555}
+.inv .bs{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.inv .bs button{font-size:12.5px;border:0;border-radius:5px;padding:5px 9px;cursor:pointer;background:#3a3b42;color:#fff}
+.inv .bs button.enoch{background:#3f5a45}.inv .bs button.kane{background:#2d3a5a}.inv .bs button.helga{background:#7a4b2c}.inv .bs button.momo{background:#4a6a2a}.inv .bs button.dora{background:#6a5a3a}
+.emptyInv{color:var(--mute);font-size:14px;padding:20px 0;text-align:center}
+.momoBox{display:grid;grid-template-columns:80px 1fr;gap:10px;align-items:center}
+.momoBox .pp{width:80px;height:96px;background:#1f2a1c;border-radius:8px;line-height:0}
+.xp{height:8px;background:#2a2b30;border-radius:4px;overflow:hidden;margin-top:4px}.xp i{display:block;height:100%;background:#8fd66a}
+.inv2{display:flex;flex-direction:column;gap:6px}
+.inv2 button{font-size:13.5px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:6px;padding:8px 10px;cursor:pointer;text-align:left}
+.inv2 button:disabled{opacity:.4;cursor:default}
+.rent{margin-top:12px;background:#2a2218;border:1px solid #6b4a36;border-radius:6px;padding:10px 12px;font-size:13.5px;color:#e7dcc0;line-height:1.6}
 .mtabs,#rotate,.mback,.pwStrip{display:none}
-@media (min-width:1100px) and (max-width:1499px){.lbl{display:none}.gauge{width:72px}header{gap:6px}.stat{padding:0 7px}}
-@media (min-width:1100px) and (max-width:1299px){main.night{grid-template-columns:minmax(220px,250px) minmax(0,1fr) minmax(240px,280px);gap:12px}header h1 small,.stat.dt .hi,#hMomo{display:none}.stat.dt:last-of-type{display:none}.tools button .ti,.tools kbd{display:none}.big{padding:12px 9px}.desk{gap:6px;padding:0 6px}.desk .sep{display:none}.counter{gap:14px;padding:6px 10px}.tagWrap{width:176px;height:88px}.tallyBox svg{width:300px;height:auto}}
 /* 모바일·태블릿 세로 (폭 1100px 미만) */
 @media (max-width:1099px){
  body{min-width:0}
- header{height:44px;gap:8px;padding:0 8px;overflow:hidden}
- header h1,.dt,.lbl,.lbl2,#hDayLbl,.hi[data-hi="clock"],.hi[data-hi="coin"]{display:none!important}.hi svg{width:15px;height:15px}
- .stat{font-size:11.5px;gap:4px;height:auto;padding:0;background:none;border:0;box-shadow:none}.stat b{font-size:15px}.gauge{width:44px;height:10px}
- #snd,#flt{font-size:0;padding:3px 5px}#snd::after{content:"소리";font-size:11.5px}#flt::after{content:"필터";font-size:11.5px}
+ header{height:44px;gap:10px;padding:0 10px;overflow:hidden}
+ header h1,.dt,.lbl{display:none!important}
+ .stat{font-size:11.5px;gap:4px}.stat b{font-size:15px}.gauge{width:56px;height:8px}
+ #snd{font-size:11.5px;padding:2px 6px}
  main.night{display:flex;flex-direction:column;height:calc(100vh - 44px);height:calc(100dvh - 44px);padding:6px 6px 0;gap:0}
  .left{display:contents}
  .stage{flex:1;min-height:0}
@@ -267,13 +194,13 @@ body.nofilm .film{display:none}
  .shadow{transform:translateX(-50%) translate(-30vw,-18px) scale(.9) skewX(-8deg)}.shadow.s2{transform:translateX(-50%) translate(30vw,-16px) scale(.9) skewX(8deg)}
  .bellMark{left:14%;bottom:14px}
  .bubble{font-size:13.5px;padding:7px 11px;top:8px;max-width:calc(100% - 136px);left:auto;right:8px;transform:none;text-align:left}
- .bubble::after{left:auto;right:28px}.bubble::before{left:auto;right:25.5px}
+ .bubble::after{left:auto;right:28px}
  .bubble.sys{max-width:calc(100% - 136px)}
  .bubble.momo{font-size:12.5px;bottom:8px;left:8px;right:auto;max-width:76%}
  .tray{right:6px;bottom:6px;padding:5px 7px;font-size:11.5px;gap:5px}.tray svg{width:30px;height:30px}.tray b{font-size:12.5px}.tray small{font-size:10.5px}
  .knock{font-size:32px}.stamp{font-size:26px;padding:3px 12px;border-width:4px}.shutter .hint{font-size:11.5px;padding:0 10px}
- .pwStrip{display:block;flex:none;background:#f6e7a6;color:var(--ol);font-size:12px;padding:4px 10px;text-align:center;border-top:2px solid var(--ol);border-bottom:2px solid var(--ol)}
- .pwStrip b{color:var(--inkred)}
+ .pwStrip{display:block;flex:none;background:#2a221a;color:#f2e6cc;font-size:12px;padding:4px 10px;text-align:center;border-top:2px solid #6b4a36}
+ .pwStrip b{color:#ffd48a}
  .counter{height:auto;padding:6px 8px;gap:8px;justify-content:space-between;border-top:0}
  .counter .none{font-size:12px;text-align:center;width:100%;padding:18px 0}
  .counter>div:last-child{flex:1;min-width:0}
@@ -289,13 +216,12 @@ body.nofilm .film{display:none}
  .desk kbd,.sep{display:none}
  .tools{grid-template-columns:repeat(4,1fr);width:100%;gap:4px}.tools button{font-size:11.5px;padding:9px 2px}
  .big{font-size:15.5px;padding:12px 4px;flex:1;min-width:0}
- .desk .stampB{margin-top:10px}
  .vb small{font-size:10px}
  .desk>div:first-child:not(.tools){flex-basis:100%;text-align:left!important;margin:0!important}
- .mtabs{display:flex;gap:6px;padding:6px 0 6px;position:relative;z-index:27;background:var(--bg)}
- .mtabs button{flex:1;font-size:14px;font-weight:800;border:2px solid var(--ol);background:var(--wood),linear-gradient(#58392a,#402a1c);color:var(--ink);border-radius:8px;padding:10px 6px;box-shadow:0 3px 0 var(--ol)}
+ .mtabs{display:flex;gap:6px;padding:6px 0;position:relative;z-index:27;background:var(--bg)}
+ .mtabs button{flex:1;font-size:14px;font-weight:700;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:10px 6px}
  .mtabs i{display:none;width:8px;height:8px;border-radius:50%;background:#e0503f;margin-left:5px;vertical-align:middle}.mtabs i.on{display:inline-block}
- .mtabs b{color:var(--brass-hi);font-weight:800}
+ .mtabs b{color:var(--gold);font-weight:700}
  .mback:not([hidden]){display:block;position:fixed;inset:0;background:#0009;z-index:24}
  .reg{position:fixed;top:57px;left:19px;width:108px;padding:4px 5px 5px;z-index:8;border-radius:6px;box-shadow:0 4px 14px #000a;cursor:pointer}
  .reg h3,.reg .rc,.reg .fl,.reg .memo,.reg .wallBell,.reg>.cardRow{display:none}
@@ -309,23 +235,20 @@ body.nofilm .film{display:none}
  .reg.full{width:min(310px,88vw);padding:10px 12px}.reg.full h3,.reg.full .rc,.reg.full .fl,.reg.full .memo,.reg.full>.cardRow{display:block}
  .reg.full .top{display:grid;grid-template-columns:96px 1fr}.reg.full .nm{text-align:left;font-size:16px}.reg.full .cardRow{grid-template-columns:40px 1fr;text-align:left;font-size:12px}.reg.full .cardRow>span:first-child{display:inline}
  .stampMark{font-size:10px;top:6px;right:4px;border-width:2px;padding:1px 4px}
- .dep,.book{position:fixed;left:0;right:0;bottom:0;max-height:74vh;max-height:74dvh;z-index:25;border-radius:14px 14px 0 0;transform:translateY(105%);transition:transform .25s ease;overflow:auto;padding-bottom:64px;border:0;border-top:2.5px solid var(--ol);box-shadow:0 -8px 24px #000a}
+ .dep,.book{position:fixed;left:0;right:0;bottom:0;max-height:74vh;max-height:74dvh;z-index:25;border-radius:14px 14px 0 0;transform:translateY(105%);transition:transform .25s ease;overflow:auto;padding-bottom:64px;border:0}
  .dep.open,.book.open{transform:none}
  .toast{top:4px;font-size:13px;width:94vw;padding:8px 10px;box-shadow:0 4px 14px #000c}
  .overlay{padding:8px}
  .card{width:100%;padding:16px;max-height:90vh;max-height:90dvh;line-height:1.65}
  .card h2{font-size:19px}.card>ul{font-size:13.5px;margin-left:16px}.card p{font-size:14px}
- .news{grid-template-columns:1fr;justify-items:center;gap:10px}.news .pic{width:128px;height:152px;border-width:4px}.news .pic svg{width:120px;height:144px}.news .pic>div{height:144px!important}.news .hl{font-size:16px}
+ .news{grid-template-columns:1fr;justify-items:center;gap:10px}.news .pic{width:120px;height:144px}.news .pic svg{width:120px;height:144px}.news .pic>div{height:144px!important}.news .hl{font-size:16px}
  .gbig .gauge{width:120px}.calc{font-size:13px}.sum div{padding:6px 10px}.sum b{font-size:17px}
  .compose .opt{display:block;margin:6px 0}
  .office{display:flex;flex-direction:column;height:calc(100vh - 44px);height:calc(100dvh - 44px);overflow:auto;padding:8px;gap:8px}
  .ocol{overflow:visible;flex:none}
- #storage{grid-template-columns:1fr}
- #visitors{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.vis{grid-template-columns:44px 1fr;gap:8px;padding:6px}.vis .pp{width:44px;height:53px}.vis .pp svg{width:100%;height:100%}.vis span{font-size:12px}
+ #visitors{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.vis{grid-template-columns:44px 1fr;gap:8px;padding:6px 0}.vis .pp{width:44px;height:53px}.vis .pp svg{width:44px;height:53px}.vis span{font-size:12px}
  #toNight{position:sticky;bottom:6px;z-index:3;box-shadow:0 6px 20px #000c}
 }
-@media (max-width:1099px){.loupe{width:122px;height:122px}}
-@media (max-width:400px){header{gap:5px}.gauge{width:34px}.of5{display:none}}
 @media (min-width:700px) and (max-width:1099px){.reg{width:130px}.reg .ph{width:118px;height:142px}.person svg,.shadow svg{height:min(40vh,420px)}.tagWrap{width:200px;height:96px}.tag .no{font-size:20px}.tallyBox svg{max-width:330px}}
 @media (max-width:1099px) and (orientation:landscape) and (max-height:520px){#rotate{display:grid;position:fixed;inset:0;z-index:100;place-items:center;background:var(--bg);color:var(--ink);font-size:17px;text-align:center;padding:20px}}
 @media (min-width:1100px) and (max-height:800px){.person svg,.shadow svg{height:min(46vh,290px)}.counter{height:122px}.desk{height:88px}.big{font-size:16px;padding:11px 16px}.reg .ph{width:92px;height:110px}.reg .top{grid-template-columns:92px 1fr}}
@@ -337,17 +260,16 @@ body.nofilm .film{display:none}
 <body>
 <header>
   <h1>무사귀환 <small id="hChap">프롤로그</small></h1>
-  <span class="stat"><i class="hi" id="hiDay"></i><span id="hDayLbl">밤</span><b id="hNight">1</b><span class="of5">/ 5</span></span>
-  <span class="stat" id="hClockW"><i class="hi" data-hi="clock"></i><span class="lbl">창구 마감까지</span><b id="hClock">4:00</b></span>
+  <span class="stat"><span id="hDayLbl">밤</span><b id="hNight">1</b>/ 5</span>
+  <span class="stat" id="hClockW"><span class="lbl">창구 마감까지</span><b id="hClock">4:00</b></span>
   <span class="sp"></span>
-  <span class="stat gold"><i class="hi" data-hi="coin"></i><span class="lbl">자금</span><b id="hMoney">25</b>G</span>
-  <span class="stat"><i class="hi" data-hi="contam"></i><span class="lbl2">오염</span><span class="gauge"><i id="hBar"></i></span><b id="hContam">0</b></span>
-  <span class="stat dt"><i class="hi" data-hi="iso"></i>격리실<b id="hIso">0/2</b></span>
-  <span class="stat dt"><i class="hi" data-hi="bed"></i>침대<b id="hBed">0/2</b></span>
-  <span class="stat r dt"><i class="hi" data-hi="warn"></i>경고<b id="hWarn">0</b></span>
-  <span class="stat" id="hOilW"><i class="hi" data-hi="oil"></i><span class="lbl2">기름</span><span class="gauge oilG"><i id="hOil"></i></span></span>
+  <span class="stat gold"><span class="lbl">자금</span><b id="hMoney">25</b>G</span>
+  <span class="stat">오염<span class="gauge"><i id="hBar"></i></span><b id="hContam">0</b></span>
+  <span class="stat dt">격리실<b id="hIso">0/2</b></span>
+  <span class="stat dt">침대<b id="hBed">0/2</b></span>
+  <span class="stat r">경고<b id="hWarn">0</b></span>
   <span class="stat dt">모모<span class="momoMini" id="hMomo"></span></span>
-  <button id="snd">소리 켜짐</button><button id="flt">필터 켜짐</button>
+  <button id="snd">소리 켜짐</button>
 </header>
 <main class="night" id="nightView">
   <aside class="left"><div class="reg" id="reg"></div><div class="dep" id="dep"></div></aside>
@@ -356,8 +278,6 @@ body.nofilm .film{display:none}
       <div class="door"></div><div class="door r"></div><div class="lampL"></div><div class="wall"></div>
       <div class="shadow" id="shadow"></div><div class="shadow s2" id="shadow2"></div>
       <div class="person" id="person"></div>
-      <div class="dark" id="dark"></div>
-      <div class="loupe" id="loupe" hidden><div class="lin" id="loupeIn"></div></div>
       <div class="bellMark" id="bellMark" hidden></div>
       <div class="bubble" id="bubble" hidden></div>
       <div class="bubble momo" id="momoSay" hidden></div>
@@ -381,12 +301,9 @@ body.nofilm .film{display:none}
 <div class="mback" id="mback" hidden></div>
 <div id="rotate">휴대폰을 세로로 돌려 주세요.<br><span style="color:var(--mute);font-size:14px">이 화면은 세로 모드용입니다.</span></div>
 <div class="overlay" id="ov" hidden><div class="card" id="ovCard"></div></div>
-<div class="film film-grain"></div><div class="film film-tone"></div><div class="film film-lift"></div><div class="film film-vig"></div>
-<script src="art/characters.js"></script>
-<script src="art/ui_icons.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-const K='#382c2b';
+const K='#1b1b1b';
 const FL={B1:'B1 웃자란 정원',B2:'B2 붉은 달의 황야'};
 const VN={pass:'통과',treat:'치료소',iso:'격리',ignore:'모른 척',open:'창구를 열었다',missed:'못 봄'};
 const GN={good:'잘 됨',ok:'그럭저럭',bad:'나쁨',odd:'?'};
@@ -418,7 +335,6 @@ const C={
  enoch:{name:'에녹',skin:'#e9cdb0',hair:'#8a8f99',style:'long',part:'R',glasses:1,item:'box',side:'R',outfit:'#3f5a45',eye:'#555'},
 };
 
-Object.keys(C).forEach(k=>C[k].id=k);delete C.bor.scarEye;delete C.pipi.scar;delete C.pipi.freckle;
 // ───────── 그림 ─────────
 const mush=(x,y,r)=>`<rect x="${x-r*.28}" y="${y}" width="${r*.56}" height="${r*.9}" rx="2" fill="#efe6d2" stroke="${K}" stroke-width="2"/><path d="M${x-r} ${y+2} C${x-r} ${y-r*1.15} ${x+r} ${y-r*1.15} ${x+r} ${y+2}Z" fill="#c8452f" stroke="${K}" stroke-width="2.2"/><circle cx="${x-r*.4}" cy="${y-r*.35}" r="${r*.16}" fill="#fff"/><circle cx="${x+r*.3}" cy="${y-r*.52}" r="${r*.13}" fill="#fff"/>`;
 const mossBlob=pts=>`<g stroke="#3d5a1f" stroke-width="2" fill="#6f9a3c">${pts.map(([x,y,a,b])=>`<ellipse cx="${x}" cy="${y}" rx="${a}" ry="${b}"/>`).join('')}</g><g fill="#a9cf5a">${pts.map(([x,y])=>`<circle cx="${x-4}" cy="${y-2}" r="2.2"/><circle cx="${x+5}" cy="${y+1}" r="1.8"/>`).join('')}</g>`;
@@ -434,7 +350,7 @@ function eyes(c,o){
   if(o.blank)return `<circle cx="84" cy="117" r="3.6" fill="${K}"/><circle cx="116" cy="117" r="3.6" fill="${K}"/><path d="M77 112 h14 M109 112 h14" stroke="${K}" stroke-width="2.5"/>`;
   if(o.sandEyes)return `<circle cx="84" cy="116" r="6" fill="#c8322a" stroke="${K}" stroke-width="1.5"/><circle cx="116" cy="116" r="6" fill="#c8322a" stroke="${K}" stroke-width="1.5"/><circle cx="84" cy="116" r="2" fill="${K}"/><circle cx="116" cy="116" r="2" fill="${K}"/><g fill="#d8542a"><circle cx="76" cy="124" r="1.4"/><circle cx="92" cy="126" r="1.2"/><circle cx="110" cy="125" r="1.3"/><circle cx="125" cy="123" r="1.4"/></g>`;
   const col=o.eye||c.eye||'#333';
-  return [84,116].map(x=>`<circle cx="${x}" cy="116" r="7" fill="#fff" stroke="${K}" stroke-width="1.6"/><circle cx="${x}" cy="116.5" r="5.4" fill="${col}"/>${o.pupil==='slit'?`<ellipse cx="${x}" cy="116.5" rx="1" ry="3.8" fill="#111"/>`:`<circle cx="${x}" cy="116.5" r="2.1" fill="#111"/>`}<circle cx="${x+1.6}" cy="114.6" r="1.2" fill="#fff"/>`).join('');
+  return [84,116].map(x=>`<circle cx="${x}" cy="116" r="7" fill="#fff" stroke="${K}" stroke-width="1.6"/><circle cx="${x}" cy="116.5" r="5.4" fill="${col}"/><circle cx="${x}" cy="116.5" r="2.1" fill="#111"/><circle cx="${x+1.6}" cy="114.6" r="1.2" fill="#fff"/>`).join('');
 }
 function head(c,o){
   let s=`<ellipse cx="100" cy="112" rx="42" ry="46" fill="${c.skin}" stroke="${K}" stroke-width="3"/>`;
@@ -472,7 +388,7 @@ function frontHair(c){
   if(c.style==='long'){const p=c.part==='L'?'M60 104 C48 150 50 196 62 226 L86 226 C80 196 76 150 78 118Z':'M140 104 C152 150 150 196 138 226 L114 226 C120 196 124 150 122 118Z';return cap+part+`<path d="${p}" fill="${H}" stroke="${K}" stroke-width="3"/>`;}
   if(c.style==='bald')return `<path d="M58 114 C56 98 62 90 70 88 L68 114Z" fill="${H}" stroke="${K}" stroke-width="2.5"/><path d="M142 114 C144 98 138 90 130 88 L132 114Z" fill="${H}" stroke="${K}" stroke-width="2.5"/><ellipse cx="86" cy="78" rx="10" ry="5" fill="#ffffff55"/>`;
   if(c.style==='braids'){let s='';[-1,1].forEach(sd=>{for(let j=0;j<6;j++)s+=`<circle cx="${100+sd*(40+j*.6)}" cy="${128+j*14}" r="9" fill="${H}" stroke="${K}" stroke-width="2.5"/>`;});
-    {const rx=c.ribbonSide==='R'?140:60;s+=`<path d="M${rx-8} 212 l-12 -8 v16Z M${rx+8} 212 l12 -8 v16Z" fill="${c.ribbonC}" stroke="${K}" stroke-width="2"/><circle cx="${rx}" cy="212" r="4" fill="${c.ribbonC}" stroke="${K}" stroke-width="2"/>`;}return s+cap+part;}
+    s+=`<path d="M52 212 l-12 -8 v16Z M68 212 l12 -8 v16Z" fill="${c.ribbonC}" stroke="${K}" stroke-width="2"/><circle cx="60" cy="212" r="4" fill="${c.ribbonC}" stroke="${K}" stroke-width="2"/>`;return s+cap+part;}
   if(c.style==='bob')return `<path d="M58 106 C54 124 56 140 62 146 L72 146 C68 134 66 118 68 104Z" fill="${H}" stroke="${K}" stroke-width="2.5"/><path d="M142 106 C146 124 144 140 138 146 L128 146 C132 134 134 118 132 104Z" fill="${H}" stroke="${K}" stroke-width="2.5"/>`+cap;
   if(c.style==='short')return `<path d="M58 106 C52 60 148 60 142 106 C136 92 120 86 100 86 C80 86 64 92 58 106Z" fill="${H}" stroke="${K}" stroke-width="3"/>`;
   return cap+part;
@@ -504,31 +420,6 @@ function overlays(o,c){
   if(o.mud)s+=`<g fill="#5e4028" opacity=".9"><circle cx="66" cy="214" r="8"/><circle cx="74" cy="228" r="4"/><circle cx="128" cy="228" r="10"/><circle cx="142" cy="212" r="5"/><circle cx="96" cy="234" r="6"/></g>`;
   return s;
 }
-const FEAT={bor:{scarV:{side:'L'},beardKnots:3,earring:{side:'R',type:'ring'}},pipi:{scarX:{side:'R'},earring:{side:'L',type:'feather'},toothGap:true,freckles:3},helga:{tusks:true,browScar:{side:'L'},necklace:'bone'},sere:{hairDrape:{side:'L'},mole:{side:'R',pos:'underEye'},circlet:true},mumy:{helmetDent:{side:'L'},plume:{side:'R',color:'#a8322a'},skullCrack:{side:'R'}},ren:{glassesCrack:{side:'L'},hatTilt:'L',hatPatch:'star'},dudu:{ribbon:{side:'L',color:'#3f6fd8'},bandaid:'nose',freckles:2},lulu:{ribbon:{side:'R',color:'#e0609a'},mole:{side:'L',pos:'cheek'},cowlick:true}};
-const FEATTXT={bor:['왼눈 세로 흉터','수염 매듭 셋','오른쪽 귀 금고리'],pipi:['오른뺨 X자 흉터','왼쪽 귀 깃털 귀걸이','앞니 하나 빠짐','주근깨 셋씩'],helga:['송곳니 둘','왼눈썹 흉터','뼈 목걸이'],sere:['왼쪽으로 늘어뜨린 머리','오른눈 밑 점','은 서클릿'],mumy:['투구 왼쪽 찌그러짐','붉은 깃털 오른쪽','이마 오른쪽 금'],ren:['왼쪽 안경알 금','모자 왼쪽으로 기움','모자 별 패치'],dudu:['파란 리본 왼쪽','코 반창고','주근깨 둘씩'],lulu:['분홍 리본 오른쪽','왼뺨 점','앞머리 삐침']};
-const FLABEL={scarV:'흉터',scarX:'흉터',browScar:'눈썹 흉터',earring:'귀걸이',mole:'점',toothGap:'앞니',freckles:'주근깨',beardKnots:'수염 매듭',necklace:'목걸이',circlet:'서클릿',hairDrape:'머리 방향',glassesCrack:'안경의 금',hatTilt:'모자 기울기',hatPatch:'모자 패치',ribbon:'리본',bandaid:'반창고',cowlick:'앞머리',helmetDent:'투구 찌그러짐',plume:'깃털',skullCrack:'이마의 금',tusks:'송곳니'};
-function featOf(id,o){const b=FEAT[id]||{},f={...b},ov=(o&&o.f)||{};Object.keys(ov).forEach(k=>{const v=ov[k];f[k]=(v&&typeof v==='object'&&b[k]&&typeof b[k]==='object')?{...b[k],...v}:v;});return f;}
-function legacyFeat(c,o){
-  const f=c.feat||{},R=[];
-  if(c.skull){if(f.skullCrack){const x=f.skullCrack.side==='L'?88:112;R.push(`<path d="M${x} 84 l-3 5 l4 4 l-3 6" stroke="${K}" stroke-width="1.8" fill="none"/>`);}return R.join('');}
-  if(f.scarV){const x=f.scarV.side==='L'?84:116;R.push(`<path d="M${x-4} 97 l8 32" stroke="#9b3a2e" stroke-width="3" stroke-linecap="round"/>`);}
-  if(f.scarX){const x=f.scarX.side==='L'?72:128;R.push(`<path d="M${x-6} 122 l12 12 M${x+6} 122 l-12 12" stroke="#b3261e" stroke-width="2.8" stroke-linecap="round"/>`);}
-  if(f.browScar){const L=f.browScar.side==='L',x=L?82:118;R.push(`<rect x="${x-1.8}" y="94" width="3.6" height="9" fill="${c.skin}"/><path d="M${x} 92 l0 13" stroke="#9b3a2e" stroke-width="1.6"/>`);}
-  if(f.freckles){const pts=[[74,128],[79,131],[71,133],[77,136]].slice(0,f.freckles);R.push(`<g fill="#b9774f" opacity=".8">${pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.5"/><circle cx="${200-x}" cy="${y}" r="1.5"/>`).join('')}</g>`);}
-  if(f.mole){const m=f.mole,L=m.side==='L',p=m.pos==='underEye'?[L?84:116,127]:[L?72:128,134];R.push(`<circle cx="${p[0]}" cy="${p[1]}" r="2.2" fill="#3a2418"/>`);}
-  if(f.toothGap!==undefined){R.push(`<path d="M91 136 q9 9 18 0Z" fill="#6b2a24" stroke="${K}" stroke-width="1.5"/><rect x="95" y="136" width="10" height="3.4" fill="#fff"/>${f.toothGap?'<rect x="99" y="136" width="2.2" height="3.4" fill="#6b2a24"/>':''}`);}
-  if(f.earring){const L=f.earring.side==='L',x=L?57:143;R.push(f.earring.type==='feather'?`<path d="M${x} 128 q${L?-5:5} 9 ${L?-2:2} 18 q${L?4:-4} -8 ${L?2:-2} -18Z" fill="#6fa3c9" stroke="${K}" stroke-width="1.4"/><circle cx="${x}" cy="128" r="1.8" fill="#d9b46c"/>`:`<circle cx="${x}" cy="131" r="4" fill="none" stroke="#d9b02a" stroke-width="2.2"/>`);}
-  if(f.beardKnots){const pts=[[92,166],[100,176],[108,166],[100,186]].slice(0,f.beardKnots);R.push(pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.2" fill="none" stroke="#c9a23a" stroke-width="2"/>`).join(''));}
-  if(f.necklace==='bone')R.push(`<path d="M84 172 Q100 188 116 172" stroke="#6b4a2e" stroke-width="1.6" fill="none"/>${[[90,180],[100,184],[110,180]].map(([x,y])=>`<path d="M${x-4} ${y} h8" stroke="#efe6d0" stroke-width="3" stroke-linecap="round"/>`).join('')}`);
-  if(f.circlet)R.push(`<path d="M64 90 Q100 78 136 90" stroke="#cfd4da" stroke-width="3.5" fill="none"/><circle cx="100" cy="83" r="3.4" fill="#8a5ec9" stroke="${K}" stroke-width="1.2"/>`);
-  if(f.glassesCrack){const x=f.glassesCrack.side==='L'?84:116;R.push(`<path d="M${x-6} 110 l5 6 l-2 4 l6 5" stroke="#eef" stroke-width="1.3" fill="none"/>`);}
-  if(f.hatPatch==='star')R.push(`<path d="M104 50 l2.4 5 5.4.6-4 3.6 1.2 5.3-5-2.8-5 2.8 1.2-5.3-4-3.6 5.4-.6Z" fill="#d9b46c" stroke="${K}" stroke-width="1"/>`);
-  if(f.bandaid)R.push(`<rect x="94" y="121" width="12" height="5" rx="2" fill="#e8c08a" stroke="${K}" stroke-width="1" transform="rotate(-12 100 123)"/>`);
-  if(f.cowlick)R.push(`<path d="M104 66 q6 -14 -2 -20 q10 6 6 20Z" fill="${c.hair}" stroke="${K}" stroke-width="2"/>`);
-  if(o.stitch)R.push(`<path d="M87 162 H113" stroke="#5a2a2a" stroke-width="1.2"/><path d="M90 159 v6 M95 159 v6 M100 159 v6 M105 159 v6 M110 159 v6" stroke="#5a2a2a" stroke-width="1"/>`);
-  return R.join('');
-}
-function legacyShadowExtra(o){const t=o.shadowShape;if(t==='horns')return `<path d="M72 78 C60 50 64 36 74 28 C72 44 78 58 86 70Z M128 78 C140 50 136 36 126 28 C128 44 122 58 114 70Z" fill="#000"/>`;if(t==='tail')return `<path d="M168 238 C196 214 198 176 178 160 C192 184 184 212 160 232Z" fill="#000"/>`;if(t==='arm')return `<path d="M150 190 C176 168 190 150 196 120 L186 116 C178 146 164 164 140 182Z" fill="#000"/>`;return '';}
 function frontSvg(c,o){
   const skin=c.skull?'#e9e6dc':c.skin;
   let s=`<path d="M20 240 C22 196 56 174 100 172 C144 174 178 196 180 240Z" fill="${c.outfit}" stroke="${K}" stroke-width="3"/>`;
@@ -539,7 +430,6 @@ function frontSvg(c,o){
   if(!c.skull)s+=frontHair(c);
   if(c.hat)s+=hat(c,false);if(c.cap)s+=capHat();
   if(c.beard)s+=beard(c);
-  s+=legacyFeat(c,o);
   return s+item(c,skin)+overlays(o,c);
 }
 function backSvg(c,o){
@@ -568,26 +458,18 @@ function backSvg(c,o){
 }
 function voidSvg(){return `<path d="M34 240 C36 200 64 184 100 182 C136 184 164 200 166 240Z" fill="#26262b" stroke="${K}" stroke-width="3"/><path d="M90 130 L90 186 L110 186 L110 130Z" fill="#d6d3cc" stroke="${K}" stroke-width="3"/><ellipse cx="100" cy="100" rx="40" ry="50" fill="#dcd9d2" stroke="${K}" stroke-width="3"/><ellipse cx="84" cy="96" rx="10" ry="15" fill="#050505"/><ellipse cx="116" cy="96" rx="10" ry="15" fill="#050505"/><path d="M64 120 Q100 164 136 120 Q100 142 64 120Z" fill="#1a0a0a" stroke="${K}" stroke-width="2.5"/><path d="M74 126 l2 6 M82 131 l1 7 M90 134 l1 7 M100 135 v7 M110 134 l-1 7 M118 131 l-1 7 M126 126 l-2 6" stroke="#eee" stroke-width="2"/>`;}
 function hoodSvg(){return `<circle cx="164" cy="56" r="34" fill="#ffcf6a26"/><path d="M164 18 L164 240" stroke="#5b4632" stroke-width="7"/><rect x="152" y="40" width="24" height="32" rx="4" fill="#ffcf6a" stroke="${K}" stroke-width="3"/><path d="M22 240 C26 186 50 160 62 104 C68 46 132 46 138 104 C150 160 174 186 178 240Z" fill="#2a2522" stroke="${K}" stroke-width="3"/><path d="M72 100 C74 70 126 70 128 100 L128 132 C120 152 80 152 72 132Z" fill="#0c0b0a"/><path d="M84 136 Q100 150 116 136 L116 142 Q100 156 84 142Z" fill="#c9a488"/><path d="M104 138 l6 10" stroke="#9b3a2e" stroke-width="2.5"/><path d="M80 96 l-5 30 M86 94 l-3 26" stroke="#d8d8de" stroke-width="2.5" stroke-linecap="round"/>`;}
-const UI=window.UI_ART||null;
-const uiCall=(f,...a)=>{if(UI&&UI[f]){try{return UI[f](...a)||'';}catch(e){console.warn('UI_ART',e);}}return '';};
-function momoSvg(lv){const u=uiCall('momo',lv);return u||legacyMomo(lv);}
-function legacyMomo(lv){
+function momoSvg(lv){
   const sk=lv>=2?'#dff0c8':'#e4e4dc',hair=lv>=2?'#5f9a3c':'#8a9a7a',spots=lv>=2?'':`<circle cx="36" cy="54" r="4" fill="#9a9a94" opacity=".6"/><circle cx="64" cy="60" r="3" fill="#9a9a94" opacity=".6"/>`;
   return `<path d="M36 100 l-6 18 M50 104 v16 M64 100 l6 18" stroke="#6b4a2e" stroke-width="3" stroke-linecap="round"/><path d="M32 96 C32 80 68 80 68 96 L64 112 L36 112Z" fill="#6f8a4a" stroke="${K}" stroke-width="2.5"/><circle cx="50" cy="52" r="24" fill="${sk}" stroke="${K}" stroke-width="2.5"/><path d="M26 50 C24 24 76 24 74 50 C66 38 56 36 50 40 C44 36 34 38 26 50Z" fill="${hair}" stroke="${K}" stroke-width="2.5"/><path d="M50 30 C48 18 54 10 60 8 C60 16 56 22 50 30Z" fill="#8fd66a" stroke="${K}" stroke-width="2"/>${lv>=2?`<circle cx="30" cy="40" r="6" fill="#f2a6c8" stroke="${K}" stroke-width="1.5"/><circle cx="30" cy="40" r="2" fill="#f2c14e"/>`:''}<circle cx="42" cy="54" r="3.4" fill="${K}"/><circle cx="58" cy="54" r="3.4" fill="${K}"/><path d="M45 63 q5 4 10 0" stroke="${K}" stroke-width="2" fill="none"/>${spots}<circle cx="72" cy="86" r="6" fill="#ffcf6a" stroke="${K}" stroke-width="2"/>`;
 }
-function legacyFig(id,o={},back=false){
+function fig(id,o={},back=false){
   let s;
   if(id==='void')s=voidSvg();else if(id==='hood')s=hoodSvg();
-  else{const c0=C[id],f=featOf(id,o),c={...c0,feat:f};if(f.hairDrape)c.part=f.hairDrape.side;if(f.hatTilt)c.part=f.hatTilt;if(f.plume)c.part=f.plume.side;if(f.ribbon){c.ribbonC=f.ribbon.color;c.ribbonSide=f.ribbon.side;}s=back?backSvg(c,o):frontSvg(c,o);if(c.small)s=`<g transform="translate(20 46) scale(.8)">${s}</g>`;}
+  else{const c=C[id];s=back?backSvg(c,o):frontSvg(c,o);if(c.small)s=`<g transform="translate(20 46) scale(.8)">${s}</g>`;}
   if(o.mirror)s=`<g transform="translate(200 0) scale(-1 1)">${s}</g>`;
   return s;
 }
 const svg=(inner,w)=>`<svg width="${w}" height="${w*1.2}" viewBox="0 0 200 240">${inner}</svg>`;
-const ART=window.CHAR_ART||null;
-function fig(id,o={},back=false){if(ART&&ART.fig){try{return ART.fig(id,o,back);}catch(e){console.warn('CHAR_ART',e);}}return legacyFig(id,o,back);}
-function shadowExtra(o){if(ART&&ART.shadowExtra){try{return ART.shadowExtra(o)||'';}catch(e){}}return legacyShadowExtra(o);}
-// 카드에는 눈 색 줄이 따로 있으니 그림 쪽 설명의 눈 색 줄은 뺀다
-function featText(id){const a=ART&&ART.DATA&&ART.DATA[id]&&ART.DATA[id].featText;return a?a.filter(x=>!/^\S+ 눈빛?$/.test(x)):(FEATTXT[id]||[]);}
 const bellSvg=(w=26,col='#d9b46c')=>`<svg width="${w}" height="${w*1.15}" viewBox="0 0 40 46"><path d="M20 2 v5" stroke="${K}" stroke-width="3"/><path d="M8 32 C8 14 32 14 32 32 L35 36 H5Z" fill="${col}" stroke="${K}" stroke-width="2.5"/><circle cx="20" cy="40" r="4" fill="${col}" stroke="${K}" stroke-width="2"/></svg>`;
 function sealSvg(flip,w=44){const t=flip?'translate(40 0) scale(-1 1)':'';return `<svg width="${w}" height="${w}" viewBox="0 0 40 40"><g transform="${t}"><circle cx="20" cy="20" r="18" fill="none" stroke="#3a3f46" stroke-width="2"/><rect x="13" y="15" width="14" height="15" rx="2" fill="none" stroke="#3a3f46" stroke-width="2"/><path d="M16 12 h8 M20 8 v4" stroke="#3a3f46" stroke-width="2"/><path d="M20 27 C15 24 17 19 20 17 C21 20 25 21 24 25 C26 22 27 19 26 17" fill="#3a3f46"/></g></svg>`;}
 const yearStamp=(y,w=40)=>`<svg width="${w}" height="${w}" viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="#7a1f1a" stroke-width="2.5" stroke-dasharray="3 1.5"/><text x="20" y="25" text-anchor="middle" font-size="14" font-weight="800" fill="#7a1f1a" font-family="Pretendard Variable,sans-serif">${y}</text></svg>`;
@@ -610,8 +492,7 @@ const ITEMS={
  flower:{n:'붉은 달맞이꽃',fl:'B2',buy:6,sell:{dora:10,enoch:12}},
  lamp:{n:'오래된 등불',fl:'?',buy:0,sell:{},gift:1},
 };
-function icon(k,w=52){return uiCall('item',k,w)||legacyIcon(k,w);}
-function legacyIcon(k,w=52){
+function icon(k,w=52){
   const b={
    fur:`<ellipse cx="30" cy="34" rx="20" ry="13" fill="#8a6a4a" stroke="${K}" stroke-width="2"/><path d="M14 30 l-4 -4 M20 24 l-2 -6 M30 22 v-6 M40 24 l3 -6 M46 30 l5 -4" stroke="#5a4028" stroke-width="2.5"/>`,
    honey:`<rect x="17" y="20" width="26" height="30" rx="6" fill="#f2b33a" stroke="${K}" stroke-width="2"/><rect x="15" y="14" width="30" height="8" rx="2" fill="#a0703a" stroke="${K}" stroke-width="2"/>`,
@@ -636,8 +517,8 @@ const RULE={
  1:{ink:'m',t:'이상이 없으면 통과시키십시오. 다쳤거나 더러운 건 이상이 아닙니다.'},
  2:{ink:'m',t:'몸에 버섯이나 이끼가 자랐다면 치료소로 보내십시오. 등도 보십시오.'},
  3:{ink:'k',t:'[왕립 경계청] 인식표·부절·암구호가 길드 기록과 하나라도 다르면 격리할 것.'},
- 4:{ink:'m',t:'단골 카드의 특징·눈 색과 하나라도 다르거나, 사람에게 없을 흔적(찢어진 동공, 목의 바느질)이 있거나, 좌우가 뒤바뀐 귀환자는 격리하십시오.'},
- 5:{ink:'m',t:'등불을 비췄을 때 벽에 비친 그림자의 모양이 사람과 다르면 격리하십시오.'},
+ 4:{ink:'m',t:'좌우가 뒤바뀌었거나 눈 색이 다른 귀환자는 격리하십시오.'},
+ 5:{ink:'m',t:'등불을 비췄을 때 그림자가 늦게 따라오면 격리하십시오.'},
  6:{ink:'m',t:'짝방울을 흔들었는데 눈앞의 방울이 울리지 않으면 격리하십시오.'},
  7:{ink:'k',t:'[왕립 경계청] 붉은 모래와 거울 조각의 매입을 금한다. 발견 즉시 압수할 것.'},
  8:{ink:'m',red:1,t:'창구를 세 번 두드리면 절대 열지 마십시오.'},
@@ -658,11 +539,11 @@ const DAYS=[
   N('pipi','B1',{d:{pw:'stutter'},item:'honey'}),
   N('helga','B1',{o:{mushroom:1},item:'spore',hi:'버섯 수프 먹었는데 머리에서도 났어! 이것도 사 줄래?',ask:'정원 버섯 전골! 좀 간지럽긴 한데.',
    out:{pass:'헬가가 식당에서 포자를 뿜었다. 손님 열두 명이 밤새 재채기를 했다.',treat:'치료소에서 버섯을 뽑았다. 헬가: "이거 구워 먹어도 돼?"',iso:'격리실에 버섯이 가득 자랐다. 아침에 가 보니 헬가가 전부 먹어 치운 뒤였다.'}}),
-  N('sere','B1',{o:{f:{mole:{side:'L'}}},item:'coin',react:{iso:'…어머나.',pass:'감사해요오~ …후후.'},
-   out:{pass:'여관 사람들이 세레나데의 노래를 들었다. 음정이 정확했다. 아침, 진짜 세레나데가 정원에서 돌아와 "누가 내 방에서 잤어요오?"라고 물었다.',treat:'치료소 침대가 비어 있었다. 베개에 작은 점 하나가 묻어 있었다. 먹물이었다.',iso:'격리실 세레나데는 밤새 한 소절도 부르지 않았다. 새벽, 진짜 세레나데가 음치 노래를 부르며 돌아왔다. 점은 오른눈 밑에 있었다.'}}),
-  N('ren','B1',{o:{shadowShape:'horns'},item:'shadow',hi:'늦어서 죄송해요… 목록은 여기 있어요.',react:{iso:'…등불을 끄면 안 될까요?',pass:'감사합니다. …밝네요, 여기.'},
-   out:{pass:'여관 벽에 뿔 달린 그림자가 밤새 걸어 다녔다. 아침, 렌은 자기 그림자를 무서워했다.',treat:'치료소 등불 아래서 그림자의 뿔이 벽을 긁었다. 아침, 침대는 비어 있었다.',iso:'격리실 등불 아래서 뿔 달린 그림자가 벽 속으로 들어갔다. 진짜 렌은 새벽에 목록을 들고 돌아왔다.'}}),
-  N('dudu','B1',{d:{bell:'far'},item:'coin',react:{iso:'…루루한테 이를 거야.',pass:'이겼다. …헤헤.'},
+  N('sere','B1',{d:{tagNo:'0357'},item:'coin',react:{iso:'…어머나.',pass:'감사해요오~'},
+   out:{pass:'여관 사람들이 세레나데의 노래를 들었다. 음정이 정확했다. 아침, 진짜 세레나데가 정원에서 돌아와 "누가 내 방에서 잤어요오?"라고 물었다.',treat:'치료소 침대가 비어 있었다. 인식표 하나만 남아 있었다. 번호가 0357이었다.',iso:'격리실 세레나데는 밤새 한 소절도 부르지 않았다. 새벽, 진짜 세레나데가 음치 노래를 부르며 돌아왔다.'}}),
+  N('ren','B1',{o:{shadow:'lag'},item:'shadow',hi:'늦어서 죄송해요… 그림자가, 따라와서요.',react:{iso:'…그림자가 먼저 들어가 있을게요.'},
+   out:{pass:'여관 벽에서 렌의 그림자가 밤새 혼자 걸어 다녔다. 아침, 렌에게는 그림자가 없었다.',treat:'치료소 등불이 밤새 흔들렸다. 아침, 침대에는 그림자만 누워 있었다.',iso:'격리실 등불 아래서 그림자가 렌을 떠나 벽 속으로 들어갔다. 진짜 렌은 새벽에 그림자와 함께 돌아왔다.'}}),
+  N('dudu','B1',{d:{bell:'far'},item:'coin',react:{iso:'…루루한테 이를 거야.'},
    out:{pass:'두두가 둘이 됐다. 루루는 어느 쪽이 형인지 몰라서 울었다.',treat:'치료소 침대가 비어 있었다. 이불 속에서 방울이 하나 나왔다. 두두의 방울은 아니었다.',iso:'격리실 두두는 밤새 방울 소리를 흉내 냈다. 새벽, 진짜 두두가 방울을 딸랑이며 정원에서 돌아왔다.'}}),
   N('mumy','B1',{}),
  ]},
@@ -671,14 +552,13 @@ const DAYS=[
   N('lulu','B1',{o:{backMoss:1},item:'moss',hi:'등이 폭신폭신해요! 뭐 붙었어요?',
    out:{pass:'루루 방 벽에 이끼가 번졌다. 두두가 "내 방이 더 넓게 번질 거야!"라며 경쟁을 시작했다.',treat:'치료소에서 등의 이끼를 긁어냈다. 루루: "두두보다 빨리 나았어요!"',iso:'격리실 벽이 온통 이끼. 루루는 이끼로 두두 얼굴을 그려 놓았다.'}}),
   N('pipi','B1',{item:'sand',hi:'아리! B1 제일 안쪽에서 빨간 모래 주웠어! 예쁘지? 사 줄래?',ask:'정원 끝에 이상한 틈이 있었어. 거기서 모래가 흘러나왔어!'}),
-  N('helga','B1',{o:{f:{necklace:null}},d:{pw:'old'},item:'coin',hi:'배고파! …어, 오늘은 좀 덜 고프네.',react:{iso:'…그래.',pass:'…고마워.'},
-   out:{pass:'헬가가 식당 구석에서 밤새 요리사를 바라보다 나갔다. 아무것도 먹지 않았다. 목걸이는 하고 있지 않았다.',treat:'치료소에서 헬가는 밥을 한 숟갈도 뜨지 않았다. 새벽에 침대가 비었다.',iso:'격리실 헬가는 밤새 눈을 한 번도 깜빡이지 않았다. 점심 무렵 진짜 헬가가 뼈 목걸이를 달그락거리며 돌아왔다.'}}),
+  N('helga','B1',{d:{pw:'old',tally:'mis'},item:'coin',hi:'배고파! …어, 오늘은 좀 덜 고프네.',react:{iso:'…그래.'},
+   out:{pass:'헬가가 식당 구석에서 밤새 요리사를 바라보다 나갔다. 아무것도 먹지 않았다.',treat:'치료소에서 헬가는 밥을 한 숟갈도 뜨지 않았다. 새벽에 침대가 비었다.',iso:'격리실 헬가는 밤새 눈을 한 번도 깜빡이지 않았다. 점심 무렵 진짜 헬가가 배고프다며 돌아왔다.'}}),
   {knocks:3,out:{ignore:'창구 앞 복도에 긁힌 자국 세 줄. 그 밖엔 아무 일도 없었다.'}},
-  N('bor','B1',{o:{mirror:1},item:'shard',react:{iso:'…거울이 날 가두는군.',pass:'흠. …흠.'},
+  N('bor','B1',{o:{mirror:1},d:{seal:'flip'},item:'shard',react:{iso:'…거울이 날 가두는군.'},
    out:{pass:'보르가 여관 거울 앞에서 밤새 장화를 닦았다. 거울 속 보르는 닦지 않았다.',treat:'치료소 거울 앞에서 보르가 사라졌다. 장화 한 짝만 남았다. 왼발용이 두 개였다.',iso:'격리실 보르는 밤새 왼손으로 수염을 쓸었다. 새벽, 진짜 보르가 오른손으로 문을 두드렸다.'}}),
   N('sere','B1',{d:{dirty:1},item:'fur',hi:'진흙탕에 부절을 빠뜨렸어요오~ 괜찮죠오?'}),
-  N('ren','B1',{o:{f:{glassesCrack:{side:'R'}}},item:'coin',hi:'귀환 확인 부탁드려요. 오늘은 목록도 챙겼어요.',react:{iso:'…안경이요? 제 안경은 원래…',pass:'감사합니다.'},
-   out:{pass:'여관 주인이 렌이 안경을 벗고 책을 읽는 걸 봤다. 렌은 안경 없이는 아무것도 못 본다.',treat:'치료소 침대 위에 금 간 안경만 남아 있었다. 금은 오른쪽 알에 있었다.',iso:'격리실 렌은 밤새 목록을 거꾸로 읽었다. 새벽, 진짜 렌이 왼쪽 알에 금 간 안경을 고쳐 쓰며 돌아왔다.'}}),
+  N('ren','B1',{item:'honey',hi:'귀환 확인 부탁드려요. 오늘은 목록도 챙겼어요.'}),
  ]},
  {chap:'1장 · 웃자란 정원',limit:260,dep:[['mumy','B1'],['dudu','B1'],['pipi','B1'],['lulu','B1'],['helga','B1'],['sere','B1']],cases:[
   N('mumy','B1',{item:'fur'}),
@@ -689,19 +569,18 @@ const DAYS=[
   N('dudu','B1',{hi:'…내가 먼저 왔지?',ask:'루루보다 먼저. 먼저. 먼저.',item:'coin',react:{iso:'…먼저 온 게 가짜야.'},
    out:{pass:'아침, 숙소에 두두가 둘이었다. 둘 다 자기가 먼저 왔다고 했다.',treat:'치료소 침대가 비어 있었다. 베개에 부절 반쪽이 놓여 있었다. 이미 반납된 반쪽과 똑같았다.',iso:'격리실의 두 번째 두두는 밤새 "먼저"라는 말만 했다. 새벽에는 그 말도 멈췄다.'}}),
   N('helga','B1',{item:'sand',hi:'이끼쥐 굽다가 빨간 모래 주웠어! 밥값 좀 해 줘!',ask:'정원 끝에 틈이 있어. 거기서 뜨거운 바람이 불어.'}),
-  N('sere','B1',{odd:1,o:{f:{circlet:false}},item:'shard',hi:'다녀왔어요.',ask:'노래요? …오늘은 안 불러요.',react:{iso:'…그래요.'},
-   out:{pass:'세레나데 방의 거울이 전부 안쪽에서 깨져 있었다. 세레나데는 아침에 두 번 인사했다. 같은 말을, 같은 박자로.',treat:'치료소 거울 앞에서 세레나데가 사라졌다. 거울 속에서 노래가 흘러나왔다. 음정이 정확했다.',iso:'격리실 세레나데는 밤새 한 소절도 부르지 않았다. 새벽, 은 서클릿을 쓴 진짜 세레나데가 음치 노래를 부르며 돌아왔다.'}}),
+  N('sere','B1',{odd:1,d:{knot:'D'},item:'shard',hi:'다녀왔어요.',ask:'노래요? …오늘은 안 불러요.',react:{iso:'…그래요.'},
+   out:{pass:'세레나데 방의 거울이 전부 안쪽에서 깨져 있었다. 세레나데는 아침에 두 번 인사했다. 같은 말을, 같은 박자로.',treat:'치료소 거울 앞에서 세레나데가 사라졌다. 거울 속에서 노래가 흘러나왔다. 음정이 정확했다.',iso:'격리실 세레나데는 밤새 한 소절도 부르지 않았다. 세레나데가 노래를 참은 건 처음이다.'}}),
   N('lulu','B1',{o:{mushroom:1},d:{scratch:1},item:'mush',hi:'머리에 버섯 났어요! 인식표도 긁혔어요! 두두보다 멋지죠?',
    out:{pass:'루루가 숙소에서 포자를 뿜었다. 두두가 재채기를 멈추지 못했다.',treat:'치료소에서 버섯을 뽑았다. 루루: "두두보다 많이 났어요!"',iso:'격리실에 버섯이 가득 자랐다. 루루는 억울해했다.'}}),
  ]},
  {chap:'2장 · 붉은 달의 황야',limit:270,dep:[['dudu','B2'],['lulu','B2'],['bor','B2'],['ren','B2'],['pipi','B2'],['mumy','B1'],['helga','B2'],['sere','B2']],cases:[
-  N('dudu','B2',{o:{pupil:'slit'},item:'coin',react:{iso:'…눈을 보지 마.',pass:'이겼다.'},
-   out:{pass:'숙소 어둠 속에서 두두의 눈이 고양이처럼 빛났다. 루루는 밤새 이불을 뒤집어썼다.',treat:'치료소 등불을 끄자 침대 위에서 눈 두 개만 빛났다. 아침엔 아무도 없었다.',iso:'격리실 두두는 밤새 어둠 속에서 눈을 번뜩였다. 새벽, 진짜 두두가 황야 모래를 털며 돌아왔다.'}}),
+  N('dudu','B2',{item:'shell'}),
   N('lulu','B2',{o:{shadow:'two'},item:'shell',hi:'뒤에 누가 따라오는 것 같아요! 두두 아니죠?',ask:'황야에서 제 그림자랑 달리기 했어요! 이겼어요!',
    out:{pass:'루루 방에서 밤새 발소리가 났다. 루루는 자고 있었다.',treat:'치료소 등불 아래 하룻밤. 아침, 벽에 붙어 있던 두 번째 그림자가 떨어져 나갔다.',iso:'격리실 등불 아래서 두 번째 그림자가 떨어져 나갔다. 루루는 억울해했다.'}}),
   N('bor','B2',{item:'sand',hi:'달 아래 굴러다니더군. 빨간 모래.',ask:'마그다도 저 모래를 싫어했지.'}),
-  N('ren','B2',{o:{eye:'#7a4a2a'},item:'shadow',hi:'늦어서 죄송해요… 달이, 따라와서요.',react:{iso:'…눈 색까지 보시는군요.'},
-   out:{pass:'여관 사람들이 렌의 눈이 갈색이었다고 했다. 렌의 눈은 청록색이다.',treat:'치료소 침대에 갈색 유리알 두 개가 굴러다녔다.',iso:'격리실 렌은 밤새 눈을 감지 않았다. 새벽, 청록색 눈의 렌이 돌아왔다.'}}),
+  N('ren','B2',{o:{eye:'#7a4a2a'},d:{bell:'far'},item:'shadow',hi:'늦어서 죄송해요… 달이, 따라와서요.',react:{iso:'…눈 색까지 보시는군요.'},
+   out:{pass:'여관 사람들이 렌의 눈이 갈색이었다고 했다. 렌의 눈은 청록색이다. 아침, 진짜 렌이 황야에서 방울을 딸랑이며 돌아왔다.',treat:'치료소 침대에 갈색 눈알 두 개가 굴러다녔다. 유리였다.',iso:'격리실 렌은 밤새 눈을 감지 않았다. 새벽, 청록색 눈의 렌이 방울을 흔들며 돌아왔다.'}}),
   N('pipi','B2',{o:{sandEyes:1},unknownSand:1,grade:SAND_G,item:'flower',hi:'눈이 따끔따끔해… 모래 들어갔나 봐.',ask:'붉은 달 봤어. 딱 한 번. 예뻤어.',
    out:{pass:'피피가 밤새 붉은 달을 찾아 지붕 위를 걸었다. 눈이 점점 붉어졌다.',treat:'치료소 등불 아래 하룻밤. 아침, 베개에 붉은 모래가 한 줌. 피피 눈은 다시 갈색이다.',iso:'어두운 격리실에서 피피 눈은 더 붉어졌다가 새벽에야 가라앉았다. "무서웠어…"',missed:'복도에서 밤을 샌 피피의 눈이 새벽에 더 붉어졌다.'}}),
   N('mumy','B1',{d:{year:1},item:'coin',react:{iso:'……(고개를 숙인다)'},
@@ -712,24 +591,24 @@ const DAYS=[
  {chap:'2장 · 붉은 달의 황야',limit:290,dep:[['dudu','B2'],['sere','B2'],['lulu','B1'],['helga','B1'],['mumy','B2'],['ren','B2'],['bor','B1']],cases:[
   N('dudu','B2',{o:{sandEyes:1},unknownSand:1,grade:SAND_G,item:'shell',hi:'눈에 모래 들어갔어! 루루 눈보다 빨갛지?',ask:'달 보면서 누가 오래 버티나 내기했어!',
    out:{pass:'두두가 밤새 지붕에서 달을 쳐다봤다. 아침, 눈이 새빨갰다.',treat:'치료소 등불 아래 하룻밤. 베개에 붉은 모래 한 줌. 두두: "루루보다 모래 많이 나왔어!"',iso:'격리실에서 두두 눈이 더 붉어졌다가 새벽에 가라앉았다. "루루한텐 말하지 마…"'}}),
-  N('sere','B2',{o:{stitch:1},item:'flower',hi:'다녀왔어요오~ 한 곡 들으실래요오~?',react:{iso:'…목을 보셨군요오.',pass:'감사해요오~'},
-   out:{pass:'세레나데가 여관에서 노래를 불렀다. 목소리가 두 겹으로 들렸다.',treat:'치료소에서 세레나데가 목의 실밥을 풀었다. 아침엔 옷만 남아 있었다.',iso:'격리실 세레나데는 밤새 목을 긁었다. 새벽, 진짜 세레나데가 음치 노래를 부르며 돌아왔다.'}}),
+  N('sere','B2',{item:'flower'}),
   {knocks:3,out:{ignore:'새벽 세 시, 창구를 세 번 두드리는 소리가 한 번 더 났다. 열지 않았다.'}},
-  N('lulu','B1',{o:{mirror:1},conflict:1,grade:{iso:'good',pass:'bad',treat:'bad'},item:'shard',ask:'거울 숲… 아니, 정원! 정원 다녀왔어요.',
+  N('lulu','B1',{o:{mirror:1},d:{seal:'flip'},conflict:1,grade:{iso:'good',pass:'bad',treat:'bad'},item:'shard',ask:'거울 숲… 아니, 정원! 정원 다녀왔어요.',
    out:{pass:'루루 방의 거울이 전부 안쪽에서 깨져 있었다. 두두가 말했다. "루루가 왼손으로 밥을 먹어."',treat:'치료소 거울 앞에서 루루가 사라졌다. 거울 속에서 분홍 리본이 흔들렸다.',iso:'격리실 루루는 밤새 두두 흉내를 냈다. 진짜 루루는 새벽에 정원에서 돌아와 "누가 내 흉내 냈어?!"라고 소리쳤다.'}}),
   N('helga','B1',{o:{backMoss:1},item:'meat',hi:'밥! 밥 없어? 등이 좀 무거운데 기분 탓이겠지!',ask:'정원 잔디에 누워서 낮잠! 최고였어!',
    out:{pass:'헬가가 식당 의자에 기대 앉았다. 아침, 의자에 이끼가 자랐다.',treat:'치료소에서 등의 이끼를 긁어냈다. 헬가: "이거 샐러드 돼?"',iso:'격리실 벽이 이끼로 덮였다. 헬가는 그걸 먹어 보려 했다.'}}),
-  N('mumy','B2',{o:{talk:1,shadowShape:'arm'},item:'coin',hi:'안녕하세요! 오늘 달 참 밝죠? 하하하!',ask:'제 이름이요? 제 이름은… 제 이름은…',react:{iso:'어라? 왜요? 하하… 하…',pass:'감사합니다! 좋은 밤 되세요!'},
-   out:{pass:'무명이 여관 주인에게 자기 이름을 알려 주었다. 아침, 여관 주인은 그 이름을 기억하지 못했다. 무명도.',treat:'치료소에서 무명이 치료사의 이름을 물었다. 아침, 치료사는 자기 이름이 기억나지 않는다고 했다.',iso:'격리실 무명은 밤새 떠들다 새벽에 뚝 조용해졌다. 벽의 그림자는 팔이 셋이었다.'}}),
+  N('mumy','B2',{o:{talk:1,shadow:'lag'},item:'coin',hi:'안녕하세요! 오늘 달 참 밝죠? 하하하!',ask:'제 이름이요? 제 이름은… 제 이름은…',react:{iso:'어라? 왜요? 하하… 하…',pass:'감사합니다! 좋은 밤 되세요!'},
+   out:{pass:'무명이 여관 주인에게 자기 이름을 알려 주었다. 아침, 여관 주인은 그 이름을 기억하지 못했다. 무명도.',treat:'치료소에서 무명이 치료사의 이름을 물었다. 아침, 치료사는 자기 이름이 기억나지 않는다고 했다.',iso:'격리실 무명은 밤새 떠들다 새벽에 뚝 조용해졌다. 아침에는 평소처럼 끄덕였다.'}}),
   N('ren','B2',{o:{sandEyes:1},unknownSand:1,grade:SAND_G,item:'flower',hi:'눈이 좀 이상해요… 시간 맞게 왔죠?',ask:'달을 딱 3초 봤어요. 세어 봤어요.',
    out:{pass:'렌이 밤새 달을 보며 숫자를 셌다. 아침, 숫자가 3을 넘지 못했다.',treat:'치료소 등불 아래 하룻밤. 베개에 붉은 모래 한 줌. 렌: "시간 맞춰 나았어요."',iso:'격리실에서 렌은 밤새 3까지만 셌다. 새벽에 눈이 가라앉았다.'}}),
-  N('bor','B1',{item:'honey',hi:'정원이 조용하군. 너무 조용해.'}),
+  N('bor','B1',{d:{tally:'flip',pw:'none'},item:'coin',react:{iso:'…서류가 날 가두는군. 이번엔 맞는 말이야.'},
+   out:{pass:'보르가 여관 술통을 거꾸로 세워 놓고 잤다. 아침, 진짜 보르가 정원에서 돌아와 술통을 바로 세웠다.',treat:'치료소 침대 밑에 부절 반쪽이 거꾸로 꽂혀 있었다.',iso:'격리실 보르는 밤새 암구호를 거꾸로 중얼거렸다. 새벽, 진짜 보르가 "등불은 꺼지지 않는다"며 문을 두드렸다.'}}),
   {c:'hood',hood:1,hi:'…아직 수칙을 쓰고 있구나, 아리.',ask:'13번 줄은 지워라. 네가 쓴 게 아니야.',gift:'lamp',react:{pass:'…고맙다. 이건 두고 가마.',treat:'치료소라. 여전하구나. 이건 두고 가마.',iso:'그래. 수칙대로 해라. 이건 두고 가마.'},
    out:{pass:'아침, 창구 위에 오래된 등불 하나가 놓여 있었다. 심지가 아직 따뜻했다.',treat:'치료소 침대는 비어 있었다. 베개 위에 오래된 등불 하나.',iso:'격리실은 잠긴 채 비어 있었다. 문 안쪽에 쪽지 한 장. "잘하고 있어."',ignore:'창구 앞 바닥에 젖은 발자국이 멈춰 있었다. 돌아간 발자국은 없었다.',missed:'창구가 닫힌 뒤에도, 셔터 너머에서 누군가 한참 서 있다 갔다.'}},
  ]},
 ];
 const NEWRULES=[[1,2,3,4,5,6],[7],[9,10],[11],[12,13]];
-const TOOLS=[['pw','암구호','Q',2],['chat','근황','A',2],['press','추궁','S',2],['bell','짝방울','B',2],['peek','짐 보기','E',2],['back','뒤돌기','W',3],['lamp','등불','R',0],['nose','모모의 코','T',0]];
+const TOOLS=[['pw','암구호','Q',2],['chat','근황','A',2],['press','추궁','S',2],['bell','짝방울','B',2],['peek','짐 보기','E',2],['back','뒤돌기','W',3],['lamp','등불','R',3],['nose','모모의 코','T',0]];
 const VISIT=[['dora','kane'],['dora','kane','enoch','helga','momo'],['dora','kane','enoch','momo'],['dora','kane','enoch','helga','momo'],['dora','kane','enoch','momo']];
 const VLINE={
  dora:['좋은 물건 있으면 내놔 봐. 값은 정직하게 쳐 주지.','정원 물건은 늘 잘 팔려.','포자 묻은 건 사절이야. …아니, 싸게는 사 주지.','황야 물건이 들어오기 시작했네. 전갈 껍질 좋지.','주말이네. 운영비는 모았고?'],
@@ -754,10 +633,7 @@ function triggers(cs){
   if(d.pw==='none')t.push([3,'암구호를 모른다']);
   if(o.mirror)t.push([4,'좌우가 뒤바뀌었다']);
   if(o.eye)t.push([4,'눈 색이 기록과 다르다']);
-  if(o.shadowShape)t.push([5,`벽의 그림자에 ${{horns:'뿔',tail:'꼬리',arm:'팔 하나'}[o.shadowShape]}이(가) 더 있었다`]);
-  if(o.f)Object.keys(o.f).forEach(k=>t.push([4,`${FLABEL[k]||k}이(가) 카드 기록과 달랐다`]));
-  if(o.pupil)t.push([4,'동공이 세로로 찢어져 있었다']);
-  if(o.stitch)t.push([4,'목에 가는 바느질 자국이 있었다']);
+  if(o.shadow==='lag')t.push([5,'그림자가 늦게 따라왔다']);
   if(d.bell==='far')t.push([6,'짝방울이 눈앞에서 울리지 않았다']);
   if(o.backFace)t.push([9,'뒤에도 얼굴이 있었다']);
   if(o.talk||o.blank||cs.odd)t.push([10,'평소와 딴사람 같았다']);
@@ -777,7 +653,7 @@ function expect(cs){
 }
 
 // ───────── 상태 ─────────
-function fresh(){return{day:0,money:25,contam:0,rels:{},inv:[],rules:[],newRules:[],playerRule:null,momo:{lv:1,xp:0},caps:{iso:2,bed:2,time:0,oil:0},carry:{spread:[],fakes:[]},enoch:0,log:[],cooked:false};}
+function fresh(){return{day:0,money:25,contam:0,rels:{},inv:[],rules:[],newRules:[],playerRule:null,momo:{lv:1,xp:0},caps:{iso:2,bed:2,time:0},carry:{spread:[],fakes:[]},enoch:0,log:[],cooked:false};}
 let S=fresh(),V=null,SNAP={},tok=0,soundOn=true,AC=null;
 const later=(fn,ms)=>{const k=tok;setTimeout(()=>{if(k===tok)fn();},ms);};
 const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
@@ -797,12 +673,7 @@ function snd(k){if(!soundOn)return;try{AC=AC||new(window.AudioContext||window.we
 }catch(e){}}
 function unlockAudio(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){}}
 addEventListener('pointerdown',unlockAudio);addEventListener('keydown',unlockAudio);
-$('snd').onclick=()=>{soundOn=!soundOn;$('snd').textContent=soundOn?'소리 켜짐':'소리 꺼짐';$('snd').classList.toggle('off',!soundOn);};
-// 아날로그 필터 켜고 끄기 (기기별 기억)
-let filmOn=true;try{filmOn=localStorage.getItem('srg_film')!=='off';}catch(e){}
-function setFilm(on){filmOn=on;document.body.classList.toggle('nofilm',!on);$('flt').textContent=on?'필터 켜짐':'필터 꺼짐';$('flt').classList.toggle('off',!on);try{localStorage.setItem('srg_film',on?'on':'off');}catch(e){}}
-$('flt').onclick=()=>setFilm(!filmOn);setFilm(filmOn);
-document.querySelectorAll('[data-hi]').forEach(e=>e.innerHTML=uiCall('hud',e.dataset.hi,16));
+$('snd').onclick=()=>{soundOn=!soundOn;$('snd').textContent=soundOn?'소리 켜짐':'소리 꺼짐';};
 
 // ───────── 공통 화면 ─────────
 function nameOf(cs){if(cs.knocks===3)return '세 번 두드린 것';if(cs.hood)return '창구 앞의 누군가';return C[cs.c].name+(cs.again?' (또)':'');}
@@ -810,7 +681,6 @@ const JO={'이(가)':['이','가'],'을(를)':['을','를'],'은(는)':['은','�
 function josa(t){return String(t).replace(/([가-힣])(이\(가\)|을\(를\)|은\(는\)|과\(와\))/g,(m,ch,j)=>ch+JO[j][(ch.charCodeAt(0)-0xAC00)%28?0:1]);}
 function toast(msg,k='info'){msg=josa(msg);const d=document.createElement('div');d.className='toast '+k;d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),2800);}
 const TOUCH=matchMedia('(pointer:coarse)').matches;
-const oilMax=()=>60+(S.caps.oil||0)*20;
 const limit=()=>Math.round((DAYS[S.day].limit+S.caps.time*20)*(TOUCH?1.2:1));
 function hud(){
   const night=V&&$('office').hidden;
@@ -819,14 +689,11 @@ function hud(){
   if(V)$('hClock').textContent=fmt(Math.max(0,limit()-V.t));
   $('hMoney').textContent=S.money;$('hContam').textContent=S.contam;$('hBar').style.width=S.contam+'%';
   $('hIso').textContent=`${V?V.iso:0}/${S.caps.iso}`;$('hBed').textContent=`${V?V.bed:0}/${S.caps.bed}`;
-  $('hWarn').textContent=night?'—':(V?V.warn:0);
-  $('hOilW').style.visibility=night?'visible':'hidden';if(V)$('hOil').style.width=Math.max(0,V.oil/oilMax()*100)+'%';
-  if(hud.dn!==night){hud.dn=night;$('hiDay').innerHTML=uiCall('hud',night?'night':'day',16);}
+  $('hWarn').textContent=V?V.warn:0;
   if(hud.lv!==S.momo.lv){hud.lv=S.momo.lv;$('hMomo').innerHTML=`<svg width="30" height="36" viewBox="0 0 100 120">${momoSvg(S.momo.lv)}</svg>`;}
 }
-function ov(html,cls=''){html=josa(html);loupeHole(false);$('ovCard').className='card'+(cls?' '+cls:'');document.querySelectorAll('.toast').forEach(x=>x.remove());['book','dep'].forEach(x=>$(x).classList.remove('open'));$('mback').hidden=true;$('ovCard').innerHTML=html;$('ov').hidden=false;$('ovCard').scrollTop=0;}
+function ov(html){html=josa(html);document.querySelectorAll('.toast').forEach(x=>x.remove());['book','dep'].forEach(x=>$(x).classList.remove('open'));$('mback').hidden=true;$('ovCard').innerHTML=html;$('ov').hidden=false;$('ovCard').scrollTop=0;}
 function closeOv(){$('ov').hidden=true;}
-const docHead=(l,r)=>`<div class="docHead"><span>${l}</span><span>${r}</span></div>`;
 function ruleLines(ns){return `<div class="paper"><ol style="list-style:none">${ns.map(n=>`<li style="display:grid;grid-template-columns:26px 1fr;gap:4px;margin:4px 0${RULE[n].red?';border-left:4px solid #b3261e;padding-left:4px':''}"><b style="color:#7a6b58;padding-top:1px">${n}.</b><span class="ink-${RULE[n].ink}" ${RULE[n].red?'style="color:#b3261e"':''}>${rt(n)}</span></li>`).join('')}</ol></div>`;}
 function drawer(w){const was=w&&$(w).classList.contains('open');['book','dep'].forEach(x=>$(x).classList.remove('open'));const open=w&&!was;$('mback').hidden=!open;if(open){$(w).classList.add('open');if(w==='book'&&V)V.bookSeen=true;}updTabs();}
 function updTabs(){const d=$('bookDot');if(d)d.classList.toggle('on',!!(S.newRules.length&&V&&!V.bookSeen));const c=$('depCnt');if(c&&V){const dep=DAYS[S.day].dep;c.textContent=`${dep.reduce((a,[id])=>a+(V.arr[id]||0),0)}/${dep.length}`;}}
@@ -903,7 +770,7 @@ function buildCases(){
 }
 function startNight(){
   tok++;SNAP.night=JSON.stringify(S);
-  V={cases:buildCases(),ci:0,t:0,arr:{},extra:0,iso:0,bed:0,over:{iso:0,bed:0},warn:0,nose:S.momo.lv,bell:2,oil:oilMax(),state:'idle',cur:null,face:false,back:false,lit:false,used:{},results:[],secret:[],sulkyAdd:[],running:false,last:0,tagFlip:false,joined:false};
+  V={cases:buildCases(),ci:0,t:0,arr:{},extra:0,iso:0,bed:0,over:{iso:0,bed:0},warn:0,nose:S.momo.lv,bell:3,state:'idle',cur:null,face:false,back:false,lit:false,used:{},results:[],secret:[],sulkyAdd:[],running:false,last:0,tagFlip:false,joined:false};
   $('office').hidden=true;$('nightView').hidden=false;
   resetWindow();renderBook();renderDep();regEmpty('창구가 닫혀 있다.');renderCounter();desk();hud();intro();
 }
@@ -917,9 +784,7 @@ function intro(){
    <ul><li>셔터를 두드리면 <b>창구 열기</b>(Space). 귀환자가 <b>인식표</b>와 <b>부절 반쪽</b>을 책상에 올린다.</li>
    <li><b>인식표</b>를 눌러 뒤집어 보고(F), <b>부절</b>을 눌러 길드 반쪽과 맞대 본다(G). 왼쪽 <b>단골 카드(길드 기록)</b>와 대조한다. <b>들고 온 것은 속일 수 있다. 길드 기록만 믿는다.</b></li>
    <li>말: <b>암구호</b>(Q) · <b>근황</b>(A) · <b>추궁</b>(S). 오늘의 암구호 — "${pw.q}" / "${pw.a}"</li>
-   <li>창구는 어둡다. <b>등불</b>(R)을 켜면 마우스(손가락)가 가리키는 곳이 밝아지고 <b>크게 보인다</b>. 벽에는 그림자가 비친다. 기름은 밤마다 <b>${oilMax()}초</b>.</li>
-   <li>도구: <b>짝방울</b>(B, 밤마다 2회) · <b>짐 보기</b>(E) · <b>뒤돌기</b>(W) · <b>모모의 코</b>(T). <b>가짜는 대부분의 검사를 통과한다.</b> 카드에 적힌 작은 특징을 봐라.</li>
-   <li><b>판정이 맞았는지는 알려 주지 않는다.</b> 결과는 아침에 안다.</li>
+   <li>도구: <b>짝방울</b>(B, 밤마다 3회) · <b>짐 보기</b>(E) · <b>뒤돌기</b>(W) · <b>등불</b>(R) · <b>모모의 코</b>(T).</li>
    <li>판정: <b>통과</b>(1) · <b>치료소</b>(2) · <b>격리</b>(3). 칸이 차도 판정은 된다 — 호송 ${COST.iso}G, 간이 침대 ${COST.bed}G.</li>
    <li>물건은 <b>매입</b>(1) · <b>거절</b>(2) · <b>압수</b>(3). 아침에 팔아 <b>주말 운영비 ${RENT}G</b>를 모은다. 이계의 것을 들이면 <b>오염</b>이 오르고, 100이면 문이 열린다.</li></ul>
    ${ruleLines(NEWRULES[0])}<button class="primary" id="go">창구를 연다</button>`;
@@ -927,17 +792,15 @@ function intro(){
   if(d===2)h=`<h2>3일째 밤</h2><p>서랍 속 장부 사이에서 마그다의 페이지가 한 장 나왔다.</p>${ruleLines([9,10])}<p>오늘의 암구호 — "${pw.q}" / "${pw.a}"</p><button class="primary" id="go">창구를 연다</button>`;
   if(d===3)h=`<h2>4일째 밤 · 2장 붉은 달의 황야</h2><p>B2가 열렸다. 오늘 밤 붉은 달이 뜬다.</p>${ruleLines([11])}<p>오늘의 암구호 — "${pw.q}" / "${pw.a}"</p><button class="primary" id="go">창구를 연다</button>`;
   if(d===4)h=`<h2>5일째 밤</h2><p>수칙집에 새 줄이 생겼다.</p>${ruleLines([12,13])}<p>오늘의 암구호 — "${pw.q}" / "${pw.a}". 오늘 밤이 지나면 주말이다. 운영비 ${RENT}G.</p><button class="primary" id="go">창구를 연다</button>`;
-  ov(docHead('등불 길드 · 근무 안내',`${d+1}일째 밤`)+h);$('go').onclick=()=>{closeOv();run();nextCase();};
+  ov(h);$('go').onclick=()=>{closeOv();run();nextCase();};
 }
 function run(){V.running=true;V.last=0;requestAnimationFrame(frame);}
-function frame(ts){if(!V||!V.running)return;const dt=V.last?Math.min(.1,(ts-V.last)/1000):0;V.last=ts;V.t+=dt;
-  if(V.lit&&V.face){V.oil-=dt;if(V.oil<=0){V.oil=0;lampOn(false);toast('등불 기름이 떨어졌다','bad');desk();}}
-  hud();if(V.t>=limit()){timeUp();return;}requestAnimationFrame(frame);}
+function frame(ts){if(!V||!V.running)return;const dt=V.last?Math.min(.1,(ts-V.last)/1000):0;V.last=ts;V.t+=dt;hud();if(V.t>=limit()){timeUp();return;}requestAnimationFrame(frame);}
 function renderDep(){
   const d=DAYS[S.day].dep,back=d.reduce((a,[id])=>a+(V.arr[id]||0),0);
   $('dep').innerHTML=`<h3>출발 장부 · 오늘 귀환 예정</h3><div class="cnt ${back>d.length?'over':''}">출발 <b>${d.length}</b> · 귀환 <b>${back}</b></div>`+
    d.map(([id,fl])=>{const n=V.arr[id]||0,now=V.cur&&V.cur.c===id&&V.face;
-     return `<div class="row ${now?'now':n?'back':''}"><span>${C[id].name}${S.rels[id]==='sulky'?'<span class="sulk">서운</span>':''}</span><span class="flc">${fl}</span><span class="st">${now?'창구':n?'귀환 ✓'+(n>1?'✓':''):'—'}</span></div>`;}).join('')+
+     return `<div class="row ${now?'now':n?'back':''}"><span>${C[id].name}${S.rels[id]==='sulky'?'<span class="sulk">서운</span>':''}</span><span style="color:var(--mute)">${fl}</span><span class="st">${now?'창구':n?'귀환 ✓'+(n>1?'✓':''):'—'}</span></div>`;}).join('')+
    (V.extra?`<div class="row x"><span>???</span><span>장부에 없음</span><span class="st">창구</span></div>`:'');
   updTabs();
 }
@@ -951,45 +814,24 @@ function reg(cs){
     <div class="cardRow"><span>번호</span><span class="no">${c.no}</span></div>
     <div class="cardRow"><span>등급</span><span><i class="knotSw" style="background:${KNOT[c.rank][0]}"></i>${c.rank} (${KNOT[c.rank][1]} 매듭)</span></div>
     <div class="cardRow"><span>눈</span><span><i class="eyeSw" style="background:${c.eye}"></i>${c.eyeN}</span></div></div></div>
-   <div class="cardRow" style="margin-top:6px"><span>특징</span><span>${featText(cs.c).map(x=>'· '+x).join('<br>')}</span></div>
+   <div class="cardRow" style="margin-top:6px"><span>특징</span><span>${c.mark}</span></div>
    <div class="fl">다녀온 층: <b>${FL[fl]||fl}</b></div>
    <div class="memo">${c.memo.map(m=>'· '+m).join('<br>')}</div>${S.rels[cs.c]==='sulky'?'<div class="stampMark">서운함</div>':''}`;
 }
 function bubble(txt,cls='',q=''){const b=$('bubble');b.hidden=false;b.className='bubble '+cls;b.innerHTML=(q?`<span class="qq">${q}</span>`:'')+josa(txt).replace(/</g,'&lt;');}
 function drawPerson(){
-  const cs=V.cur,o=cs.o||{},inner=cs.hood?fig('hood'):fig(cs.c,o,V.back);
+  const cs=V.cur,inner=cs.hood?fig('hood'):fig(cs.c,cs.o||{},V.back);
   $('person').innerHTML=svg(`<g class="fig">${inner}</g>`,320);
-  const sx=o.shadowShape?shadowExtra(o):'';
-  $('shadow').innerHTML=svg(`<g class="fig">${inner}${sx}</g>`,320);$('shadow2').innerHTML=o.shadow==='two'?svg(`<g class="fig">${inner}</g>`,320):'';
-  $('loupeIn').innerHTML=svg(inner,320);
-  placeShadow();updateLoupe();
+  const sh=cs.o&&cs.o.shadow;
+  $('shadow').innerHTML=svg(`<g class="fig">${inner}</g>`,320);$('shadow2').innerHTML=sh==='two'?svg(`<g class="fig">${inner}</g>`,320):'';
+  if(sh==='lag')$('shadow').querySelector('.fig').style.animationDelay='-.9s';
 }
-const BEAM={px:0,py:0};
-function setBeam(px,py){BEAM.px=px;BEAM.py=py;const w=$('win');w.style.setProperty('--bx',px+'px');w.style.setProperty('--by',py+'px');placeShadow();updateLoupe();}
-function beamAt(e){const r=$('win').getBoundingClientRect();BEAM.touch=e.pointerType==='touch';setBeam(e.clientX-r.left,e.clientY-r.top);}
-function placeShadow(){const w=$('win').getBoundingClientRect().width||600,dx=Math.max(-170,Math.min(170,-(BEAM.px-w/2)*.8));
-  $('shadow').style.transform=`translateX(-50%) translate(${dx}px,-30px) scale(.96) skewX(${(-dx/18).toFixed(1)}deg)`;
-  $('shadow2').style.transform=`translateX(-50%) translate(${(dx*.5+(dx>=0?-90:90)).toFixed(0)}px,-24px) scale(.94) skewX(${(dx/22).toFixed(1)}deg)`;}
-function loupeHole(on){const r=document.documentElement.style;if(!on){r.setProperty('--lr','0px');return;}const b=$('loupe').getBoundingClientRect();r.setProperty('--lx',(b.left+b.width/2)+'px');r.setProperty('--ly',(b.top+b.height/2)+'px');r.setProperty('--lr',(b.width/2-3)+'px');}
-function updateLoupe(){
-  const L=$('loupe');if(!V||!V.lit||!V.face){L.hidden=true;loupeHole(false);return;}
-  const pe=$('person').firstElementChild;if(!pe){L.hidden=true;loupeHole(false);return;}
-  L.hidden=false;const wr=$('win').getBoundingClientRect(),pr=pe.getBoundingClientRect(),sc=1.8,size=L.offsetWidth||150;
-  // 터치는 손가락이 가리지 않게 돋보기를 위로 띄운다(보는 지점은 그대로)
-  L.style.left=BEAM.px+'px';L.style.top=(BEAM.touch?Math.max(size/2,BEAM.py-size*.85):BEAM.py)+'px';
-  const inn=$('loupeIn'),sv=inn.firstElementChild;if(sv){sv.setAttribute('width',pr.width*sc);sv.setAttribute('height',pr.height*sc);}
-  inn.style.left=(size/2-(BEAM.px-(pr.left-wr.left))*sc)+'px';inn.style.top=(size/2-(BEAM.py-(pr.top-wr.top))*sc)+'px';
-  loupeHole(true);
-}
-function lampOn(on){V.lit=on;$('win').classList.toggle('lit',on);if(on){const r=$('win').getBoundingClientRect(),pe=$('person').firstElementChild,pr=pe?pe.getBoundingClientRect():null;setBeam(r.width/2,pr?(pr.top-r.top)+pr.height*.42:r.height*.5);}else updateLoupe();placeShadow();}
-$('win').addEventListener('pointermove',e=>{if(V&&V.lit)beamAt(e);});
-$('win').addEventListener('pointerdown',e=>{if(V&&V.lit)beamAt(e);});
 function desk(){
   const st=V?V.state:'idle';let h='';
   if(st==='trade'){
     const it=ITEMS[V.cur.item],can=S.money>=it.buy;
-    h=`<div class="tradeLbl"><b>${it.n}</b><br>매입가 ${it.buy}G</div>
-     <button class="big stampB b-buy" id="tBuy" ${can?'':'disabled'}>매입 −${it.buy}G<kbd>1</kbd></button><button class="big stampB b-no" id="tNo">거절<kbd>2</kbd></button><button class="big stampB b-conf" id="tConf">압수<kbd>3</kbd></button>`;
+    h=`<div style="color:#e7dcc0;font-size:14px;margin-right:6px;text-align:right"><b style="font-size:16px">${it.n}</b><br>매입가 ${it.buy}G</div>
+     <button class="big b-buy" id="tBuy" ${can?'':'disabled'}>매입 −${it.buy}G<kbd>1</kbd></button><button class="big b-no" id="tNo">거절<kbd>2</kbd></button><button class="big b-conf" id="tConf">압수<kbd>3</kbd></button>`;
   }else if(!V||!V.face){
     const kn=st==='knock';
     h=`<button class="big b-open" id="bOpen" ${kn?'':'disabled'}>창구 열기<kbd>Space</kbd></button>`+(S.rules.includes(8)?`<button class="big b-ign" id="bIgn" ${kn?'':'disabled'}>모른 척<kbd>X</kbd></button>`:'');
@@ -1000,10 +842,10 @@ function desk(){
         if(k==='nose'){extra=` ${V.nose}`;if(V.nose<=0||V.used.nose)dis=true;}
         if(k==='bell'){extra=` ${V.bell}`;if(V.bell<=0||V.used.bell)dis=true;}
         if((k==='back'&&V.back)||(k==='lamp'&&V.lit))cls='on';
-        const ti=k==='lamp'?uiCall('item','lamp',20):uiCall('tool',k,17);return `<button id="tl_${k}" class="${cls}" ${dis?'disabled':''}>${ti?`<span class="ti">${ti}</span>`:''}${lb}${extra}<kbd>${key}</kbd></button>`;}).join('')}</div><span class="sep"></span>
-     <button class="big vb stampB b-pass" id="bPass" ${on?'':'disabled'}>통과<kbd>1</kbd><small>&nbsp;</small></button>
-     <button class="big vb stampB b-treat ${bedFull?'over':''}" id="bTreat" ${on?'':'disabled'}>치료소<kbd>2</kbd><small>${bedFull?`간이 침대 +${COST.bed}G`:`침대 ${V.bed}/${S.caps.bed}`}</small></button>
-     <button class="big vb stampB b-iso ${isoFull?'over':''}" id="bIso" ${on?'':'disabled'}>격리<kbd>3</kbd><small>${isoFull?`호송 ${COST.iso}G`:`격리실 ${V.iso}/${S.caps.iso}`}</small></button>`;
+        return `<button id="tl_${k}" class="${cls}" ${dis?'disabled':''}>${lb}${extra}<kbd>${key}</kbd></button>`;}).join('')}</div><span class="sep"></span>
+     <button class="big vb b-pass" id="bPass" ${on?'':'disabled'}>통과<kbd>1</kbd><small>&nbsp;</small></button>
+     <button class="big vb b-treat ${bedFull?'over':''}" id="bTreat" ${on?'':'disabled'}>치료소<kbd>2</kbd><small>${bedFull?`간이 침대 +${COST.bed}G`:`침대 ${V.bed}/${S.caps.bed}`}</small></button>
+     <button class="big vb b-iso ${isoFull?'over':''}" id="bIso" ${on?'':'disabled'}>격리<kbd>3</kbd><small>${isoFull?`호송 ${COST.iso}G`:`격리실 ${V.iso}/${S.caps.iso}`}</small></button>`;
   }
   $('desk').innerHTML=h;
   const f=(id,fn)=>{const b=$(id);if(b)b.onclick=fn;};
@@ -1017,7 +859,7 @@ function nextCase(){
   const cs=V.cases[V.ci];V.cur=cs;Object.assign(V,{back:false,lit:false,face:false,used:{},state:'knocking',tagFlip:false,joined:false});
   $('win').classList.remove('lit');$('shutter').classList.remove('up','slam');
   later(()=>{['person','shadow','shadow2'].forEach(x=>$(x).innerHTML='');},420);
-  ['bubble','momoSay','tray','stamp','bellMark','loupe'].forEach(x=>$(x).hidden=true);loupeHole(false);$('knock').innerHTML='';
+  ['bubble','momoSay','tray','stamp','bellMark'].forEach(x=>$(x).hidden=true);$('knock').innerHTML='';
   $('hint').textContent=S.day===0&&V.ci===0?(TOUCH?'셔터 너머에서 누군가 두드린다 — 셔터를 누르면 열린다':'셔터 너머에서 누군가 두드린다 — 창구 열기 (Space 또는 셔터를 누른다)'):'';
   regEmpty('셔터 너머에서<br>누군가 두드린다.');renderDep();renderCounter();desk();
   const k=cs.knocks||2;
@@ -1028,7 +870,7 @@ function openS(){
   if(!V||V.state!=='knock')return;V.state='opening';desk();snd('shutter');$('hint').textContent='';
   const cs=V.cur;
   if(cs.knocks===3){
-    $('person').innerHTML=svg(fig('void'),320);$('shutter').classList.add('up');
+    $('person').innerHTML=svg(voidSvg(),320);$('shutter').classList.add('up');
     later(()=>{bubble('들어가도 돼?');snd('eerie');reg(cs);},450);
     later(()=>{const sh=$('shutter');sh.classList.add('slam');sh.classList.remove('up');document.body.classList.add('flicker');setTimeout(()=>document.body.classList.remove('flicker'),800);gameOver('red');},1700);
     return;
@@ -1067,10 +909,6 @@ function pwAnswer(cs){
 function pressAnswer(cs){
   const d=cs.d||{},dyn=cs.dyn||{};
   if(cs.hood)return '이 인식표? 십 년 전 거다. 도장이 20이지.';
-  const o=cs.o||{};
-  if(o.f)return '뭐? 원래 이랬어. 기록이 틀린 거 아냐?';
-  if(o.pupil)return '눈이 왜? 피곤해서 그래. 어두워서 그렇게 보이는 거야.';
-  if(o.stitch)return '목? 미궁에서 가시덤불에 긁혔어요오.';
   if(cs.sulky)return '……';
   if(d.tagNo)return '번호? 원래 그랬는데? 기록이 틀린 거 아냐?';
   if(d.seal)return '인장? 거울에 비춰 봐서 그런가, 하하.';
@@ -1093,7 +931,7 @@ function useTool(k){
   if(k==='press'){if(V.used.press)return;V.used.press=1;spend(cost);bubble(pressAnswer(cs),'','아리: "서류가 좀 이상한데?"');}
   if(k==='peek'){if(V.used.peek)return;V.used.peek=1;spend(cost);showTray(cs);}
   if(k==='back'){if(cs.hood){bubble('…(돌아서지 않는다)','sys');return;}if(!V.used.back){spend(cost);V.used.back=1;}V.back=!V.back;drawPerson();}
-  if(k==='lamp'){if(V.oil<=0){toast('등불 기름이 떨어졌다','bad');return;}lampOn(!V.lit);}
+  if(k==='lamp'){if(!V.used.lamp){spend(cost);V.used.lamp=1;}V.lit=!V.lit;$('win').classList.toggle('lit',V.lit);}
   if(k==='nose'){if(V.nose<=0||V.used.nose)return;V.nose--;V.used.nose=1;const m=$('momoSay');m.hidden=false;m.textContent='모모: '+noseLine(cs);}
   if(k==='bell'){if(V.bell<=0||V.used.bell)return;V.bell--;V.used.bell=1;spend(cost);ringBell(cs);}
   desk();
@@ -1133,7 +971,9 @@ function record(v,st){
 function decide(v){
   if(!V||V.state!=='open')return;
   V.state='busy';const cs=V.cur;const e=expect(cs);let st;
-  if(e.q)st='q';else if(e.v===v)st='ok';else{st='bad';V.warn++;}
+  if(e.q){st='q';toast(e.r?`? 수칙 ${e.r}이 서로 다르다 — 결과는 아침에`:'? 해당하는 수칙이 없다 — 결과는 아침에','q');}
+  else if(e.v===v){st='ok';toast(`✓ 수칙 ${e.r}`,'ok');}
+  else{st='bad';V.warn++;toast(`✗ 수칙 ${e.r} — ${e.why} → ${VN[e.v]}`,'bad');}
   if(v==='iso'){if(V.iso>=S.caps.iso)V.over.iso++;else V.iso++;}
   if(v==='treat'){if(V.bed>=S.caps.bed)V.over.bed++;else V.bed++;}
   const s=$('stamp');s.hidden=false;s.className='stamp '+v;s.textContent=VN[v];snd('stamp');
@@ -1187,7 +1027,7 @@ function gameOver(kind){
    door:['문이 열렸다','오염이 100에 닿았다. 새벽, 13번 출입구의 문이 안쪽에서 열렸다. 마을 우물에서 붉은 모래가 흘러나온다.'],
    shut:['폐업','주말 운영비를 내지 못했다. 경계청이 13번 출입구에 봉인 딱지를 붙였다. 단골들은 다른 길드로 떠났다.']}[kind];
   const again=kind==='shut'?['againM','이번 아침 다시']:['againN','이 밤 처음부터'];
-  ov(`<h2 class="goH">게임 오버 — ${T[0]}</h2><p class="goP">${T[1]}</p><button class="primary" id="${again[0]}">${again[1]}</button> <button class="primary ghost" onclick="location.reload()">처음부터</button>`,'over');
+  ov(`<h2 style="color:#ff8a78">게임 오버 — ${T[0]}</h2><p style="font-size:16px">${T[1]}</p><button class="primary" id="${again[0]}">${again[1]}</button> <button class="primary ghost" onclick="location.reload()">처음부터</button>`);
   if(kind==='shut')$('againM').onclick=()=>{S=JSON.parse(SNAP.morning);closeOv();office();};
   else $('againN').onclick=()=>{S=JSON.parse(SNAP.night);closeOv();startNight();};
 }
@@ -1257,23 +1097,15 @@ function outText(r){
 }
 function news(R){
   const d=S.day;let quiet=0;
-  const resL=V.results.filter(r=>!r.cs.knocks).map(r=>{const cs=r.cs,e=expect(cs),sev=sevOf(cs),nm=nameOf(cs);
-    if(r.st==='bad')return `<li class="bad"><span class="ic">✗</span><div><b>${nm}</b> — ${VN[r.v]} <small>(맞는 판정: ${VN[e.v]})</small><br>${e.why}</div></li>`;
-    if(r.st==='q')return `<li class="q"><span class="ic">?</span><div><b>${nm}</b> — ${VN[r.v]} <span class="tag2 ${r.grade}">${GN[r.grade]}</span></div></li>`;
-    if(sev==='danger')return `<li class="ok"><span class="ic">✓</span><div><b>${nm}</b>은(는) 가짜였다 — ${VN[r.v]}<br><small>${e.why}</small></div></li>`;
-    return '';}).join('');
-  const okN=V.results.filter(r=>r.st==='ok').length,badN=V.results.filter(r=>r.st==='bad').length;
-  const resultsHtml=`<h3 class="resH">간밤 판정 — 수칙대로 ${okN} · <span class="${badN?'badN':''}">틀림 ${badN}</span></h3><ul class="res">${resL||'<li class="ok"><span class="ic">✓</span><div>가짜는 없었다. 모두 진짜였다.</div></li>'}</ul>`;
   const lines=V.results.map(r=>{const tx=outText(r);if(!tx){quiet++;return '';}const ic=r.st==='ok'?'✓':r.st==='bad'?'✗':'?';const tg=(r.st==='q'||r.cs.grade)?`<span class="tag2 ${r.grade}">${GN[r.grade]}</span>`:'';
     return `<li><span class="ic ${r.st}">${ic}</span><div><b>${nameOf(r.cs)}</b> · ${VN[r.v]}${tg}<br>${tx}</div></li>`;}).join('');
   const calc=[...R.cD.map(([n,w])=>`<div class="row"><span>오염 · ${w}</span><b class="up">+${n}</b></div>`),...R.mD.map(([n,w])=>`<div class="row"><span>자금 · ${w}</span><b class="${n<0?'up':'down'}">${n>0?'+':''}${n}G</b></div>`)].join('')||'<div class="row"><span>변동 없음</span><b></b></div>';
-  ov(`${docHead('등불 길드 · 아침 보고서',`${d+1}일째 아침`)}<h2>${d+1}일째 아침</h2>
-   <div class="news"><div class="pic">${R.head.fig?svg(R.head.fig,150):`<div class="nofig">${uiCall('hud','day',56)||'☀'}</div>`}</div><div class="hl">${R.head.text}</div></div>
-   ${resultsHtml}
-   <div class="gbig">오염 <span class="gauge"><i id="nBar" style="width:${R.before}%"></i></span><b>${R.before}</b> → <b class="${S.contam>R.before?'badN':''}">${S.contam}</b> / 100</div>
+  ov(`<h2>${d+1}일째 아침</h2>
+   <div class="news"><div class="pic">${R.head.fig?svg(R.head.fig,150):'<div style="height:180px;display:grid;place-items:center;color:#555;font-size:40px">☀</div>'}</div><div class="hl">${R.head.text}</div></div>
+   <div class="gbig">오염 <span class="gauge"><i id="nBar" style="width:${R.before}%"></i></span><b style="color:#fff">${R.before}</b> → <b style="color:${S.contam>R.before?'#f19a8b':'#fff'}">${S.contam}</b> / 100</div>
    <div class="calc">${calc}</div>
    ${R.audit?`<p>🔎 ${R.audit}</p>`:''}
-   ${R.stamps.length?`<p>서운함 도장: <b class="badN">${R.stamps.map(c=>C[c].name).join(', ')}</b> — 다음 밤 말 걸기와 거래를 거부한다.</p>`:''}
+   ${R.stamps.length?`<p>서운함 도장: <b style="color:#f19a8b">${R.stamps.map(c=>C[c].name).join(', ')}</b> — 다음 밤 말 걸기와 거래를 거부한다.</p>`:''}
    ${R.notes.map(n=>`<p>· ${n}</p>`).join('')}
    <details><summary>간밤 보고서 (${V.results.length}건)</summary><ul class="rep">${lines}${quiet?`<li><span class="ic ok">✓</span><div>그 밖에 <b>${quiet}명</b>은 무사히 잠들었다.</div></li>`:''}</ul></details>
    <button class="primary" id="toOffice">${d===3?'층 기록부를 쓴다':'사무소로'}</button>`);
@@ -1311,7 +1143,7 @@ function renderStorage(){
   box.innerHTML=S.inv.map((it,i)=>{const I=ITEMS[it.k];const nm=it.k==='spore'&&it.rev?I.n2:I.n;
     const tg=[I.contra?(it.secret?'<span class="tg contra">금지품 · 몰래 매입</span>':'<span class="tg conf">금지품 · 압수품</span>'):'',it.k==='spore'&&it.rev?'<span class="tg spore">포자</span>':'',I.food?'<span class="tg food">음식 · 내일 상함</span>':'',it.k==='leaf'?'<span class="tg leaf">가치 없음</span>':''].join('');
     const bs=buyersFor(it).map(([b,p])=>{const lab={dora:`도라 ${p}G`,kane:`케인 납품 ${p}G`,enoch:`에녹 ${p}G`,helga:`헬가 요리 ${p}G`,momo:`모모에게 먹이기 (+${p})`}[b];return `<button class="${b}" data-i="${i}" data-b="${b}">${lab}</button>`;}).join('')+(it.k==='leaf'?`<button data-i="${i}" data-b="toss">버리기</button>`:'');
-    return `<div class="inv"><div class="ic">${icon(it.k==='spore'&&!it.rev?'mush':it.k,56)}</div><div><span class="nm">${nm}</span>${tg}<div class="bs">${bs||(I.gift?'<span class="nobuy">팔 수 없다. 마그다의 등불이다.</span>':'<span class="nobuy">오늘 사 갈 손님이 없다</span>')}</div></div></div>`;}).join('');
+    return `<div class="inv"><div class="ic">${icon(it.k==='spore'&&!it.rev?'mush':it.k)}</div><div><span class="nm">${nm}</span>${tg}<div class="bs">${bs||(I.gift?'<span style="color:var(--mute);font-size:12.5px">팔 수 없다. 마그다의 등불이다.</span>':'<span style="color:var(--mute);font-size:12.5px">오늘 사 갈 손님이 없다</span>')}</div></div></div>`;}).join('');
   box.querySelectorAll('button[data-b]').forEach(b=>b.onclick=()=>sell(+b.dataset.i,b.dataset.b));
 }
 function sell(i,b){
@@ -1328,11 +1160,11 @@ function sell(i,b){
 }
 function renderMomo(){
   const need=S.momo.lv>=2?'':`다음 단계까지 ${Math.max(0,3-S.momo.xp)}`;
-  $('momoBox').innerHTML=`<div class="momoBox"><div class="pp"><svg width="80" height="96" viewBox="0 0 100 120">${momoSvg(S.momo.lv)}</svg></div><div><b>모모 Lv${S.momo.lv}</b><div class="momoSub">모모의 코 밤마다 ${S.momo.lv}회<br>${need}</div><div class="xp"><i style="width:${S.momo.lv>=2?100:Math.min(100,S.momo.xp/3*100)}%"></i></div></div></div>`;
+  $('momoBox').innerHTML=`<div class="momoBox"><div class="pp"><svg width="80" height="96" viewBox="0 0 100 120">${momoSvg(S.momo.lv)}</svg></div><div><b>모모 Lv${S.momo.lv}</b><div style="font-size:12.5px;color:var(--mute)">모모의 코 밤마다 ${S.momo.lv}회<br>${need}</div><div class="xp"><i style="width:${S.momo.lv>=2?100:Math.min(100,S.momo.xp/3*100)}%"></i></div></div></div>`;
 }
 function renderInvest(){
-  const opts=[['iso','격리실 +1칸',15,4,`지금 ${S.caps.iso}칸 (초과 시 호송 ${COST.iso}G)`],['bed','치료소 침대 +1',10,4,`지금 ${S.caps.bed}개 (초과 시 ${COST.bed}G)`],['time','야간 근무 +20초',10,2,`연장 ${S.caps.time}회`],['oil','등불 기름 +20초',8,3,`지금 ${oilMax()}초`]];
-  $('invest').innerHTML=opts.map(([k,lb,cost,max,now])=>`<button data-k="${k}" data-c="${cost}" ${S.money<cost||S.caps[k]>=max?'disabled':''}>${lb} · ${cost}G<br><small>${now}${S.caps[k]>=max?' (최대)':''}</small></button>`).join('');
+  const opts=[['iso','격리실 +1칸',15,4,`지금 ${S.caps.iso}칸 (초과 시 호송 ${COST.iso}G)`],['bed','치료소 침대 +1',10,4,`지금 ${S.caps.bed}개 (초과 시 ${COST.bed}G)`],['time','야간 근무 +20초',10,2,`연장 ${S.caps.time}회`]];
+  $('invest').innerHTML=opts.map(([k,lb,cost,max,now])=>`<button data-k="${k}" data-c="${cost}" ${S.money<cost||S.caps[k]>=max?'disabled':''}>${lb} · ${cost}G<br><small style="color:var(--mute)">${now}${S.caps[k]>=max?' (최대)':''}</small></button>`).join('');
   $('invest').querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=b.dataset.k,c=+b.dataset.c;if(S.money<c)return;S.money-=c;S.caps[k]++;snd('coin');toast('투자 완료','ok');renderInvest();renderRent();hud();});
 }
 function toNight(){
@@ -1349,18 +1181,18 @@ function weekEnd(){
   ov(`<h2>주말 정산 · 1주 차 끝</h2>
    <p>운영비 ${RENT}G를 냈다. 남은 자금 <b>${S.money}G</b>, 오염 <b>${S.contam}</b>/100, 모모 Lv${S.momo.lv}.</p>
    <div class="sum"><div><b>${L.length}</b>판정</div><div><b>${c('ok')}</b>수칙대로</div><div><b>${c('bad')}</b>위반</div><div><b>${c('q')}</b>직접 판단</div><div><b>${acc}</b>사고</div><div><b>${S.enoch}</b>에녹에게 판 파편</div></div>
-   <h3 class="secH">수칙집을 다시 펼쳤다</h3>${ruleLines([12,13])}
+   <h3 style="margin-top:14px;color:var(--gold)">수칙집을 다시 펼쳤다</h3>${ruleLines([12,13])}
    <p>12번은 당신이 썼다. 13번을 쓴 기억은 없다. <b>필체는 당신 것과 똑같다.</b> 단골 카드의 메모와도. ${ten}</p>
    ${S.enoch?`<p>에녹의 표본 상자에 붉은 조각이 ${S.enoch}개 들어갔다. "다음 주에도 부탁드립니다."</p>`:''}
    <div class="paper"><b>[왕립 경계청 공문]</b> 다음 주부터 13번 출입구의 <b>입장 심사권</b>을 등불 길드에 위임한다. — 감찰관 케인<br><span style="font-size:13px">(정식 제작: 2장 진입편 — 출발할 때 부절을 쪼개 주고, 돌아올 때 맞춘다. 그리고 3장 거울 숲.)</span></div>
-   <h3 class="secH">재미 체크</h3>
+   <h3 style="margin-top:14px;color:var(--gold)">재미 체크</h3>
    <div class="q">재미있었나요? ${[1,2,3,4,5].map(n=>`<label><input type="radio" name="fun" value="${n}"> ${n}</label>`).join('')}</div>
-   <div class="q">끌린 것 (여러 개)<br>${['어두운 창구와 등불·돋보기','카드의 작은 특징 찾기','아침에 알게 되는 결과','인식표·부절·짝방울','암구호·추궁','매입 딜레마','아침 사무소','수칙 쓰기 / 이상한 수칙'].map(x=>`<label><input type="checkbox" name="pick" value="${x}"> ${x}</label>`).join('')}</div>
+   <div class="q">끌린 것 (여러 개)<br>${['인식표 뒤집어 보기','부절 맞대 보기','짝방울','암구호·추궁','도구(등불·뒤돌기·모모)','매입 딜레마','아침 사무소','수칙 쓰기 / 이상한 수칙'].map(x=>`<label><input type="checkbox" name="pick" value="${x}"> ${x}</label>`).join('')}</div>
    <div class="q">가장 재미있던 순간<textarea id="best"></textarea></div>
    <div class="q">지루하거나 헷갈렸던 점<textarea id="worst"></textarea></div>
    <button class="primary" id="saveBtn">저장</button> <button class="primary ghost" onclick="location.reload()">처음부터 다시</button>`);
   $('saveBtn').onclick=()=>{const v=n=>(document.querySelector(`input[name=${n}]:checked`)||{}).value||'';const picks=[...document.querySelectorAll('input[name=pick]:checked')].map(x=>x.value).join(', ');
-    try{const a=JSON.parse(localStorage.getItem('srg_toys')||'{}');a.proto4={fun:v('fun'),best:(picks?'['+picks+'] ':'')+$('best').value,worst:$('worst').value,score:{n:L.length,ok:c('ok'),bad:c('bad'),acc,money:S.money,contam:S.contam,enoch:S.enoch,rule12:S.playerRule},at:new Date().toISOString()};localStorage.setItem('srg_toys',JSON.stringify(a));}catch(e){}
+    try{const a=JSON.parse(localStorage.getItem('srg_toys')||'{}');a.proto3={fun:v('fun'),best:(picks?'['+picks+'] ':'')+$('best').value,worst:$('worst').value,score:{n:L.length,ok:c('ok'),bad:c('bad'),acc,money:S.money,contam:S.contam,enoch:S.enoch,rule12:S.playerRule},at:new Date().toISOString()};localStorage.setItem('srg_toys',JSON.stringify(a));}catch(e){}
     $('saveBtn').textContent='저장했습니다';$('saveBtn').disabled=true;};
 }
 
