@@ -5,6 +5,7 @@
 <title>무사귀환 · 프로토 v3</title>
 <link rel="icon" href="data:,">
 <meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Gothic+Coding:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
@@ -13,7 +14,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
 body{background:var(--bg);color:var(--ink);font-family:var(--kr);min-width:1100px;overflow:hidden}
-button{font-family:var(--kr)}
+button{font-family:var(--kr);touch-action:manipulation}
 header{display:flex;align-items:center;gap:18px;padding:0 20px;border-bottom:1px solid var(--line);background:var(--panel);height:52px;white-space:nowrap}
 header h1{font-size:18px;font-weight:800}header h1 small{font-size:12px;color:var(--gold);font-weight:600;margin-left:8px}
 .sp{flex:1}.stat{font-size:12.5px;color:var(--mute);display:flex;align-items:center;gap:6px}.stat b{font-size:17px;color:var(--ink)}
@@ -177,10 +178,81 @@ details{margin-top:8px;color:#bdb7aa}details summary{cursor:pointer;color:var(--
 .inv2 button{font-size:13.5px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:6px;padding:8px 10px;cursor:pointer;text-align:left}
 .inv2 button:disabled{opacity:.4;cursor:default}
 .rent{margin-top:12px;background:#2a2218;border:1px solid #6b4a36;border-radius:6px;padding:10px 12px;font-size:13.5px;color:#e7dcc0;line-height:1.6}
-#pcOnly{display:none}
-@media (max-width:1099px){#pcOnly{display:grid;position:fixed;inset:0;z-index:100;place-items:center;background:var(--bg);color:var(--ink);text-align:center;padding:24px;font-size:16px;line-height:1.7}}
-@media (max-height:800px){.person svg,.shadow svg{height:min(46vh,290px)}.counter{height:122px}.desk{height:88px}.big{font-size:16px;padding:11px 16px}.reg .ph{width:92px;height:110px}.reg .top{grid-template-columns:92px 1fr}}
-@media (min-height:960px){.person svg,.shadow svg{height:min(52vh,420px)}}
+.mtabs,#rotate,.mback,.pwStrip{display:none}
+/* 모바일·태블릿 세로 (폭 1100px 미만) */
+@media (max-width:1099px){
+ body{min-width:0}
+ header{height:44px;gap:10px;padding:0 10px;overflow:hidden}
+ header h1,.dt,.lbl{display:none!important}
+ .stat{font-size:11.5px;gap:4px}.stat b{font-size:15px}.gauge{width:56px;height:8px}
+ #snd{font-size:11.5px;padding:2px 6px}
+ main.night{display:flex;flex-direction:column;height:calc(100vh - 44px);height:calc(100dvh - 44px);padding:6px 6px 0;gap:0}
+ .left{display:contents}
+ .stage{flex:1;min-height:0}
+ .win{border-width:7px;border-bottom:0}
+ .person svg,.shadow svg{height:min(36vh,330px)}
+ .shadow{transform:translateX(-50%) translate(-30vw,-18px) scale(.9) skewX(-8deg)}.shadow.s2{transform:translateX(-50%) translate(30vw,-16px) scale(.9) skewX(8deg)}
+ .bellMark{left:14%;bottom:14px}
+ .bubble{font-size:13.5px;padding:7px 11px;top:8px;max-width:calc(100% - 136px);left:auto;right:8px;transform:none;text-align:left}
+ .bubble::after{left:auto;right:28px}
+ .bubble.sys{max-width:calc(100% - 136px)}
+ .bubble.momo{font-size:12.5px;bottom:8px;left:8px;right:auto;max-width:76%}
+ .tray{right:6px;bottom:6px;padding:5px 7px;font-size:11.5px;gap:5px}.tray svg{width:30px;height:30px}.tray b{font-size:12.5px}.tray small{font-size:10.5px}
+ .knock{font-size:32px}.stamp{font-size:26px;padding:3px 12px;border-width:4px}.shutter .hint{font-size:11.5px;padding:0 10px}
+ .pwStrip{display:block;flex:none;background:#2a221a;color:#f2e6cc;font-size:12px;padding:4px 10px;text-align:center;border-top:2px solid #6b4a36}
+ .pwStrip b{color:#ffd48a}
+ .counter{height:auto;padding:6px 8px;gap:8px;justify-content:space-between;border-top:0}
+ .counter .none{font-size:12px;text-align:center;width:100%;padding:18px 0}
+ .counter>div:last-child{flex:1;min-width:0}
+ .docLbl{font-size:10px;margin-bottom:2px;white-space:nowrap}.docLbl .l2{display:none}.docLbl .l1{font-size:0}.docLbl .l1::after{content:attr(data-m);font-size:10px}
+ .tagWrap{width:146px;height:76px}
+ .tagF,.tagB{padding:5px 6px 5px 22px;border-radius:8px}
+ .hole{left:7px;width:8px;height:8px;margin-top:-4px}
+ .tag .tn{font-size:12.5px}.tag .tr{font-size:9.5px}.tag .no{font-size:15px;letter-spacing:.06em}
+ .tag .knot{right:5px;top:4px}.tag .knot svg{width:20px;height:17px}
+ .tagB svg{width:38px;height:38px}
+ .tallyBox svg{width:100%;height:auto;max-width:220px}
+ .desk{height:auto;flex-wrap:wrap;padding:7px;gap:6px}
+ .desk kbd,.sep{display:none}
+ .tools{grid-template-columns:repeat(4,1fr);width:100%;gap:4px}.tools button{font-size:11.5px;padding:9px 2px}
+ .big{font-size:15.5px;padding:12px 4px;flex:1;min-width:0}
+ .vb small{font-size:10px}
+ .desk>div:first-child:not(.tools){flex-basis:100%;text-align:left!important;margin:0!important}
+ .mtabs{display:flex;gap:6px;padding:6px 0;position:relative;z-index:27;background:var(--bg)}
+ .mtabs button{flex:1;font-size:14px;font-weight:700;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:10px 6px}
+ .mtabs i{display:none;width:8px;height:8px;border-radius:50%;background:#e0503f;margin-left:5px;vertical-align:middle}.mtabs i.on{display:inline-block}
+ .mtabs b{color:var(--gold);font-weight:700}
+ .mback:not([hidden]){display:block;position:fixed;inset:0;background:#0009;z-index:24}
+ .reg{position:fixed;top:57px;left:19px;width:108px;padding:4px 5px 5px;z-index:8;border-radius:6px;box-shadow:0 4px 14px #000a;cursor:pointer}
+ .reg h3,.reg .rc,.reg .fl,.reg .memo,.reg .wallBell,.reg>.cardRow{display:none}
+ .reg .top{display:block}
+ .reg .ph{width:96px;height:115px;margin:0 auto 2px;border-width:2px}
+ .reg .nm{font-size:12.5px;text-align:center}
+ .reg .cardRow{grid-template-columns:1fr;font-size:10.5px;line-height:1.35;text-align:center}
+ .reg .cardRow>span:first-child{display:none}
+ .reg .cardRow .no{font-size:12px}
+ .reg.isEmpty{display:none}
+ .reg.full{width:min(310px,88vw);padding:10px 12px}.reg.full h3,.reg.full .rc,.reg.full .fl,.reg.full .memo,.reg.full>.cardRow{display:block}
+ .reg.full .top{display:grid;grid-template-columns:96px 1fr}.reg.full .nm{text-align:left;font-size:16px}.reg.full .cardRow{grid-template-columns:40px 1fr;text-align:left;font-size:12px}.reg.full .cardRow>span:first-child{display:inline}
+ .stampMark{font-size:10px;top:6px;right:4px;border-width:2px;padding:1px 4px}
+ .dep,.book{position:fixed;left:0;right:0;bottom:0;max-height:74vh;max-height:74dvh;z-index:25;border-radius:14px 14px 0 0;transform:translateY(105%);transition:transform .25s ease;overflow:auto;padding-bottom:64px;border:0}
+ .dep.open,.book.open{transform:none}
+ .toast{top:4px;font-size:13px;width:94vw;padding:8px 10px;box-shadow:0 4px 14px #000c}
+ .overlay{padding:8px}
+ .card{width:100%;padding:16px;max-height:90vh;max-height:90dvh;line-height:1.65}
+ .card h2{font-size:19px}.card>ul{font-size:13.5px;margin-left:16px}.card p{font-size:14px}
+ .news{grid-template-columns:1fr;justify-items:center;gap:10px}.news .pic{width:120px;height:144px}.news .pic svg{width:120px;height:144px}.news .pic>div{height:144px!important}.news .hl{font-size:16px}
+ .gbig .gauge{width:120px}.calc{font-size:13px}.sum div{padding:6px 10px}.sum b{font-size:17px}
+ .compose .opt{display:block;margin:6px 0}
+ .office{display:flex;flex-direction:column;height:calc(100vh - 44px);height:calc(100dvh - 44px);overflow:auto;padding:8px;gap:8px}
+ .ocol{overflow:visible;flex:none}
+ #visitors{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.vis{grid-template-columns:44px 1fr;gap:8px;padding:6px 0}.vis .pp{width:44px;height:53px}.vis .pp svg{width:44px;height:53px}.vis span{font-size:12px}
+ #toNight{position:sticky;bottom:6px;z-index:3;box-shadow:0 6px 20px #000c}
+}
+@media (min-width:700px) and (max-width:1099px){.reg{width:130px}.reg .ph{width:118px;height:142px}.person svg,.shadow svg{height:min(40vh,420px)}.tagWrap{width:200px;height:96px}.tag .no{font-size:20px}.tallyBox svg{max-width:330px}}
+@media (max-width:1099px) and (orientation:landscape) and (max-height:520px){#rotate{display:grid;position:fixed;inset:0;z-index:100;place-items:center;background:var(--bg);color:var(--ink);font-size:17px;text-align:center;padding:20px}}
+@media (min-width:1100px) and (max-height:800px){.person svg,.shadow svg{height:min(46vh,290px)}.counter{height:122px}.desk{height:88px}.big{font-size:16px;padding:11px 16px}.reg .ph{width:92px;height:110px}.reg .top{grid-template-columns:92px 1fr}}
+@media (min-width:1100px) and (min-height:960px){.person svg,.shadow svg{height:min(52vh,420px)}}
 .flicker{animation:flk .7s steps(2) 1}
 @keyframes flk{0%{filter:brightness(2) contrast(1.4)}30%{filter:brightness(.3)}60%{filter:invert(1)}100%{filter:none}}
 </style>
@@ -189,14 +261,14 @@ details{margin-top:8px;color:#bdb7aa}details summary{cursor:pointer;color:var(--
 <header>
   <h1>무사귀환 <small id="hChap">프롤로그</small></h1>
   <span class="stat"><span id="hDayLbl">밤</span><b id="hNight">1</b>/ 5</span>
-  <span class="stat" id="hClockW">창구 마감까지<b id="hClock">4:00</b></span>
+  <span class="stat" id="hClockW"><span class="lbl">창구 마감까지</span><b id="hClock">4:00</b></span>
   <span class="sp"></span>
-  <span class="stat gold">자금<b id="hMoney">25</b>G</span>
+  <span class="stat gold"><span class="lbl">자금</span><b id="hMoney">25</b>G</span>
   <span class="stat">오염<span class="gauge"><i id="hBar"></i></span><b id="hContam">0</b></span>
-  <span class="stat">격리실<b id="hIso">0/2</b></span>
-  <span class="stat">침대<b id="hBed">0/2</b></span>
+  <span class="stat dt">격리실<b id="hIso">0/2</b></span>
+  <span class="stat dt">침대<b id="hBed">0/2</b></span>
   <span class="stat r">경고<b id="hWarn">0</b></span>
-  <span class="stat">모모<span class="momoMini" id="hMomo"></span></span>
+  <span class="stat dt">모모<span class="momoMini" id="hMomo"></span></span>
   <button id="snd">소리 켜짐</button>
 </header>
 <main class="night" id="nightView">
@@ -214,9 +286,11 @@ details{margin-top:8px;color:#bdb7aa}details summary{cursor:pointer;color:var(--
       <div class="stamp" id="stamp" hidden></div>
       <div class="vig"></div>
     </div>
+    <div class="pwStrip" id="pwStrip"></div>
     <div class="counter" id="counter"></div>
     <div class="desk" id="desk"></div>
   </section>
+  <nav class="mtabs"><button id="tabBook">수칙집<i id="bookDot"></i></button><button id="tabDep">장부 <b id="depCnt"></b></button></nav>
   <aside class="book" id="book"></aside>
 </main>
 <main class="office" id="office" hidden>
@@ -224,7 +298,8 @@ details{margin-top:8px;color:#bdb7aa}details summary{cursor:pointer;color:var(--
   <div class="ocol"><h3>창고 · 팔거나 모모에게 먹이기</h3><div id="storage"></div></div>
   <div class="ocol"><h3>모모</h3><div id="momoBox"></div><h3 style="margin-top:14px">투자</h3><div class="inv2" id="invest"></div><div class="rent" id="rent"></div><button class="primary" id="toNight" style="width:100%">창구를 연다 →</button></div>
 </main>
-<div id="pcOnly"><div>이 테스트 버전(v3)은 <b>PC 전용</b>입니다.<br><span style="color:var(--mute);font-size:14px">가로 1100px 이상의 PC·맥 브라우저로 열어 주세요.</span></div></div>
+<div class="mback" id="mback" hidden></div>
+<div id="rotate">휴대폰을 세로로 돌려 주세요.<br><span style="color:var(--mute);font-size:14px">이 화면은 세로 모드용입니다.</span></div>
 <div class="overlay" id="ov" hidden><div class="card" id="ovCard"></div></div>
 <script>
 const $=id=>document.getElementById(id);
@@ -605,7 +680,8 @@ function nameOf(cs){if(cs.knocks===3)return '세 번 두드린 것';if(cs.hood)r
 const JO={'이(가)':['이','가'],'을(를)':['을','를'],'은(는)':['은','는'],'과(와)':['과','와']};
 function josa(t){return String(t).replace(/([가-힣])(이\(가\)|을\(를\)|은\(는\)|과\(와\))/g,(m,ch,j)=>ch+JO[j][(ch.charCodeAt(0)-0xAC00)%28?0:1]);}
 function toast(msg,k='info'){msg=josa(msg);const d=document.createElement('div');d.className='toast '+k;d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),2800);}
-const limit=()=>DAYS[S.day].limit+S.caps.time*20;
+const TOUCH=matchMedia('(pointer:coarse)').matches;
+const limit=()=>Math.round((DAYS[S.day].limit+S.caps.time*20)*(TOUCH?1.2:1));
 function hud(){
   const night=V&&$('office').hidden;
   $('hChap').textContent=DAYS[S.day].chap;$('hNight').textContent=S.day+1;$('hDayLbl').textContent=night?'밤':'아침';
@@ -616,11 +692,14 @@ function hud(){
   $('hWarn').textContent=V?V.warn:0;
   if(hud.lv!==S.momo.lv){hud.lv=S.momo.lv;$('hMomo').innerHTML=`<svg width="30" height="36" viewBox="0 0 100 120">${momoSvg(S.momo.lv)}</svg>`;}
 }
-function ov(html){html=josa(html);document.querySelectorAll('.toast').forEach(x=>x.remove());$('ovCard').innerHTML=html;$('ov').hidden=false;$('ovCard').scrollTop=0;}
+function ov(html){html=josa(html);document.querySelectorAll('.toast').forEach(x=>x.remove());['book','dep'].forEach(x=>$(x).classList.remove('open'));$('mback').hidden=true;$('ovCard').innerHTML=html;$('ov').hidden=false;$('ovCard').scrollTop=0;}
 function closeOv(){$('ov').hidden=true;}
 function ruleLines(ns){return `<div class="paper"><ol style="list-style:none">${ns.map(n=>`<li style="display:grid;grid-template-columns:26px 1fr;gap:4px;margin:4px 0${RULE[n].red?';border-left:4px solid #b3261e;padding-left:4px':''}"><b style="color:#7a6b58;padding-top:1px">${n}.</b><span class="ink-${RULE[n].ink}" ${RULE[n].red?'style="color:#b3261e"':''}>${rt(n)}</span></li>`).join('')}</ol></div>`;}
+function drawer(w){const was=w&&$(w).classList.contains('open');['book','dep'].forEach(x=>$(x).classList.remove('open'));const open=w&&!was;$('mback').hidden=!open;if(open){$(w).classList.add('open');if(w==='book'&&V)V.bookSeen=true;}updTabs();}
+function updTabs(){const d=$('bookDot');if(d)d.classList.toggle('on',!!(S.newRules.length&&V&&!V.bookSeen));const c=$('depCnt');if(c&&V){const dep=DAYS[S.day].dep;c.textContent=`${dep.reduce((a,[id])=>a+(V.arr[id]||0),0)}/${dep.length}`;}}
 function renderBook(){
-  const pw=PW[S.day];
+  const pw=PW[S.day];setTimeout(updTabs,0);
+  $('pwStrip').innerHTML=`오늘의 암구호 — <b>"${pw.q}"</b> · <b>"${pw.a}"</b>`;
   $('book').innerHTML=`<h2>등불 길드 · 귀환 창구 수칙</h2><div class="by">— 마그다</div>
    <div class="pwBox">오늘의 암구호 — 물음 <b>"${pw.q}"</b> · 답 <b>"${pw.a}"</b></div>
    <div class="ref">${sealSvg(false,34)}<div>길드 인장 (불꽃이 <b>오른쪽</b>으로)<br>올해 갱신 도장 <b>${YEAR}</b></div>${yearStamp(YEAR,32)}</div>
@@ -636,7 +715,7 @@ function tagData(cs){
 function tagHtml(cs){
   const t=tagData(cs);
   const scr=t.scratch?`<svg class="scr" viewBox="0 0 200 96" preserveAspectRatio="none"><path d="M40 18 L150 70 M60 12 L170 60" stroke="#6b737c" stroke-width="1.6" opacity=".8"/></svg>`:'';
-  return `<div class="docLbl"><span>인식표 (들고 옴)</span><span>눌러서 뒤집기 <kbd>F</kbd></span></div>
+  return `<div class="docLbl"><span class="l1" data-m="인식표 · 눌러서 뒤집기">인식표 (들고 옴)</span><span class="l2">눌러서 뒤집기 <kbd>F</kbd></span></div>
    <div class="tagWrap" id="tagWrap"><div class="tag ${V.tagFlip?'flip':''}" id="tag">
     <div class="tagF"><span class="hole"></span><div class="tn">${t.name}</div><div class="tr">${t.race} · 등불 길드</div><div class="no">No.${t.no}</div><div class="knot">${knotSvg(t.rank)}<br>${t.rank}</div>${scr}</div>
     <div class="tagB"><span class="hole"></span>${sealSvg(t.seal,50)}${yearStamp(t.year,46)}</div>
@@ -659,7 +738,7 @@ function tallySvg(cs){
     :`<clipPath id="cpL"><path d="${L}"/></clipPath><g opacity="${ret?.45:1}"><path d="${L}" fill="#c1935c" stroke="#3a2616" stroke-width="2"/><g clip-path="url(#cpL)">${grain(0,false)}</g></g>${ret?`<g transform="rotate(-8 85 36)"><rect x="42" y="24" width="86" height="24" rx="4" fill="none" stroke="#b3261e" stroke-width="2.5"/><text x="85" y="41" text-anchor="middle" font-size="13" font-weight="800" fill="#b3261e" font-family="Pretendard Variable,sans-serif">반납 완료</text></g>`:''}`;
   const mud=d.dirty?`<g fill="#4a3220" opacity=".8"><circle cx="230" cy="24" r="7"/><circle cx="262" cy="44" r="9"/><circle cx="298" cy="20" r="5"/></g>`:'';
   const ret2=cs.hood?'':`<g class="ret" id="retHalf" style="transform:translateX(${V.joined?0:34}px)"><clipPath id="cpR"><path d="${R}"/></clipPath><path d="${R}" fill="#b0824c" stroke="#3a2616" stroke-width="2"/><g clip-path="url(#cpR)">${grain(gy,flipG)}</g>${mud}</g>`;
-  return `<div class="docLbl"><span>출입 부절 — 길드 보관 | 귀환자</span><span>눌러서 맞대기 <kbd>G</kbd></span></div>
+  return `<div class="docLbl"><span class="l1" data-m="부절 (길드 | 귀환자) · 눌러서 맞대기">출입 부절 — 길드 보관 | 귀환자</span><span class="l2">눌러서 맞대기 <kbd>G</kbd></span></div>
     <div class="tallyBox" id="tallyBox"><svg width="${W+34}" height="72" viewBox="0 0 ${W+34} 72">${guild}${cs.hood?`<text x="250" y="40" text-anchor="middle" font-size="12" fill="#e7d3b0cc" font-family="Pretendard Variable,sans-serif">(부절을 내밀지 않는다)</text>`:ret2}</svg></div>`;
 }
 function renderCounter(){
@@ -723,9 +802,11 @@ function renderDep(){
    d.map(([id,fl])=>{const n=V.arr[id]||0,now=V.cur&&V.cur.c===id&&V.face;
      return `<div class="row ${now?'now':n?'back':''}"><span>${C[id].name}${S.rels[id]==='sulky'?'<span class="sulk">서운</span>':''}</span><span style="color:var(--mute)">${fl}</span><span class="st">${now?'창구':n?'귀환 ✓'+(n>1?'✓':''):'—'}</span></div>`;}).join('')+
    (V.extra?`<div class="row x"><span>???</span><span>장부에 없음</span><span class="st">창구</span></div>`:'');
+  updTabs();
 }
-function regEmpty(msg){$('reg').innerHTML=`<h3>단골 기록 카드 · 길드 보관</h3><div class="empty">${msg}</div>`;}
+function regEmpty(msg){$('reg').classList.add('isEmpty');$('reg').classList.remove('full');$('reg').innerHTML=`<h3>단골 기록 카드 · 길드 보관</h3><div class="empty">${msg}</div>`;}
 function reg(cs){
+  $('reg').classList.remove('isEmpty','full');
   if(cs.hood||cs.knocks===3){$('reg').innerHTML=`<h3>단골 기록 카드 · 길드 보관</h3><div class="top"><div class="ph" style="background:#2a2826">${svg(fig(cs.hood?'hood':'void'),104)}</div><div><div class="nm">???</div><div class="rc">출발 장부에 없음</div><div class="cardRow"><span>기록</span>없음</div></div></div>`;return;}
   const c=C[cs.c],fl=(DAYS[S.day].dep.find(x=>x[0]===cs.c)||[0,cs.fl])[1];
   $('reg').innerHTML=`<h3>단골 기록 카드 · 길드 보관</h3><div class="wallBell" id="wallBell" title="짝방울">${bellSvg(22)}</div>
@@ -779,7 +860,7 @@ function nextCase(){
   $('win').classList.remove('lit');$('shutter').classList.remove('up','slam');
   later(()=>{['person','shadow','shadow2'].forEach(x=>$(x).innerHTML='');},420);
   ['bubble','momoSay','tray','stamp','bellMark'].forEach(x=>$(x).hidden=true);$('knock').innerHTML='';
-  $('hint').textContent=S.day===0&&V.ci===0?'셔터 너머에서 누군가 두드린다 — 창구 열기 (Space 또는 셔터를 누른다)':'';
+  $('hint').textContent=S.day===0&&V.ci===0?(TOUCH?'셔터 너머에서 누군가 두드린다 — 셔터를 누르면 열린다':'셔터 너머에서 누군가 두드린다 — 창구 열기 (Space 또는 셔터를 누른다)'):'';
   regEmpty('셔터 너머에서<br>누군가 두드린다.');renderDep();renderCounter();desk();
   const k=cs.knocks||2;
   for(let j=0;j<k;j++)later(()=>{if(V.cur!==cs)return;$('knock').insertAdjacentHTML('beforeend','<span>똑</span> ');snd('knock');},420+j*420);
@@ -1128,6 +1209,8 @@ addEventListener('keydown',e=>{
   else if(k==='1')decide('pass');else if(k==='2')decide('treat');else if(k==='3')decide('iso');
 });
 $('shutter').onclick=()=>{if(V&&V.state==='knock')openS();};
+$('tabBook').onclick=()=>drawer('book');$('tabDep').onclick=()=>drawer('dep');$('mback').onclick=()=>drawer(null);
+$('reg').onclick=e=>{if(e.target.closest('#wallBell'))return;if(!$('reg').classList.contains('isEmpty'))$('reg').classList.toggle('full');};
 S.rules=[...NEWRULES[0]];startNight();
 window.__p={jump:d=>{S.day=d;S.rules=[];for(let i=0;i<=d;i++)NEWRULES[i].forEach(n=>S.rules.push(n));if(d>=2)S.rules.push(8);S.rules.sort((a,b)=>a-b);S.newRules=[];if(d>=4)S.playerRule='treat';startNight();},get S(){return S},get V(){return V},expect:()=>V&&V.cur&&expect(V.cur),openS,ignoreS,useTool,decide,tradeAct,sell,toNight,gameOver,flipTag,joinTally,get snap(){return SNAP},fig,setT:v=>{V.t=v}};
 </script>
