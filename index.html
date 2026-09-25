@@ -7,15 +7,16 @@
 <title>무사귀환 · 플레이 테스트</title>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
-:root{--bg:#0f1012;--panel:#18191c;--line:#2e3036;--paper:#e6dac0;--ink:#f2efe7;--mute:#8f8b82;--gold:#d9b46c;--kr:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+:root{--bg:#0f1012;--panel:#18191c;--line:#2e3036;--paper:#e6dac0;--ink:#f2efe7;--mute:#8f8b82;--gold:#d9b46c;--kr:"Pretendard Variable","Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:radial-gradient(circle at 30% 0%,#2a2116,transparent 50%),var(--bg);color:var(--ink);font-family:var(--kr);min-height:100vh;display:grid;place-items:center;padding:40px 16px}
 .wrap{max-width:720px;width:100%}
 h1{font-size:40px;letter-spacing:-.02em}h1 small{display:block;font-size:14px;color:var(--gold);font-weight:600;letter-spacing:.12em;margin-bottom:10px}
 .lead{margin:18px 0 26px;font-size:17px;line-height:1.8;color:#d6d1c4}
-.rule{background:var(--paper);color:#6e2a1c;border-radius:8px;padding:16px 20px;font-family:"Nanum Pen Script",cursive;font-size:26px;line-height:1.3;margin-bottom:26px;transform:rotate(-.6deg)}
+.rule{background:var(--paper);color:#6e2a1c;border-radius:8px;padding:16px 20px;font-family:"Gowun Batang",serif;font-size:19px;line-height:1.5;margin-bottom:26px;transform:rotate(-.6deg)}
 .rule b{color:#b3261e;font-weight:400}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px}
 .box{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px;font-size:14px;line-height:1.8;color:#d6d1c4}
@@ -23,8 +24,6 @@ h1{font-size:40px;letter-spacing:-.02em}h1 small{display:block;font-size:14px;co
 kbd{font-family:var(--kr);font-size:12px;border:1px solid #555;border-radius:4px;padding:0 5px;margin-right:4px;color:#fff;background:#222}
 .go{display:inline-block;background:var(--gold);color:#2a1f0e;font-weight:800;font-size:18px;padding:15px 34px;border-radius:8px;text-decoration:none}
 .note{margin-top:16px;font-size:13px;color:var(--mute);line-height:1.7}
-.small{display:none;background:#3a1f1a;border:1px solid #7a3a2a;border-radius:8px;padding:12px 16px;margin-bottom:18px;font-size:14px;color:#f2c9bd}
-@media (max-width:1100px){.small{display:block}}
 @media (max-width:640px){.grid{grid-template-columns:1fr}h1{font-size:32px}}
 </style>
 </head>
@@ -33,10 +32,9 @@ kbd{font-family:var(--kr);font-size:12px;border:1px solid #555;border-radius:4px
   <h1><small>PLAYTEST · PROTO v2</small>무사귀환</h1>
   <p class="lead">미궁에서 돌아온 단골 모험가들을 밤마다 귀환 창구에서 검역합니다. 평소 모습과 비교하고, 도구로 확인하고, 선대 길드장이 남긴 <b>기묘한 수칙</b>대로 통과·치료소·격리를 가르세요. 그들이 들고 온 물건을 사서 아침에 팔아 길드를 꾸려야 합니다. 수상한 물건일수록 비쌉니다.</p>
   <div class="rule">7. <b>창구를 세 번 두드리면 절대 열지 마십시오.</b></div>
-  <div class="small">화면이 좁습니다. 이 프로토타입은 <b>PC·맥 브라우저(가로 1280px 이상)</b>와 키보드용입니다.</div>
   <div class="grid">
-    <div class="box"><h3>분량과 환경</h3>5일(밤 + 아침), 약 20분<br>PC·맥 브라우저, 가로 1280px 이상<br>휴대폰·태블릿은 지원하지 않습니다<br>소리가 납니다</div>
-    <div class="box"><h3>조작</h3><kbd>Space</kbd>창구 열기 <kbd>X</kbd>모른 척<br><kbd>Q</kbd>말 걸기 <kbd>E</kbd>짐 보기 <kbd>W</kbd>뒤돌기<br><kbd>R</kbd>등불 <kbd>T</kbd>모모의 코<br><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>판정 · 매입 (마우스로도 됩니다)</div>
+    <div class="box"><h3>분량과 환경</h3>5일(밤 + 아침), 약 20분<br>PC·맥 브라우저, 휴대폰·태블릿(세로)<br>휴대폰은 세로로 들고 해 주세요<br>소리가 납니다 (첫 터치 후)</div>
+    <div class="box"><h3>조작 · PC</h3><kbd>Space</kbd>창구 열기 <kbd>X</kbd>모른 척<br><kbd>Q</kbd>말 걸기 <kbd>E</kbd>짐 보기 <kbd>W</kbd>뒤돌기<br><kbd>R</kbd>등불 <kbd>T</kbd>모모의 코<br><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>판정 · 매입 (마우스로도 됩니다)<br><span style="color:var(--mute)">휴대폰: 셔터를 눌러 열고, 아래 버튼으로 진행. 수칙집·명부는 맨 아래 탭</span></div>
   </div>
   <a class="go" href="play.html">창구를 연다 →</a>
   <p class="note">개발 중인 프로토타입입니다. 그림은 임시이고, 수치와 내용은 바뀔 수 있습니다. 진행 상황은 저장되지 않으니 한 번에 끝까지 해 주세요.</p>
