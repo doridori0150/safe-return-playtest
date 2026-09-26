@@ -15,6 +15,7 @@ SRG.regulars={
   lines:{hi:'"아리! 들어 봐, 오늘 이끼쥐가 글쎄—"',ask:'"이끼 캤지! 그리고 도, 도망쳤지! 그리고 또 도망쳤지!"',voice:'빠르고 높다. 겁먹으면 더듬는다.',knock:'"누, 누구야?!"',listen:'잠꼬대. "도, 도망쳐…"',wake:'"으아, 벌써?"',eat:'허겁지겁 먹는다. 입가에 묻힌다.',witness:'"보, 보르 아저씨랑 갔는데 계단에서 잠깐 안 보였어."',bye:'"고마워 아리! 내일 봐!"'}},
  sere:{name:'세레나데',race:'엘프 · 음유시인',no:'0351',rank:'C',eye:'#8a5ec9',eyeN:'보라색',outfit:'#6b4a8a',
   role:'음유시인',apt:{B1:0,B2:1},shoes:'elf_boots',fakeF:{mole:{side:'L'}},
+  rig:{outfit:'Female_Peasant',head:'Superhero_Female_FullBody',hair:['Hair_Long'],scale:.95,anime:true},   // 일본 애니풍 시험(2단 명암·큰 눈·엘프 귀)
   memo:['말끝을 늘인다 (~요오~).','음치. 노래를 참지 못한다.'],
   lines:{hi:'"다녀왔어요오~ 한 곡 들으실래요오~?"',ask:'"이끼쥐한테 노래 불러 줬는데요오~ 도망갔어요오~"',voice:'말끝을 늘인다. 음정이 흔들린다.',knock:'"누구세요오~?"',listen:'음 틀린 콧노래.',wake:'"아침이에요오~?"',eat:'먹다 말고 콧노래를 흥얼거린다. 음이 틀렸다.',witness:'"황야에서 달이 두 개였어요오~ 무명 씨는 말이 없었고요오~"',bye:'"감사해요오~"'}},
  mumy:{name:'무명',race:'해골 기사',no:'0009',rank:'C',eye:'#8fe3ff',eyeN:'푸른 불빛',outfit:'#5d6068',

@@ -1,9 +1,10 @@
 /* Mockups/art/faces.js
- * 투명 얼굴 오버레이. 래퍼: <svg viewBox="0 0 1024 1024" ...>
- * 좌표 = 원본 텍스처 픽셀. 신체 왼쪽 L = UV 오른쪽.
- * 합성 순서: 엔진에서 피부색 합성 → 이 오버레이 source-over.
+ * 얼굴: <svg viewBox="0 0 1024 1024">로 감싸서 사용.
+ * 눈알: <svg viewBox="0 0 256 256">로 감싸서 사용.
+ * 신체 왼쪽 L = UV 오른쪽.
+ * 보르는 기존 투명 오버레이 유지.
+ * 세레나데는 분리된 headMesh의 텍스처를 피부색으로 평탄화한다.
  * 눈알/눈썹은 별도 메시. sleep 시 엔진에서 눈알을 숨긴다.
- * props(id, o)는 가짜 특징까지 반영한 새 배열을 반환한다.
  */
 (function (root) {
   'use strict';
@@ -11,6 +12,7 @@
   const K = '#382c2b';
   const GOLD = '#c9a45a';
   const OWN = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+
   const DATA = {
     bor: {
       head: 'male',
@@ -32,11 +34,34 @@
       props: [
         { kind: 'ring', where: 'earR', color: GOLD, r: .012, tube: .002 }
       ]
+    },
+    sere: {
+      head: 'female',
+      skin: '#f6dcc6',
+      shade: '#d9b4ad',
+      hair: '#e1dfeb',
+      hairShade: '#a6a0bb',
+      eye: '#8a5ec9',
+      lip: '#d69ca4',
+      animeEye: true,
+      feat: {
+        hairDrape: { side: 'L' },
+        mole: { side: 'R', pos: 'underEye' },
+        circlet: true
+      },
+      featText: [
+        '왼쪽으로 늘어뜨린 머리', '오른눈 밑 점',
+        '이마의 은 서클릿', '보라색 눈'
+      ],
+      props: [
+        { kind: 'circlet', where: 'brow', mat: 'silver' },
+        { kind: 'elfEar', where: 'earL', color: '#f2d6c0' },
+        { kind: 'elfEar', where: 'earR', color: '#f2d6c0' }
+      ]
     }
   };
 
-  // 확인된 얼굴 UV 앵커 유지.
-  // 귀 섬의 좌우 신체 대응은 추정하지 않는다. 귀걸이는 Head 로컬 앵커 사용.
+  // 기존 남성 UV 앵커. 보르의 좌표와 반사축은 변경하지 않는다.
   const UV = {
     centerX: 192,
     eyeR: { x: 139, y: 171 },
@@ -106,7 +131,6 @@
   }
 
   function shading(c) {
-    // 기존 shade만 사용. 볼 24%, 이마 20%의 넓은 색면.
     const forehead = path(
       'M110 94 Q150 84 192 88 Q234 84 274 94 ' +
       'L267 133 Q233 140 192 135 Q151 140 117 133Z',
@@ -162,7 +186,6 @@
 
   function eyelids(c, expr) {
     if (expr !== 'sleep') return '';
-    // 엔진에서 합성한 피부 베이스와 DATA.skin의 색을 맞춘다.
     const lid = path(
       'M99 170 Q112 150 139 152 Q164 153 178 170 ' +
       'Q165 191 139 191 Q112 190 99 170Z', c.skin
@@ -213,8 +236,6 @@
   }
 
   function beardBase(c) {
-    // 볼 아래부터 턱 끝까지 연결된 큰 수염 덩어리.
-    // 안쪽 경계는 코와 입을 비우고 기존 입술 좌표를 보존한다.
     const mass = path(
       'M76 210 L90 221 L102 218 L115 231 L127 230 ' +
       'L141 245 L135 261 L137 275 ' +
@@ -228,7 +249,6 @@
       c.hair
     );
 
-    // 불투명 기본색 + 불투명 그림자색의 2단 셀 음영.
     const cheekShade = path(
       'M79 226 L94 244 L109 251 L116 276 ' +
       'L132 295 L150 309 L141 316 L119 301 ' +
@@ -243,7 +263,6 @@
       c.hairShade
     );
 
-    // 가닥은 몇 개만 굵게 넣어 작은 화면에서도 덩어리가 유지되게 한다.
     const strands = pair(line(
       'M99 232 Q104 247 114 257 ' +
       'M122 244 L126 265 ' +
@@ -258,7 +277,6 @@
   }
 
   function moustache(c) {
-    // 코 아래와 입술 위치를 유지한 두 갈래 콧수염.
     const half = path(
       'M190 249 Q177 242 161 248 Q145 250 133 260 ' +
       'L126 269 Q142 265 153 260 Q173 254 190 254Z',
@@ -272,7 +290,6 @@
 
   function scarV(c, value) {
     const a = eye(value);
-    // 중심선 폭 7px. 별도 눈알 메시 위를 가로지르지 않게 중앙을 끊는다.
     const mark =
       line(
         'M-3 -34 L0 -23 L-2 -11 ' +
@@ -295,8 +312,6 @@
     const n = knotCount(value);
     if (!n) return '';
 
-    // 1〜3개는 폭 28px 원크기. 둘일 때는 중심 간격 44px.
-    // 기존 4〜6개 입력도 유지하되 턱 UV 안에 들어오도록 축소한다.
     const scale = n <= 3 ? 1 : 3 / n;
     const spacing = n === 2 ? 44 : 34 * scale;
     const y = 292;
@@ -325,7 +340,6 @@
           'M9 8 L-7 16 L7 24',
           edge, 2.2, .95
         ) +
-        // 幅広の金属バンド。暗い縁と明るい上縁で金輪を明示。
         path(
           'M-13 25 Q0 21 13 25 L13 32 ' +
           'Q0 37 -13 32Z',
@@ -354,9 +368,124 @@
     return s;
   }
 
-  // 후속 인물용 독립 확장 지점. 현재는 보르만 완성.
+  // 여성 UV 전개도에서 잡은 초기 앵커. 남성 UV는 그대로 둔다.
+  const UV_FEMALE = {
+    centerX: 188,
+    eyeR: { x: 132, y: 175 },
+    eyeL: { x: 244, y: 175 },
+    mouth: { x: 188, y: 276 },
+    moleR: { x: 114, y: 202 },
+    moleL: { x: 262, y: 202 }
+  };
+
+  // 512px 참고 이미지를 256 viewBox로 환산.
+  // 원본 홍채 반지름 약 27px → 46px, 약 1.70배.
+  const EYE_UV = { x: 128, y: 128, originalR: 27, r: 46 };
+
+  const femalePair = s =>
+    s + group(s, 'translate(376 0) scale(-1 1)');
+
+  function animeBase(c) {
+    // 이 엔진은 분리된 headMesh의 map에만 face()를 합성한다.
+    // 머리 atlas 전체를 평탄화해 앞면/옆면/귀 경계의 기존 음영도 제거.
+    return feature('flatSkin',
+      `<rect width="1024" height="1024" fill="${esc(c.skin)}"/>`
+    ) + feature('shading',
+      femalePair(ellipse(113, 211, 22, 8, '#e7a6ae', .16)) +
+      ellipse(188, 235, 2.8, 1.6, c.shade, .70)
+    );
+  }
+
+  function animeLids(c, expr) {
+    if (expr === 'sleep') {
+      const lid =
+        path(
+          'M80 170 Q98 148 132 150 Q160 150 179 169 ' +
+          'L179 183 Q159 200 132 201 Q99 199 80 184Z',
+          c.skin
+        ) +
+        line('M91 175 Q130 193 172 176', '#514052', 2.7) +
+        line('M92 176 L84 171 M99 180 L91 179', '#514052', 2);
+
+      return feature('sleepLids', femalePair(lid));
+    }
+
+    const lid =
+      // 굵기는 눈 바깥쪽에 집중하고 안쪽 끝에서는 가늘게.
+      path(
+        'M173 177 Q157 165 135 163 Q108 160 94 174 ' +
+        'L84 157 L89 179 Q108 166 134 168 ' +
+        'Q156 168 173 177Z',
+        '#514052'
+      ) +
+      line('M94 180 Q128 193 162 182', '#6e5266', 1.05, .82) +
+      // 눈썹이 아닌 쌍꺼풀 선 한 줄.
+      line('M99 155 Q131 145 162 158', '#ad858b', 1.05, .55);
+
+    return feature('eyelashes', femalePair(lid));
+  }
+
+  function animeMouth(c, expr) {
+    const { x, y } = UV_FEMALE.mouth;
+    let s;
+
+    if (expr === 'talk') {
+      s = ellipse(x, y, 12.5, 5.5, c.lip, .65) +
+        ellipse(x, y - .5, 10, 3.7, '#795164') +
+        line('M183 279 Q188 281 193 279', '#e9b7bd', 1.2, .8);
+    } else if (expr === 'surprise') {
+      s = ellipse(x, y, 7.5, 8.5, c.lip, .70) +
+        ellipse(x, y, 5.4, 6.3, '#795164');
+    } else {
+      s = ellipse(x, y + 2.4, 12, 2.8, c.lip, .28) +
+        line('M172 275 Q188 279 204 275', '#986c78', 1.25, .88);
+    }
+
+    return feature('mouth', s);
+  }
+
+  // SVG inner만 반환. 호출 측 viewBox는 0 0 256 256.
+  // bor는 기존 eyeTex()를 사용하므로 빈 문자열을 반환한다.
+  function eyeTexture(id) {
+    const c = character(id);
+    if (!c.animeEye) return '';
+
+    const { x, y, r } = EYE_UV;
+    const gradient = 'face-art-eye-' + id;
+
+    return `<defs>
+      <linearGradient id="${esc(gradient)}" gradientUnits="userSpaceOnUse"
+        x1="${x}" y1="${y-r}" x2="${x}" y2="${y+r}">
+        <stop offset="0" stop-color="#39264f"/>
+        <stop offset=".40" stop-color="${esc(c.eye)}"/>
+        <stop offset=".76" stop-color="#ad85e2"/>
+        <stop offset="1" stop-color="#e1c4ff"/>
+      </linearGradient>
+    </defs>
+    <g stroke="none">
+      <rect width="256" height="256" fill="#f3f7ff"/>
+      ${ellipse(x, y, r, r, '#493354')}
+      ${ellipse(x, y, r - 2, r - 2, 'url(#' + gradient + ')')}
+      ${path(
+        'M99 145 Q128 167 157 145 Q150 169 128 170 ' +
+        'Q106 169 99 145Z',
+        '#d9b7ff', .50
+      )}
+      ${ellipse(x, y - 2, 11, 16, '#271b39')}
+      ${ellipse(113, 109, 11, 13, '#ffffff')}
+      ${ellipse(147, 141, 4.5, 5.5, '#ffffff', .96)}
+    </g>`;
+  }
+
+  // 후속 인물용 독립 확장 지점.
   function scarX(c, v) { return ''; }
-  function mole(c, v) { return ''; }
+
+  function mole(c, v) {
+    if (c !== DATA.sere) return '';
+    const a = UV_FEMALE[side(v) === 'R' ? 'moleR' : 'moleL'];
+    return ellipse(a.x, a.y, 1.9, 1.9, '#594051');
+  }
+
   function freckles(c, v) { return ''; }
   function toothGap(c, v) { return ''; }
   function browScar(c, v) { return ''; }
@@ -389,9 +518,14 @@
   function props(id, o = {}) {
     const c = character(id);
     const f = mergeFeatures(c.feat, o);
-    // 정본 소품 배열을 변경하지 않고 귀걸이만 재계산한다.
+
+    // 귀걸이만 재계산. 엘프 귀는 보존하고 서클릿은 특징 스위치를 따른다.
     const result = (c.props || [])
-      .filter(p => p.where !== 'earL' && p.where !== 'earR')
+      .filter(p => !(
+        (p.kind === 'ring' || p.kind === 'feather') &&
+        (p.where === 'earL' || p.where === 'earR')
+      ))
+      .filter(p => p.kind !== 'circlet' || !!f.circlet)
       .map(p => ({ ...p }));
 
     if (f.earring) {
@@ -409,14 +543,20 @@
   function face(id, o = {}, expr = 'neutral') {
     const c = character(id);
     const f = mergeFeatures(c.feat, o);
+
     if (!['neutral', 'talk', 'surprise', 'sleep'].includes(expr)) {
       expr = 'neutral';
     }
 
-    let s = shading(c) + ageLines(c, expr) + eyelids(c, expr);
-    if (id === 'bor') s += beardBase(c);
-    s += mouth(c, expr);
-    if (id === 'bor') s += moustache(c);
+    let s;
+    if (id === 'sere') {
+      s = animeBase(c) + animeLids(c, expr) + animeMouth(c, expr);
+    } else {
+      s = shading(c) + ageLines(c, expr) + eyelids(c, expr);
+      if (id === 'bor') s += beardBase(c);
+      s += mouth(c, expr);
+      if (id === 'bor') s += moustache(c);
+    }
 
     Object.keys(DRAW).forEach(key => {
       if (f[key]) s += feature(key, DRAW[key](c, f[key], expr));
@@ -427,7 +567,11 @@
       s + '</g>';
   }
 
-  const api = { face, DATA, props, UV };
+  const api = {
+    face, DATA, props, UV, UV_FEMALE, EYE_UV,
+    eye: eyeTexture
+  };
+
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.FACE_ART = api;
 })(typeof window !== 'undefined' ? window : null);

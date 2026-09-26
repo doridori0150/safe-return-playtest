@@ -702,11 +702,12 @@ function updateNPCs(dt){const cam=camera.position;
 import {clone as skelClone} from 'three/addons/utils/SkeletonUtils.js';
 const RIG={on:!QF.has('norig'),all:QF.get('rig')==='all',ready:false,parts:{},clips:{},heads:{},toon:!QF.has('notoon'),headScale:+(QF.get('head')||1.42),bodyScale:+(QF.get('body')||.84)};
 // 툰 셰이딩: 3단 명암 그라데이션 + 뒤집은 껍질 윤곽선
-const TOONGRAD=(()=>{const d=new Uint8Array([170,170,170,255,218,218,218,255,255,255,255,255]);const t=new THREE.DataTexture(d,3,1,THREE.RGBAFormat);t.minFilter=t.magFilter=THREE.NearestFilter;t.needsUpdate=true;return t;})();
-function toonify(root){if(!RIG.toon)return;const hulls=[];root.traverse(o=>{if(!o.isMesh||!o.material)return;const src=o.material;if(/eye/i.test(o.name)){return;}
+const mkGrad=arr=>{const d=new Uint8Array(arr.flatMap(v=>[v,v,v,255]));const t=new THREE.DataTexture(d,arr.length,1,THREE.RGBAFormat);t.minFilter=t.magFilter=THREE.NearestFilter;t.needsUpdate=true;return t;};
+const TOONGRAD=mkGrad([170,218,255]),ANIMEGRAD=mkGrad([200,255]); // 애니풍은 2단
+function toonify(root,anime){if(!RIG.toon)return;const hulls=[];const grad=anime?ANIMEGRAD:TOONGRAD,th=anime?0.003:0.0045;root.traverse(o=>{if(!o.isMesh||!o.material)return;const src=o.material;if(/eye/i.test(o.name)){return;}
   // 툰 재질은 환경광을 못 받아 어두워지므로 색을 조금 올리고, 그림자면 색을 살짝 따뜻하게
-  const m=new THREE.MeshToonMaterial({map:src.map||null,color:(src.color?src.color.clone():new THREE.Color(0xffffff)),gradientMap:TOONGRAD,transparent:src.transparent,alphaTest:src.alphaTest||0,side:src.side,emissiveMap:src.map||null,emissive:0xffffff,emissiveIntensity:.2});m.name=src.name;m.userData.baseEmissive=0xffffff;o.material=m;
-  const hm=new THREE.MeshBasicMaterial({color:0x33261f,side:THREE.BackSide});hm.onBeforeCompile=s=>{s.vertexShader=s.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed+=normalize(normal)*0.0045;');};
+  const m=new THREE.MeshToonMaterial({map:src.map||null,color:(src.color?src.color.clone():new THREE.Color(0xffffff)),gradientMap:grad,transparent:src.transparent,alphaTest:src.alphaTest||0,side:src.side,emissiveMap:src.map||null,emissive:0xffffff,emissiveIntensity:.2});m.name=src.name;m.userData.baseEmissive=0xffffff;o.material=m;
+  const hm=new THREE.MeshBasicMaterial({color:0x33261f,side:THREE.BackSide});hm.onBeforeCompile=s=>{s.vertexShader=s.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed+=normalize(normal)*'+((anime&&/superhero/i.test(o.name))?0.0012:th).toFixed(4)+';');};
   const h=o.clone();h.material=hm;h.castShadow=false;h.receiveShadow=false;h.userData.hull=true;h.frustumCulled=false;hulls.push([o,h]);});
   hulls.forEach(([o,h])=>o.parent.add(h));}
 const RIG_DEFAULT={outfit:'Male_Peasant',head:'Superhero_Male_FullBody',hair:['Hair_SimpleParted'],scale:.95};
@@ -731,12 +732,12 @@ function rigBuild(spec){const outfit=RIG.parts[spec.outfit];if(!outfit)return nu
   [spec.head,...(spec.hair||[])].forEach(name=>{const src=RIG.parts[name];if(!src)return;const c=skelClone(src);const skinned=[],plain=[];c.traverse(o=>{if(o.isSkinnedMesh)skinned.push(o);else if(o.isMesh)plain.push(o);});
     skinned.forEach(o=>{const bl=o.skeleton.bones.map(b=>bones[b.name]||b);const sk=new THREE.Skeleton(bl,o.skeleton.boneInverses);const m=o.clone();m.bind(sk,o.bindMatrix);m.frustumCulled=false;m.castShadow=true;arm.add(m);});
     plain.forEach(o=>{const m=o.clone();o.updateWorldMatrix(true,false);m.matrix.copy(o.matrixWorld);m.matrix.decompose(m.position,m.quaternion,m.scale);root.add(m);root.updateMatrixWorld(true);(bones.Head||arm).attach(m);m.castShadow=true;});});
-  root.scale.setScalar((spec.scale||1)*RIG.bodyScale);const mixer=new THREE.AnimationMixer(root);const acts={};Object.entries(RIG.clips).forEach(([k,c])=>{acts[k]=mixer.clipAction(c);});
+  root.scale.setScalar((spec.scale||1)*(spec.anime?.8:RIG.bodyScale));const mixer=new THREE.AnimationMixer(root);const acts={};Object.entries(RIG.clips).forEach(([k,c])=>{acts[k]=mixer.clipAction(c);});
   // 머리 재질은 인물마다 따로 (얼굴 텍스처를 입히므로)
   let headMesh=null;root.traverse(o=>{if(o.isSkinnedMesh&&o.material&&/Superhero/i.test(o.material.name)&&!headMesh)headMesh=o;});if(headMesh){headMesh.material=headMesh.material.clone();headMesh.material.name='head';}
-  toonify(root);
+  toonify(root,!!spec.anime);
   const skinMats=[];root.traverse(o=>{if(o.isMesh&&!o.userData.hull&&o.material&&/Regular|Superhero|SuperHero|^head$/i.test(o.material.name))skinMats.push(o.material);});
-  return {root,mixer,acts,cur:null,skinMats,arm,headMesh,bones,faceKey:null,props:[]};}
+  return {root,mixer,acts,cur:null,skinMats,arm,headMesh,bones,faceKey:null,props:[],headScale:spec.headScale||(spec.anime?1.55:0)};}
 // ───────── 얼굴: 기본 머리 텍스처에 피부색을 입히고 아스트라의 얼굴 오버레이(art/faces.js)를 겹친다 ─────────
 const FACE=window.FACE_ART||null,FACETEX={},SKIN_LIFT=+(QF.get('skinlift')||.38);
 function faceData(id){return (FACE&&FACE.DATA&&FACE.DATA[id])||(ARTL&&ARTL.DATA&&ARTL.DATA[id])||{};}
@@ -745,6 +746,8 @@ function faceTex(baseImg,id,o,expr){const key=id+JSON.stringify(o||{})+expr;if(F
   const paint=()=>{x.clearRect(0,0,S,S);if(baseImg)x.drawImage(baseImg,0,0,S,S);let skin=faceData(id).skin;
     // 3D 는 따뜻한 조명·툰 명암으로 그림보다 붉고 어둡게 보이므로 피부색을 흰색 쪽으로 당긴다 (SKIN_LIFT, ?skinlift= 로 시험)
     if(skin){const c=new THREE.Color(skin);c.lerp(new THREE.Color(0xffffff),SKIN_LIFT);skin='#'+c.getHexString();}
+    // 애니풍: 원본의 코·입·눈두덩 명암을 피부색으로 덮어 평평하게 (FLAT 비율), 그림은 아스트라 오버레이가 맡는다
+    const rigc=C[id]&&C[id].rig;if(skin&&rigc&&rigc.anime){x.globalAlpha=rigc.flat!==undefined?rigc.flat:.8;x.fillStyle=skin;x.fillRect(0,0,S,S);x.globalAlpha=1;}
     // 피부색: 원본의 명암은 두고 색조만 인물 색으로, 원본이 어두운 편이라 살짝 밝힌다
     // 원본을 명암만 남기고(탈색) 인물 피부색을 곱한 뒤 살짝 밝힌다 → 색은 데이터의 skin, 굴곡은 원본
     if(skin){x.globalCompositeOperation='color';x.fillStyle=skin;x.fillRect(0,0,S,S);x.globalCompositeOperation='screen';x.globalAlpha=.3;x.fillStyle=skin;x.fillRect(0,0,S,S);x.globalAlpha=1;x.globalCompositeOperation='source-over';}
@@ -757,7 +760,7 @@ function rigFace(n,expr){const r=n.rig;if(!r||!r.headMesh)return;const key=n.loo
   if(!r.baseImg){const sex=/female/i.test((rigSpec(n)||{}).head||'')?'female':'male';r.baseImg=lightBase(sex)||(m.map&&m.map.image);}
   m.map=faceTex(r.baseImg,n.look,n.o,expr);if(m.emissiveMap)m.emissiveMap=m.map;m.needsUpdate=true;
   // 눈알·눈썹은 별도 메시: 잘 때 눈알을 숨기고(텍스처 눈꺼풀이 덮는다), 눈 색·눈썹 색은 인물 데이터로
-  const D=faceData(n.look);r.root.traverse(o=>{if(!o.isSkinnedMesh||o.userData.hull)return;if(/eyes?$/i.test(o.name)){o.visible=expr!=='sleep';if(D.eye&&!o.userData.tinted){o.material=o.material.clone();o.material.map=eyeTex(o.material.map,D.eye);o.userData.tinted=true;}}
+  const D=faceData(n.look);r.root.traverse(o=>{if(!o.isSkinnedMesh||o.userData.hull)return;if(/eyes?$/i.test(o.name)){o.visible=expr!=='sleep';if(D.eye&&!o.userData.tinted){o.material=o.material.clone();o.material.map=(FACE&&FACE.eye&&FACE.DATA&&FACE.DATA[n.look]&&FACE.DATA[n.look].animeEye)?eyeSvgTex(n.look,o.material.map):eyeTex(o.material.map,D.eye);o.material.needsUpdate=true;o.userData.tinted=true;}}
     if(/eyebrow/i.test(o.name)&&D.hair&&!o.userData.tinted){o.material=o.material.clone();o.material.color.set(D.hair);o.userData.tinted=true;}});
   rigProps(n);}
 // 눈 텍스처: 홍채(채도 있는 갈색 부분)만 인물 눈 색으로 바꾼다. 흰자·동공은 그대로
@@ -766,6 +769,8 @@ function eyeTex(base,color){if(!base||!base.image)return base;const key=color;if
   const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.flipY=base.flipY;EYETEX[key]=t;const tc=new THREE.Color(color);
   const paint=()=>{x.drawImage(img,0,0,S,S);const d=x.getImageData(0,0,S,S),p=d.data;for(let i=0;i<p.length;i+=4){const R=p[i]/255,G=p[i+1]/255,B=p[i+2]/255,mx=Math.max(R,G,B),mn=Math.min(R,G,B),sat=mx?(mx-mn)/mx:0;if(sat<.18||mx<.08)continue;const lum=.3*R+.59*G+.11*B;const k=lum/(.3*tc.r+.59*tc.g+.11*tc.b||1);p[i]=Math.min(255,tc.r*k*255);p[i+1]=Math.min(255,tc.g*k*255);p[i+2]=Math.min(255,tc.b*k*255);}x.putImageData(d,0,0);t.needsUpdate=true;};
   if(img.complete===false)img.addEventListener('load',paint,{once:true});else paint();return t;}
+function eyeSvgTex(id,base){const key='svg'+id;if(EYETEX[key])return EYETEX[key];const S=512,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d');const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.flipY=base?base.flipY:false;EYETEX[key]=t;
+  let inner='';try{inner=FACE.eye(id);}catch(e){console.warn('eye',e);}if(inner){const img=new Image();img.onload=()=>{x.drawImage(img,0,0,S,S);t.needsUpdate=true;};img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 256 256">${inner}</svg>`);}return t;}
 // 소품(귀걸이·안경·깃털…): faces.js DATA[id].props 를 단순 도형으로 만들어 Head 뼈에 붙인다. 가짜(n.o)가 side 를 바꾸면 자리를 옮긴다
 const PROPM={gold:new THREE.MeshStandardMaterial({color:0xc9a45a,metalness:.9,roughness:.35}),silver:new THREE.MeshStandardMaterial({color:0xd8d8e0,metalness:.9,roughness:.3}),dark:new THREE.MeshStandardMaterial({color:0x2a2420,roughness:.6})};
 function headAnchors(r){if(r.anch)return r.anch;const hm=r.headMesh,head=r.bones.Head;if(!hm||!head)return null;const inv=hm.skeleton.boneInverses[hm.skeleton.bones.indexOf(head)];const M=new THREE.Matrix4().copy(inv).multiply(hm.bindMatrix);
@@ -774,16 +779,17 @@ function headAnchors(r){if(r.anch)return r.anch;const hm=r.headMesh,head=r.bones
   let eyes=null;r.root.traverse(o=>{if(o.isSkinnedMesh&&/eye/i.test(o.name)&&!eyes)eyes=o;});const eb=new THREE.Box3();if(eyes){const q=eyes.geometry.attributes.position;for(let i=0;i<q.count;i++){v.fromBufferAttribute(q,i).applyMatrix4(M);eb.expandByPoint(v);}}
   const ec=eyes?eb.getCenter(new THREE.Vector3()):bb.getCenter(new THREE.Vector3());const fz=Math.sign(ec.z-bb.getCenter(new THREE.Vector3()).z)||1;const cx=(bb.min.x+bb.max.x)/2,cz=(bb.min.z+bb.max.z)/2;
   const L=1,R=-1;const ear=s=>new THREE.Vector3(cx+s*(bb.max.x-cx)*.98,ec.y-.01,cz);
-  return r.anch={earL:ear(L),earR:ear(R),brow:new THREE.Vector3(cx,ec.y+.03,ec.z+fz*.02),nose:new THREE.Vector3(cx,ec.y-.03,ec.z+fz*.03),head:new THREE.Vector3(cx,bb.max.y-.01,cz),neck:new THREE.Vector3(cx,bb.min.y+.03,cz),fz,eyeW:eyes?(eb.max.x-eb.min.x):.06};}
+  return r.anch={headW:bb.max.x-bb.min.x,earL:ear(L),earR:ear(R),brow:new THREE.Vector3(cx,ec.y+.03,ec.z+fz*.02),nose:new THREE.Vector3(cx,ec.y-.03,ec.z+fz*.03),head:new THREE.Vector3(cx,bb.max.y-.01,cz),neck:new THREE.Vector3(cx,bb.min.y+.03,cz),fz,eyeW:eyes?(eb.max.x-eb.min.x):.06};}
 function rigProps(n){const r=n.rig;const A=headAnchors(r);if(!A)return;r.props.forEach(m=>m.parent&&m.parent.remove(m));r.props=[];const D=faceData(n.look);const o=n.o||{};let list=[];
   if(FACE&&FACE.props&&FACE.DATA&&FACE.DATA[n.look]){try{list=FACE.props(n.look,o);}catch(e){}}
   else{list=(D.props||[]).map(p=>{const ov=o[p.feat||p.kind]||o[p.kind==='ring'?'earring':p.kind];if(ov&&ov.side)return {...p,where:(p.where||'').replace(/[LR]$/,ov.side)};return p;});}
   list.forEach(p=>{let mesh=null;const mat=PROPM[p.mat||'gold']||PROPM.gold;const at=A[p.where]||A.head;
     if(p.kind==='ring'){mesh=new THREE.Mesh(new THREE.TorusGeometry(p.r||.012,p.tube||.0025,6,16),mat);mesh.position.copy(at).add(new THREE.Vector3(0,-(p.r||.012),0));mesh.rotation.y=Math.PI/2;}
-    else if(p.kind==='circlet'){mesh=new THREE.Mesh(new THREE.TorusGeometry(A.eyeW*1.55,.004,6,32),PROPM[p.mat||'silver']);mesh.position.copy(A.brow).add(new THREE.Vector3(0,.035,-A.fz*.02));mesh.rotation.x=Math.PI/2;}
+    else if(p.kind==='circlet'){mesh=new THREE.Mesh(new THREE.TorusGeometry(A.headW*.5*1.02,.0035,6,40),PROPM[p.mat||'silver']);mesh.position.set(A.brow.x,A.brow.y+.012,A.brow.z-A.fz*.045);mesh.rotation.x=Math.PI/2-A.fz*.25;}
     else if(p.kind==='glasses'){const g=new THREE.Group();[-1,1].forEach(s=>{const rim=new THREE.Mesh(new THREE.TorusGeometry(A.eyeW*.28,.0025,6,20),PROPM[p.mat||'dark']);rim.position.set(A.brow.x+s*A.eyeW*.52,A.brow.y-.03,A.brow.z+A.fz*.02);g.add(rim);});mesh=g;}
     else if(p.kind==='feather'){mesh=new THREE.Mesh(new THREE.PlaneGeometry(.012,.06),new THREE.MeshStandardMaterial({color:p.color||0x6a8a4a,side:THREE.DoubleSide,roughness:.9}));mesh.position.copy(at).add(new THREE.Vector3(0,-.035,0));}
     else if(p.kind==='plume'){mesh=new THREE.Mesh(new THREE.ConeGeometry(.02,.12,6),new THREE.MeshStandardMaterial({color:p.color||0xa83030,roughness:.9}));mesh.position.copy(A.head).add(new THREE.Vector3((p.where||'').endsWith('L')?.04:-.04,.05,0));}
+    else if(p.kind==='elfEar'){const s=(p.where||'').endsWith('L')?1:-1;const g=new THREE.ConeGeometry(.013,.055,8);g.translate(0,.0275,0);mesh=new THREE.Mesh(g,PROPM.skin||(PROPM.skin=new THREE.MeshToonMaterial({color:p.color||0xf2d6c0,gradientMap:ANIMEGRAD})));mesh.position.copy(at).add(new THREE.Vector3(-s*.006,.014,-.008));mesh.rotation.set(-1.15,0,-s*.95);mesh.castShadow=true;}
     else if(p.kind==='ribbon'){mesh=new THREE.Mesh(new THREE.BoxGeometry(.05,.02,.01),new THREE.MeshStandardMaterial({color:p.color||0xc03050,roughness:.8}));mesh.position.copy(at).add(new THREE.Vector3(0,.03,0));}
     if(!mesh)return;mesh.traverse(q=>{if(q.isMesh)q.castShadow=true;});r.bones.Head.add(mesh);r.props.push(mesh);});}
 function rigPlay(r,name,fade=.22){if(r.cur===name||!r.acts[name])return;const a=r.acts[name];a.reset().setEffectiveWeight(1).fadeIn(fade).play();if(r.cur&&r.acts[r.cur])r.acts[r.cur].fadeOut(fade);r.cur=name;}
@@ -799,7 +805,7 @@ function rigTick(n,dt,walking,sitting,sleeping,rel){const r=n.rig;const voidLook
   rigFace(n,sleeping?'sleep':talking?'talk':(n.surprise>0?'surprise':'neutral'));
   r.mixer.update(dt);
   // 등신: 머리 뼈를 키운다 (클립에 scale 트랙이 있어 매 프레임 덧씌운다)
-  if(r.bones.Head)r.bones.Head.scale.setScalar(RIG.headScale);
+  if(r.bones.Head)r.bones.Head.scale.setScalar(r.headScale||RIG.headScale);
   // 고개: 가까이 있는 플레이어를 본다 (애니메이션 위에 덧씌움, 좌우 ±50°, 상하 ±35°)
   if(!sleeping){const hb=r.bones.Head;if(hb){hb.updateWorldMatrix(true,false);const hp=new THREE.Vector3().setFromMatrixPosition(hb.matrixWorld);const cam=camera.position;const dx=cam.x-hp.x,dz=cam.z-hp.z,dh=Math.hypot(dx,dz);
     let want=0,pitch=0;if(dh<3.5&&Math.abs(rel)<1.5){const fwd=n.face+r.root.rotation.y;let a=Math.atan2(dx,dz)-fwd;while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;want=Math.max(-.9,Math.min(.9,a));pitch=Math.max(-.6,Math.min(.6,Math.atan2(cam.y-hp.y-.05,dh)));}
