@@ -9,6 +9,9 @@
 | models/kaykit_furniture_bits | KayKit Furniture Bits 1.0 — Kay Lousberg | CC0 |
 | models/kenney_food | Kenney Food Kit (https://kenney.nl/assets/food-kit) | CC0 |
 | models/polypizza | Quaternius — Cauldron, Light Chandelier (https://poly.pizza) | CC0 |
+| models/quaternius_props | Quaternius — Fantasy Props MegaKit [Standard] (https://quaternius.com/packs/fantasypropsmegakit.html) | CC0 |
+| models/quaternius_village | Quaternius — Medieval Village MegaKit [Standard] (https://quaternius.com/packs/medievalvillagemegakit.html) | CC0 |
+| models/quaternius_char | Quaternius — Modular Character Outfits: Fantasy, Universal Base Characters, Universal Animation Library [Standard] (https://quaternius.com) — `UAL_clips.glb`는 라이브러리에서 쓰는 클립만 남긴 것 | CC0 |
 | tex/ | ambientCG (https://ambientcg.com) — WoodFloor051, Planks037A, Plaster001, PavingStones070, RoofingTiles006, Fabric030, Metal032 (1K JPG) | CC0 |
 | sfx/ | Kenney RPG Audio, Kenney Impact Sounds (https://kenney.nl) | CC0 |
 

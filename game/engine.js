@@ -166,7 +166,7 @@ function bake(group){if(QF.has('nobake'))return 0;group.updateMatrixWorld(true);
   group.traverse(o=>{if(!o.isMesh||o.userData.keep||Array.isArray(o.material))return;const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();g.applyMatrix4(o.matrixWorld);['uv1','uv2'].forEach(a=>g.deleteAttribute(a));
     if(!g.attributes.uv)return;const k=o.material.uuid;if(!buckets.has(k))buckets.set(k,{m:o.material,gs:[],shadow:o.castShadow});buckets.get(k).gs.push(g);drop.push(o);});
   drop.forEach(o=>o.parent.remove(o));const keep=[];group.traverse(o=>{if(o.isMesh&&o.userData.keep)keep.push(o);});keep.forEach(o=>scene.attach(o));let n=0;
-  buckets.forEach(({m,gs,shadow})=>{const g=mergeGeometries(gs,false);if(!g)return;const mesh=new THREE.Mesh(g,m);mesh.castShadow=shadow;mesh.receiveShadow=true;scene.add(mesh);n++;});
+  buckets.forEach(({m,gs,shadow})=>{const g=mergeGeometries(gs,false);if(!g)return;const mesh=new THREE.Mesh(g,m);mesh.castShadow=shadow;mesh.receiveShadow=!group.userData.noReceive;scene.add(mesh);n++;});
   scene.remove(group);return n;}
 
 // ───── 12_inn.js ─────
@@ -265,8 +265,8 @@ function facadeMat(v){const c=cnv(256,320),x=c.getContext('2d'),e=cnv(256,320),y
     if((v+i)%3===0){y.fillStyle='#ffb45a';y.fillRect(ax,b,w,h);y.fillStyle='#000';y.fillRect(ax+w/2-3,b,6,h);}});
   const m=new THREE.MeshStandardMaterial({map:toTex(c),emissiveMap:toTex(e),emissive:0xffa050,emissiveIntensity:0,roughness:.9});m.userData.tile=[3.4,4.1];return m;}
 const FACADES=[0,1,2].map(facadeMat),FACADE={set emissiveIntensity(v){FACADES.forEach(m=>m.emissiveIntensity=v);}};
-let HOUSE_I=0;
-function house(x1,z1,x2,z2,h){const F=FACADES[HOUSE_I++%3];box(x1,0,z1,x2,h,z2,[F,F,CEIL,CEIL,F,F],{shadow:true});box(x1-.4,h,z1-.4,x2+.4,h+.25,z2+.4,ROOF);box(x1,0,z1,x2,.5,z2,STONE);}
+let HOUSE_I=0;const HOUSES=[]; // 모듈 집(assets)이 오면 상자 집을 숨기고 그 자리에 세운다
+function house(x1,z1,x2,z2,h){const F=FACADES[HOUSE_I++%3];const ms=[box(x1,0,z1,x2,h,z2,[F,F,CEIL,CEIL,F,F],{shadow:true}),box(x1-.4,h,z1-.4,x2+.4,h+.25,z2+.4,ROOF),box(x1,0,z1,x2,.5,z2,STONE)];ms.forEach(m=>m.userData.keep=true);HOUSES.push({x1,z1,x2,z2,h,meshes:ms});}
 buildInn();
 
 // ───── 13_assets.js ─────
@@ -278,28 +278,41 @@ const ASSETS={man:null,tex:{},models:{},sfx:{},anchors:[],pending:0,on:!QF.has('
 // tint: 텍스처 평균 밝기를 우리 조명에 맞춘다 (planks 원본이 어둡고, plaster는 새하얗다)
 const TEXMAP={plank:{k:'floor',tile:[2.0,2.0],tint:[1.05,1.0,.95]},wainscot:{k:'planks',tile:[1.6,1.6],rot:1,tint:[1.75,1.6,1.45]},oak:{k:'planks',tile:[1.2,1.2],tint:[1.7,1.55,1.4]},walnut:{k:'planks',tile:[1.4,1.4],tint:[1.9,1.7,1.5]},door:{k:'planks',tile:[1.0,2.0],tint:[1.6,1.45,1.3]},plaster:{k:'plaster',tile:[2.2,2.2],tint:[.9,.84,.72]},cobble:{k:'cobble',tile:[2.4,2.4],tint:[.9,.88,.84]},roof:{k:'roof',tile:[1.6,1.6],tint:[.9,.85,.8]},rug:{k:'rug',tile:null,tint:[1.15,.5,.42]},iron:{k:'metal',tile:[.8,.8],tint:[.7,.7,.72]}};
 // 소품 키 → 모델 파일 (여러 후보 중 있는 것). fit: 목표 크기(m, 가장 큰 축), yOff: 바닥 맞춤
+// Quaternius(quaternius_*) 가 먼저, 없으면 KayKit·Kenney 로. ?nq 로 Quaternius 만 끈다
 const MODELMAP={
- cauldron:{f:['polypizza/cauldron.glb','kaykit_restaurant_bits/stew_pot.gltf'],fit:1.15},
- chandelier:{f:['polypizza/chandelier.glb'],fit:1.0},
- barrel:{f:['kaykit_dungeon_remastered/barrel_large.gltf.glb','kenney_food/barrel.glb'],fit:.9},
- keg:{f:['kaykit_dungeon_remastered/keg.gltf.glb'],fit:.8},
- crate:{f:['kaykit_dungeon_remastered/box_large.gltf.glb','kaykit_restaurant_bits/crate.gltf'],fit:.6},
+ cauldron:{f:['quaternius_props/Cauldron.gltf','polypizza/cauldron.glb','kaykit_restaurant_bits/stew_pot.gltf'],fit:1.15},
+ chandelier:{f:['quaternius_props/Chandelier.gltf','polypizza/chandelier.glb'],fit:1.0},
+ barrel:{f:['quaternius_props/Barrel.gltf','kaykit_dungeon_remastered/barrel_large.gltf.glb','kenney_food/barrel.glb'],fit:.9},
+ keg:{f:['quaternius_props/Barrel_Apples.gltf','kaykit_dungeon_remastered/keg.gltf.glb'],fit:.8},
+ crate:{f:['quaternius_props/Crate_Wooden.gltf','kaykit_dungeon_remastered/box_large.gltf.glb','kaykit_restaurant_bits/crate.gltf'],fit:.6},
  crates:{f:['kaykit_dungeon_remastered/crates_stacked.gltf.glb'],fit:1.1},
- chair:{f:['kaykit_furniture_bits/chair_A_wood.gltf','kaykit_dungeon_remastered/chair.gltf.glb'],fit:1.0},
- stool:{f:['kaykit_dungeon_remastered/stool.gltf.glb','kaykit_furniture_bits/chair_stool_wood.gltf'],fit:.5},
- table_long:{f:['kaykit_dungeon_remastered/table_long.gltf.glb'],fit:2.4},
+ chair:{f:['quaternius_props/Chair_1.gltf','kaykit_furniture_bits/chair_A_wood.gltf','kaykit_dungeon_remastered/chair.gltf.glb'],fit:1.0},
+ stool:{f:['quaternius_props/Stool.gltf','kaykit_dungeon_remastered/stool.gltf.glb','kaykit_furniture_bits/chair_stool_wood.gltf'],fit:.5},
+ table_long:{f:['quaternius_props/Table_Large.gltf','kaykit_dungeon_remastered/table_long.gltf.glb'],fit:2.85},
  table_round:{f:['kaykit_restaurant_bits/table_round_A_small.gltf'],fit:1.2},
- bed:{f:['kaykit_dungeon_remastered/bed_frame.gltf.glb','kaykit_furniture_bits/bed_single_A.gltf'],fit:2.1},
- candle:{f:['kaykit_dungeon_remastered/candle_lit.gltf.glb','kaykit_dungeon_remastered/candle.gltf.glb'],fit:.16},
- candle3:{f:['kaykit_dungeon_remastered/candle_triple.gltf.glb'],fit:.22},
- torch:{f:['kaykit_dungeon_remastered/torch_mounted.gltf.glb'],fit:.5},
- chest:{f:['kaykit_dungeon_remastered/chest.glb','kaykit_dungeon_remastered/trunk_medium_A.gltf.glb'],fit:1.0},
- banner:{f:['kaykit_dungeon_remastered/banner_patternA_green.gltf.glb','kaykit_dungeon_remastered/banner_green.gltf.glb'],fit:1.7},
- shelf:{f:['kaykit_dungeon_remastered/shelf_small_candles.gltf.glb','kaykit_dungeon_remastered/shelf_small.gltf.glb'],fit:1.0},
- jar:{f:['kaykit_restaurant_bits/jar_A_medium.gltf','kaykit_restaurant_bits/jar_B_medium.gltf'],fit:.26},
- bottle:{f:['kaykit_dungeon_remastered/bottle_A_green.gltf.glb','kaykit_dungeon_remastered/bottle_B_brown.gltf.glb'],fit:.26},
- mug:{f:['kenney_food/mug.glb'],fit:.12},
- plate:{f:['kaykit_dungeon_remastered/plate_food_A.gltf.glb','kenney_food/plate.glb'],fit:.24},
+ bed:{f:['quaternius_props/Bed_Twin1.gltf','kaykit_dungeon_remastered/bed_frame.gltf.glb','kaykit_furniture_bits/bed_single_A.gltf'],fit:2.1},
+ candle:{f:['quaternius_props/Candle_1.gltf','kaykit_dungeon_remastered/candle_lit.gltf.glb','kaykit_dungeon_remastered/candle.gltf.glb'],fit:.16},
+ candle3:{f:['quaternius_props/CandleStick_Triple.gltf','kaykit_dungeon_remastered/candle_triple.gltf.glb'],fit:.22},
+ torch:{f:['quaternius_props/Torch_Metal.gltf','kaykit_dungeon_remastered/torch_mounted.gltf.glb'],fit:.5},
+ chest:{f:['quaternius_props/Chest_Wood.gltf','kaykit_dungeon_remastered/chest.glb','kaykit_dungeon_remastered/trunk_medium_A.gltf.glb'],fit:1.0},
+ banner:{f:['quaternius_props/Banner_1.gltf','kaykit_dungeon_remastered/banner_patternA_green.gltf.glb','kaykit_dungeon_remastered/banner_green.gltf.glb'],fit:1.7},
+ shelf:{f:['quaternius_props/Shelf_Simple.gltf','kaykit_dungeon_remastered/shelf_small_candles.gltf.glb','kaykit_dungeon_remastered/shelf_small.gltf.glb'],fit:1.0},
+ jar:{f:['quaternius_props/Vase_2.gltf','kaykit_restaurant_bits/jar_A_medium.gltf','kaykit_restaurant_bits/jar_B_medium.gltf'],fit:.26},
+ bottle:{f:['quaternius_props/Bottle_1.gltf','kaykit_dungeon_remastered/bottle_A_green.gltf.glb','kaykit_dungeon_remastered/bottle_B_brown.gltf.glb'],fit:.26},
+ mug:{f:['quaternius_props/Mug.gltf','kenney_food/mug.glb'],fit:.12},
+ plate:{f:['quaternius_props/Table_Plate.gltf','kaykit_dungeon_remastered/plate_food_A.gltf.glb','kenney_food/plate.glb'],fit:.24},
+ bench:{f:['quaternius_props/Bench.gltf'],fit:2.78},
+ sack:{f:['quaternius_props/Bag.gltf'],fit:.62},
+ workbench:{f:['quaternius_props/Workbench.gltf'],fit:2.02},
+ book:{f:['quaternius_props/BookGroup_Small_1.gltf'],fit:.3},
+ books:{f:['quaternius_props/Book_Stack_1.gltf'],fit:.3},
+ cabinet:{f:['quaternius_props/Cabinet.gltf'],fit:1.36},
+ bookcase:{f:['quaternius_props/Bookcase_2.gltf'],fit:2.5},
+ lantern_wall:{f:['quaternius_props/Lantern_Wall.gltf'],fit:.6},
+ potion:{f:['quaternius_props/Potion_1.gltf'],fit:.22},
+ coins:{f:['quaternius_props/Coin_Pile.gltf'],fit:.3},
+ farmcrate:{f:['quaternius_props/FarmCrate_Apple.gltf'],fit:.6},
+ wagon:{f:['quaternius_village/Prop_Wagon.gltf'],fit:4.0},
  stove:{f:['kaykit_restaurant_bits/stove_single.gltf'],fit:1.0},
  kitchentable:{f:['kaykit_restaurant_bits/kitchentable_A.gltf'],fit:1.4},
  bread:{f:['kenney_food/bread.glb','kenney_food/loaf.glb'],fit:.28},
@@ -313,7 +326,15 @@ const MODELMAP={
  fish:{f:['kenney_food/fish.glb'],fit:.3},
  turkey:{f:['kenney_food/turkey.glb'],fit:.3},
 };
-const TEXL=new THREE.TextureLoader(),GLTFL=new GLTFLoader();
+// 공용 텍스처(트림 시트)는 먼저 재시도 있는 fetch 로 받아 두고 blob 주소로 바꿔 준다 (로컬 서버가 동시 요청을 끊는 일이 있다)
+const LM=new THREE.LoadingManager(),BLOB={};LM.setURLModifier(u=>BLOB[u]||u);
+const TEXL=new THREE.TextureLoader(LM),GLTFL=new GLTFLoader(LM);
+function fetchRetry(url,n=3){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),8000);return fetch(url,{signal:ac.signal}).then(r=>{if(!r.ok)throw r.status;return r.blob();}).finally(()=>clearTimeout(t)).catch(e=>n>1?new Promise(res=>setTimeout(res,400)).then(()=>fetchRetry(url,n-1)):Promise.reject(e));}
+function prewarm(){const man=ASSETS.man,urls=[];
+  Object.entries(man.tex||{}).forEach(([k,t])=>(t.maps||[]).forEach(m=>urls.push(ASSET_BASE+'tex/'+k+'_'+m+'.jpg')));
+  const q=man.quaternius;if(q&&!QF.has('nq'))Object.entries(q).forEach(([k,list])=>{if(!k.endsWith(':tex'))return;const dir=k.slice(0,-4);list.forEach(f=>urls.push(ASSET_BASE+'models/'+dir+'/'+f));});
+  let i=0;const worker=()=>{if(i>=urls.length)return Promise.resolve();const u=urls[i++];return fetchRetry(u).then(b=>{BLOB[u]=URL.createObjectURL(b);}).catch(()=>{}).then(worker);};
+  return Promise.all([0,1,2,3].map(worker));}
 function assetTex(name,srgb){const t=TEXL.load(ASSET_BASE+'tex/'+name,undefined,undefined,()=>{});t.wrapS=t.wrapT=THREE.RepeatWrapping;if(srgb)t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t;}
 function assetTexSet(k){if(ASSETS.tex[k])return ASSETS.tex[k];const maps=(ASSETS.man.tex[k]||{}).maps||[];const s={map:assetTex(k+'_Color.jpg',true)};if(maps.includes('NormalGL'))s.normalMap=assetTex(k+'_NormalGL.jpg');if(maps.includes('Roughness'))s.roughnessMap=assetTex(k+'_Roughness.jpg');if(maps.includes('AmbientOcclusion'))s.aoMap=assetTex(k+'_AmbientOcclusion.jpg');return ASSETS.tex[k]=s;}
 // 절차 재질에 실제 텍스처를 입힌다 (재질 캐시 MC를 돌며 종류별로)
@@ -324,18 +345,54 @@ function applyTextures(){Object.values(MC).forEach(m=>{const kind=m.userData.kin
   scene.traverse(o=>{if(!o.isMesh||!o.geometry||!o.geometry.attributes.uv||!o.userData.box)return;const m=Array.isArray(o.material)?o.material.find(q=>q.userData&&q.userData.tile):o.material;if(!m||!m.userData.tile)return;const {w,h,d}=o.userData.box;worldUV(o.geometry,w,h,d,m.userData.tile);o.geometry.attributes.uv.needsUpdate=true;});}
 // 소품 자리: 절차 소품을 만든 곳에 anchor()를 걸면 모델이 오면 바꿔 끼운다
 function anchor(key,x,y,z,ry,group,opt={}){const meshes=[];group.traverse(o=>{if(o.isMesh){o.userData.keep=true;meshes.push(o);}});ASSETS.anchors.push({key,x,y,z,ry:ry||0,meshes,group,opt});return group;}
+// 불러온 모델 재질 손질: KayKit 단색은 조금 밝게, Quaternius 는 그대로
+function tuneModel(root,q){root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{if(!m)return;if(m.map)m.map.colorSpace=THREE.SRGBColorSpace;m.envMapIntensity=q?.5:.4;if(!q&&m.color)m.color.multiplyScalar(1.15);
+  // Quaternius ORM 은 파랑(금속) 채널이 비어 있지 않은 것이 있어 회벽이 금속처럼 검게 나온다 → 이름에 Metal 이 없으면 비금속으로
+  if(q&&!/metal/i.test(m.name||'')){m.metalness=0;m.metalnessMap=null;m.needsUpdate=true;}});}});}
 function loadModel(key){const M0=MODELMAP[key];if(!M0||ASSETS.models[key]!==undefined)return ASSETS.models[key];ASSETS.models[key]=null;const files=M0.f.filter(f=>hasFile(f));if(!files.length)return null;ASSETS.pending++;
-  GLTFL.load(ASSET_BASE+'models/'+files[0],g=>{const root=g.scene;root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){if(o.material.map)o.material.map.colorSpace=THREE.SRGBColorSpace;o.material.envMapIntensity=.4;if(o.material.color)o.material.color.multiplyScalar(1.15);}}});
+  GLTFL.load(ASSET_BASE+'models/'+files[0],g=>{const root=g.scene;tuneModel(root,files[0].startsWith('quaternius'));
     const box=new THREE.Box3().setFromObject(root);const size=box.getSize(new THREE.Vector3());const s=M0.fit/Math.max(size.x,size.y,size.z);root.scale.setScalar(s);const b2=new THREE.Box3().setFromObject(root);root.position.y-=b2.min.y;const c=b2.getCenter(new THREE.Vector3());root.position.x-=c.x;root.position.z-=c.z;
     const holder=new THREE.Group();holder.add(root);ASSETS.models[key]=holder;ASSETS.pending--;placeAnchors(key);},undefined,()=>{ASSETS.pending--;ASSETS.models[key]=null;});return null;}
-function hasFile(f){const man=ASSETS.man;if(!man)return false;const [dir,name]=f.split('/');if(dir==='kenney_food')return man.kenney.includes(name);if(dir==='polypizza')return man.polypizza.includes(name);return (man.kaykit[dir]||[]).includes(name);}
+function hasFile(f){const man=ASSETS.man;if(!man)return false;const [dir,name]=f.split('/');if(dir==='kenney_food')return man.kenney.includes(name);if(dir==='polypizza')return man.polypizza.includes(name);
+  if(dir.startsWith('quaternius_'))return !QF.has('nq')&&!!man.quaternius&&(man.quaternius[dir]||[]).includes(name);return (man.kaykit[dir]||[]).includes(name);}
+// 파일 단위 로더 (마을 모듈·인물처럼 MODELMAP 밖의 것). 같은 파일은 한 번만
+const GLTFCACHE={};
+function loadFile(f){if(GLTFCACHE[f])return GLTFCACHE[f];return GLTFCACHE[f]=new Promise((res,rej)=>{if(!hasFile(f))return rej('no '+f);let tries=0;const go=()=>GLTFL.load(ASSET_BASE+'models/'+f,g=>{tuneModel(g.scene,true);res(g);},undefined,e=>{if(++tries<3)setTimeout(go,500);else rej(e);});go();});}
+// ───────── 모듈 집: 상자 집 자리에 2 m 격자 벽·모서리·지붕을 세운다 (Medieval Village MegaKit) ─────────
+const VMOD={brick:'Wall_UnevenBrick_Straight',brickWin:'Wall_UnevenBrick_Window_Wide_Flat',brickDoor:'Wall_UnevenBrick_Door_Flat',door:'Door_1_Flat',plaster:'Wall_Plaster_WoodGrid',plasterWin:'Wall_Plaster_Window_Wide_Flat',plasterPlain:'Wall_Plaster_Straight',corner:'Corner_Exterior_Wood',base:'Wall_BottomCover',chimney:'Prop_Chimney',shutter:'WindowShutters_Wide_Flat_Open',win:'Window_Wide_Flat1'};
+function buildHouses(){if(QF.has('novillage')||!HOUSES.length)return;const files=[...new Set(Object.values(VMOD))].map(n=>'quaternius_village/'+n+'.gltf');if(!files.every(hasFile))return;
+  Promise.all(files.map(loadFile)).then(gs=>{const P={};Object.entries(VMOD).forEach(([k,n])=>{P[k]=gs[files.indexOf('quaternius_village/'+n+'.gltf')].scene;});
+    const FH=3.12,W=2;let hi=0;
+    // 모듈 벽은 회벽 면이 비어 있어(목골조만) 속 상자가 회벽 노릇을 한다. 살짝 줄여 겹침(z-fighting)을 피한다
+    const PL=MC[Object.keys(MC).find(k=>k.startsWith('plaster'))]||new THREE.MeshStandardMaterial({color:0xcdbf9f,roughness:1});
+    HOUSES.forEach(H=>{H.meshes.forEach((m,i)=>{if(i===0){m.material=PL;m.castShadow=false;const b=m.userData.box;m.scale.set((b.w-.12)/b.w,1,(b.d-.12)/b.d);}else m.visible=false;});const g=new THREE.Group();scene.add(g);const put=(k,x,y,z,ry)=>{const m=P[k].clone();m.position.set(x,y,z);m.rotation.y=ry;g.add(m);return m;};
+      const nx=Math.max(2,Math.ceil((H.x2-H.x1)/W-.01)),nz=Math.max(2,Math.ceil((H.z2-H.z1)/W-.01)),x1=H.x1,z1=H.z1,x2=x1+nx*W,z2=z1+nz*W,floors=Math.max(2,Math.round(H.h/FH)),v=hi++;
+      const doorSide=v%4,doorAt=Math.floor(nx/2);
+      // 벽: 바깥면이 +z 인 모듈을 네 변에 돌려 세운다. 남(z2) ry=0, 북(z1) ry=π, 동(x2) ry=π/2, 서(x1) ry=-π/2
+      const sides=[{n:nx,ry:0,at:i=>[x1+W/2+i*W,z2]},{n:nx,ry:Math.PI,at:i=>[x2-W/2-i*W,z1]},{n:nz,ry:Math.PI/2,at:i=>[x2,z2-W/2-i*W]},{n:nz,ry:-Math.PI/2,at:i=>[x1,z1+W/2+i*W]}];
+      sides.forEach((S,si)=>{for(let i=0;i<S.n;i++){const [x,z]=S.at(i);for(let f=0;f<floors;f++){const y=f*FH;let k;
+          if(f===0){k=(si===doorSide&&i===doorAt)?'brickDoor':((i+v)%3===1?'brickWin':'brick');if(k==='brickDoor'){const d=put('door',x,y,z,S.ry);d.translateX(-.5);}}
+          else{k=(i+f+v)%3===0?'plasterWin':(i+v)%2?'plaster':'plasterPlain';}
+          const m=put(k,x,y,z,S.ry);if(k==='plasterWin'||k==='brickWin'){put('win',x,y,z,S.ry);if(k==='plasterWin'&&(i+v)%2)put('shutter',x,y,z,S.ry);}}
+        put('base',x,0,z,S.ry);}});
+      [[x1,z1],[x2,z1],[x1,z2],[x2,z2]].forEach(([cx,cz])=>{for(let f=0;f<floors;f++)put('corner',cx,f*FH,cz,0);});
+      // 지붕: 박공(긴 축이 용마루) — 인 지붕과 같은 기와 재질. 굴뚝 하나
+      const top=floors*FH,alongX=nx>=nz,span=alongX?(z2-z1):(x2-x1),len=(alongX?(x2-x1):(z2-z1))+.8,rise=span*.42,rl=Math.hypot(span/2+.4,rise),ra=Math.atan2(rise,span/2+.4);
+      const rm=MC[Object.keys(MC).find(k=>k.startsWith('roof'))]||new THREE.MeshStandardMaterial({color:0x6a4a3a});
+      [[-1],[1]].forEach(([s])=>{const r=new THREE.Mesh(worldUV(new THREE.BoxGeometry(alongX?len:rl,.14,alongX?rl:len),alongX?len:rl,.14,alongX?rl:len,rm.userData.tile),rm);const cx=(x1+x2)/2,cz=(z1+z2)/2;
+        r.position.set(alongX?cx:cx+s*(span/4+.2),top+rise/2,alongX?cz+s*(span/4+.2):cz);if(alongX)r.rotation.x=-s*ra;else r.rotation.z=-s*ra;r.castShadow=true;r.receiveShadow=true;g.add(r);});
+      {const sh=new THREE.Shape();sh.moveTo(-span/2,0);sh.lineTo(span/2,0);sh.lineTo(0,rise);sh.lineTo(-span/2,0);const wm=MC[Object.keys(MC).find(k=>k.startsWith('plaster'))]||rm;
+        [[-1],[1]].forEach(([s])=>{const mm=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.2,bevelEnabled:false}),wm);if(alongX){mm.rotation.y=Math.PI/2;mm.position.set((x1+x2)/2+s*len/2-s*.5,top,(z1+z2)/2);}else{mm.position.set((x1+x2)/2,top,(z1+z2)/2+s*len/2-s*.5);}g.add(mm);});}
+      put('chimney',(x1+x2)/2+(alongX?len*.28:span*.1),top+rise*.35,(z1+z2)/2+(alongX?span*.1:len*.28),0);
+      g.userData.noReceive=true;bake(g);});
+    renderer.shadowMap.needsUpdate=true;window.__vill=true;console.log('village houses',HOUSES.length);}).catch(e=>console.warn('village',e));}
 function placeAnchors(key){const proto=ASSETS.models[key];if(!proto)return;ASSETS.anchors.filter(a=>a.key===key&&!a.placed).forEach(a=>{a.placed=true;a.meshes.forEach(m=>m.visible=false);const inst=proto.clone();inst.position.set(a.x,a.y,a.z);inst.rotation.y=a.ry;if(a.opt.s)inst.scale.multiplyScalar(a.opt.s);scene.add(inst);a.inst=inst;});}
 function modelFor(key){const m=ASSETS.models[key];return m?m.clone():null;}
 // 소리: 파일이 있으면 합성음 대신 튼다
 const SFXMAP={step:['footstep00.ogg','footstep01.ogg','footstep02.ogg','footstep03.ogg','footstep04.ogg','footstep05.ogg'],door:['doorOpen_1.ogg','doorOpen_2.ogg'],doorClose:['doorClose_1.ogg','doorClose_2.ogg'],creak:['creak1.ogg','creak2.ogg','creak3.ogg'],knock:['impactWood_medium_000.ogg','impactWood_medium_001.ogg','impactWood_medium_002.ogg'],coin:['handleCoins.ogg','handleCoins2.ogg'],flip:['bookFlip1.ogg','bookFlip2.ogg','bookFlip3.ogg'],wood:['impactWood_heavy_000.ogg','impactWood_heavy_001.ogg'],hit:['impactWood_heavy_002.ogg','impactWood_heavy_003.ogg'],plate:['impactPlate_light_000.ogg','impactPlate_light_001.ogg'],glass:['impactGlass_light_000.ogg'],pot:['metalPot1.ogg','metalPot2.ogg','metalPot3.ogg'],chop:['chop.ogg','knifeSlice.ogg']};
 function loadSfx(){if(!ASSETS.man||!AC)return;Object.entries(SFXMAP).forEach(([k,files])=>{const have=files.filter(f=>ASSETS.man.sfx.includes(f));if(!have.length)return;ASSETS.sfx[k]=[];have.forEach(f=>{fetch(ASSET_BASE+'sfx/'+f).then(r=>r.arrayBuffer()).then(b=>AC.decodeAudioData(b)).then(buf=>ASSETS.sfx[k].push(buf)).catch(()=>{});});});}
 function playSfxFile(k,vol=1){const L=ASSETS.sfx[k];if(!L||!L.length||!AC)return false;const s=AC.createBufferSource();s.buffer=L[Math.floor(Math.random()*L.length)];const g=AC.createGain();g.gain.value=vol;s.playbackRate.value=.92+Math.random()*.16;s.connect(g);g.connect(LP);s.start();return true;}
-function assetsInit(){if(!ASSETS.on)return;fetch(ASSET_BASE+'manifest.json').then(r=>r.ok?r.json():null).then(m=>{if(!m)return;ASSETS.man=m;applyTextures();Object.keys(MODELMAP).forEach(k=>{if(ASSETS.anchors.some(a=>a.key===k)||['bread','meat','mush','stew','ham','cheese'].includes(k))loadModel(k);});}).catch(e=>console.warn('assets',e));}
+function assetsInit(){if(!ASSETS.on)return;fetch(ASSET_BASE+'manifest.json').then(r=>r.ok?r.json():null).then(m=>{if(!m)return;ASSETS.man=m;return prewarm().then(()=>{applyTextures();Object.keys(MODELMAP).forEach(k=>{if(ASSETS.anchors.some(a=>a.key===k)||['bread','meat','mush','stew','ham','cheese'].includes(k))loadModel(k);});buildHouses();if(typeof rigInit==='function')rigInit();});}).catch(e=>console.warn('assets',e));}
 
 // ───── 20_props.js ─────
 // ───────── 소품·조명·문 ─────────
@@ -354,12 +411,12 @@ function table(x1,z1,x2,z2,h=.78,m=WOOD,y0=0){const g=grp(0,0,0,y0),top=h;rbox(x
 function chair(x,z,ry,y0=0){const g=grp(x,z,ry,y0);anchor('chair',x,y0,z,ry,g);rbox(-.21,.42,-.21,.21,.47,.21,WOOD,.015,P2(g));[[-.18,-.18],[.18,-.18],[-.18,.18],[.18,.18]].forEach(([a,b])=>rbox(a-.022,0,b-.022,a+.022,.42,b+.022,WOOD,.008,P2(g)));
   [-.18,.18].forEach(a=>rbox(a-.025,.47,-.21,a+.025,1.02,-.16,WOOD,.01,P2(g)));[.62,.82,.98].forEach(y=>rbox(-.18,y,-.205,.18,y+.06,-.17,WOOD,.01,P2(g)));return g;}
 function stool(x,z,y0=0){const g=grp(x,z,0,y0);anchor('stool',x,y0,z,0,g);cyl(0,.46,0,.18,.18,.05,WOOD,12,P2(g));for(let i=0;i<3;i++){const a=i*2.1;const l=cyl(Math.cos(a)*.12,.22,Math.sin(a)*.12,.02,.025,.46,WOOD,6,P2(g));l.rotation.set(Math.sin(a)*.12,0,-Math.cos(a)*.12);}return g;}
-function bench(x1,z1,x2,z2,h=.45){const g=grp(0,0);rbox(x1,h-.05,z1,x2,h,z2,WOOD,.015,P2(g));const along=x2-x1>z2-z1;[[.15],[.85]].forEach(([t])=>{const px=along?x1+(x2-x1)*t:(x1+x2)/2,pz=along?(z1+z2)/2:z1+(z2-z1)*t;rbox(px-.04,0,pz-.13,px+.04,h-.05,pz+.13,WOOD,.01,P2(g));});return g;}
+function bench(x1,z1,x2,z2,h=.45){const g=grp(0,0);{const along=x2-x1>z2-z1;anchor('bench',(x1+x2)/2,0,(z1+z2)/2,along?0:Math.PI/2,g,{s:(along?x2-x1:z2-z1)/2.78});}rbox(x1,h-.05,z1,x2,h,z2,WOOD,.015,P2(g));const along=x2-x1>z2-z1;[[.15],[.85]].forEach(([t])=>{const px=along?x1+(x2-x1)*t:(x1+x2)/2,pz=along?(z1+z2)/2:z1+(z2-z1)*t;rbox(px-.04,0,pz-.13,px+.04,h-.05,pz+.13,WOOD,.01,P2(g));});return g;}
 function barrel(x,z,y=0,r=.3,h=.8,ry=0,lay=false){const g=grp(x,z,ry,y);if(!lay)anchor(r<.29?'keg':'barrel',x,y,z,ry,g);const b=cyl(0,lay?r:h/2,0,r,r,h,WOODR,16,P2(g));const bw=cyl(0,lay?r:h/2,0,r*1.06,r*1.06,h*.55,WOODR,16,P2(g));
   [-.38,0,.38].forEach(t=>{const hp=cyl(0,(lay?r:h/2)+t*h,0,r*(t?1.035:1.075),r*(t?1.035:1.075),.035,IRONM,16,P2(g));if(lay){hp.position.set(t*h,r,0);hp.rotation.z=Math.PI/2;}});
   if(lay){b.rotation.z=bw.rotation.z=Math.PI/2;b.position.set(0,r,0);bw.position.set(0,r,0);}else cyl(0,h+.005,0,r*.96,r*.96,.01,WOOD,16,P2(g));return g;}
 function crate(x,y,z,s=.5,ry=0){const g=grp(x,z,ry,y);anchor('crate',x,y,z,ry,g,{s:s/.6});rbox(-s/2,0,-s/2,s/2,s,s/2,M('plank',{tile:[.6,.3]}),.01,P2(g));[-1,1].forEach(k=>{box(-s/2-.01,0,k*s/2-.03,s/2+.01,.05,k*s/2+.01,WOOD,P2(g));box(-s/2-.01,s-.05,k*s/2-.03,s/2+.01,s,k*s/2+.01,WOOD,P2(g));});return g;}
-function sack(x,z,s=1,ry=0){const g=grp(x,z,ry);sph(0,.22*s,0,.26*s,M('#9a8664',{rough:1}),1,1.1,.85,P2(g));sph(0,.5*s,0,.09*s,M('#9a8664',{rough:1}),1,1,1,P2(g));cyl(0,.45*s,0,.05*s,.06*s,.05,M('#6a5a3a'),8,P2(g));return g;}
+function sack(x,z,s=1,ry=0){const g=grp(x,z,ry);anchor('sack',x,0,z,ry,g,{s});sph(0,.22*s,0,.26*s,M('#9a8664',{rough:1}),1,1.1,.85,P2(g));sph(0,.5*s,0,.09*s,M('#9a8664',{rough:1}),1,1,1,P2(g));cyl(0,.45*s,0,.05*s,.06*s,.05,M('#6a5a3a'),8,P2(g));return g;}
 function jar(x,y,z,h=.2,col='#8a5a3a',r=.07){const g=grp(x,z,0,y);anchor('jar',x,y,z,Math.random()*6,g,{s:h/.22});const m=M(col,{rough:.45});cyl(0,h*.45,0,r,r*.85,h*.9,m,12,P2(g));cyl(0,h*.95,0,r*.6,r*.7,h*.12,m,12,P2(g));cyl(0,h*1.04,0,r*.5,r*.55,.03,M('#b89468'),8,P2(g));return g;}
 function bottle(x,y,z,col,h=.26){const g=grp(x,z,0,y);anchor('bottle',x,y,z,Math.random()*6,g,{s:h/.26});const m=col==='g'?GLASSB:GLASSA;cyl(0,h*.35,0,.045,.045,h*.7,m,10,P2(g));cyl(0,h*.78,0,.018,.04,h*.18,m,8,P2(g));cyl(0,h*.93,0,.016,.016,h*.14,m,8,P2(g));cyl(0,h*1.02,0,.017,.017,.03,M('#b89468'),6,P2(g));return g;}
 function candle(x,y,z,key='misc',h=.14){const g=grp(x,z,0,y);cyl(0,h/2,0,.022,.024,h,WAX,8,P2(g));cyl(0,.004,0,.05,.055,.008,BRASSM,10,P2(g));anchor('candle',x,y,z,0,g,{s:h/.14});return flame(x,y+h,z,1,key);}
@@ -419,12 +476,12 @@ jar(.9,2.06,.34,.18,'#5a6a4a');bottle(1.3,2.06,.32,'a',.22);jar(4.2,2.06,.34,.22
 cyl(3.5,2.62,3.9,.025,.025,5.2,WOOD,6,{rz:Math.PI/2,parent:DP});for(let i=0;i<11;i++){const x=1.2+i*.46;if(i%3===2){for(let k=0;k<3;k++)cyl(x+k*.04,2.42-k*.02,3.9,.028,.028,.3,M('#7a3a2a',{rough:.5}),6,{parent:DP});}
   else{const hb=new THREE.Mesh(new THREE.ConeGeometry(.07,.34,6),M(i%2?'#5a6a3a':'#7a6a3a',{rough:1}));hb.position.set(x,2.42,3.9);hb.rotation.x=Math.PI;DP.add(hb);}}
 // 작업대 + 도마·빵·칼, 통, 자루, 물독
-table(6.05,2.1,6.85,3.9,.86,WOODR);box(6.15,.86,2.3,6.7,.89,2.8,M('walnut',{tile:[.4,.4]}),{parent:DP});sph(6.45,.94,3.25,.11,M('bread'),1.3,.7,1,{parent:DP});box(6.2,.89,3.55,6.6,.9,3.59,M('#b8b8c0',{metal:.9,rough:.3}),{parent:DP});
+anchor('workbench',6.45,0,3.0,Math.PI/2,table(6.05,2.1,6.85,3.9,.86,WOODR),{s:1.8/2.02});box(6.15,.86,2.3,6.7,.89,2.8,M('walnut',{tile:[.4,.4]}),{parent:DP});sph(6.45,.94,3.25,.11,M('bread'),1.3,.7,1,{parent:DP});box(6.2,.89,3.55,6.6,.9,3.59,M('#b8b8c0',{metal:.9,rough:.3}),{parent:DP});
 barrel(.55,4.3);barrel(1.2,4.45,0,.28,.72);sack(6.4,4.4);sack(5.9,4.55,.85,1);cyl(.6,.35,3.2,.24,.2,.7,M('#8a5a3a',{rough:.5}),14,{parent:DP});
 stool(4.6,3.4);
 
 // ───────── 식당 ─────────
-const dtab=table(8.5,2.05,14.5,2.95,.8);box(8.5,0,2.05,14.5,.8,2.95,new THREE.MeshBasicMaterial({visible:false}),{col:1,shadow:false});
+const dtab=table(8.5,2.05,14.5,2.95,.8);[10,13].forEach(x=>anchor('table_long',x,0,2.5,0,dtab,{s:3/2.85}));box(8.5,0,2.05,14.5,.8,2.95,new THREE.MeshBasicMaterial({visible:false}),{col:1,shadow:false});
 const tableHit=box(8.5,.8,2.05,14.5,.95,2.95,new THREE.MeshBasicMaterial({visible:false}),{shadow:false});tableHit.userData.it='table';INTER.push(tableHit);
 [9.5,11.5,13.5].forEach(x=>{chair(x,1.35,0);chair(x,3.65,Math.PI);plate(x,.8,2.25);plate(x,.8,2.75);mug(x+.22,.8,2.3);mug(x-.22,.8,2.7);});
 candle(10.5,.8,2.5,'dine');candle(12.5,.8,2.5,'dine');sph(11.5,.86,2.5,.14,M('bread'),1.4,.6,1,{parent:DP});cyl(11.5,.82,2.5,.2,.16,.05,M('#7a5a3a'),12,{parent:DP});
@@ -445,7 +502,7 @@ rug(1.2,8.2,3.8,10.8,.006,'rug');bench(1.7,7.6,3.5,7.95);chair(3.1,10.7,-Math.PI
 {const g=grp(0,0);rbox(5,0,8.6,7.4,1.0,9.2,WOOD,.02,P2(g));[5.6,6.2,6.8].forEach(x=>rbox(x-.25,.15,9.19,x+.25,.85,9.24,WOODR,.015,P2(g)));}
 box(5,0,8.6,7.4,1.0,9.2,new THREE.MeshBasicMaterial({visible:false}),{col:1,shadow:false});
 const desk=rbox(4.95,1.0,8.55,7.45,1.06,9.25,WOODR,.015);desk.userData.it='desk';INTER.push(desk);
-book(6.0,1.06,8.9,.34,.05,.26,'#5a2a1e',.1);cyl(6.5,1.1,8.8,.03,.035,.08,M('#1a2030',{rough:.2}),8,{parent:DP});cyl(6.53,1.2,8.8,.004,.002,.18,M('#e8e0d0'),4,{rz:.3,parent:DP});
+anchor('book',6.0,1.06,8.9,.1,book(6.0,1.06,8.9,.34,.05,.26,'#5a2a1e',.1));cyl(6.5,1.1,8.8,.03,.035,.08,M('#1a2030',{rough:.2}),8,{parent:DP});cyl(6.53,1.2,8.8,.004,.002,.18,M('#e8e0d0'),4,{rz:.3,parent:DP});
 sph(5.4,1.1,8.8,.07,BRASSM,1,.7,1,{parent:DP});hangLantern(7.1,1.3,8.8,'hall');
 // 의뢰 게시판 (남쪽 벽)
 box(6,1.2,11.84,8.4,2.3,11.9,M('#8a5a36',{rough:1}),{parent:DP});{const hb=box(5.95,1.1,11.7,8.45,2.4,11.9,new THREE.MeshBasicMaterial({visible:false}),{shadow:false});hb.userData.it='board';INTER.push(hb);}[[6,1.15,8.4,1.22],[6,2.28,8.4,2.36]].forEach(([a,b,c,d])=>box(a-.05,b,11.8,c+.05,d,11.9,OAKH,{parent:DP}));
@@ -607,7 +664,7 @@ function makeNPC(uid,look,o={},opt={}){const g=new THREE.Group(),doll=new THREE.
   const hit=new THREE.Mesh(new THREE.BoxGeometry(.7,2.1,.4),new THREE.MeshBasicMaterial({visible:false}));hit.position.y=1.05;g.add(hit);hit.userData.it='npc:'+uid;INTER.push(hit);
   const fs=new THREE.Mesh(new THREE.CircleGeometry(.34,16),new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:.38,depthWrite:false}));fs.rotation.x=-Math.PI/2;fs.position.y=.015;g.add(fs);
   const small=C[look]&&C[look].small;if(small)g.scale.setScalar(.8);
-  scene.add(g);const n={fs,uid,look,o,g,doll,bust,hit,parts:{torso,item,head,legL:legs[0],legR:legs[1]},shoes,x:0,z:0,y:0,path:[],speed:1.35,state:'idle',face:0,visible:true,anim:0,...opt};NPCS.push(n);hit.userData.npc=n;bust.userData.npc=n;return n;}
+  scene.add(g);const n={fs,uid,look,o,g,doll,bust,hit,parts:{torso,item,head,legL:legs[0],legR:legs[1]},shoes,x:0,z:0,y:0,path:[],speed:1.35,state:'idle',face:0,visible:true,anim:0,...opt};NPCS.push(n);hit.userData.npc=n;bust.userData.npc=n;if(typeof rigAttach==='function')rigAttach(n);return n;}
 function setLook(n,look,o={}){n.look=look;n.o=o;const b=!!n.back;const P_=n.parts;
   P_.torso.material.map=figTex(look+'|t|'+JSON.stringify(o)+(b?'b':''),layerFig(look,o,b,'torso'));P_.item.material.map=figTex(look+'|i|'+JSON.stringify(o)+(b?'b':''),layerFig(look,o,b,'item'));P_.head.material.map=figTex(look+'|h|'+JSON.stringify(o)+(b?'b':''),layerFig(look,o,b,'head'));
   n.bust.material.map=figTex(look+JSON.stringify(o)+(b?'b':''),fig(look,o,b));[P_.torso,P_.item,P_.head,n.bust].forEach(m=>m.material.needsUpdate=true);}
@@ -634,8 +691,52 @@ function updateNPCs(dt){const cam=camera.position;
     P_.torso.rotation.z=walking?Math.sin(n.bob*.5)*.04:0;P_.item.rotation.z=walking?-Math.sin(n.bob)*.12:Math.sin(n.anim*1.3)*.02;
     const breathe=walking?0:Math.sin(n.anim*1.8)*.012;P_.torso.scale.y=1+breathe;P_.head.position.y=P_.head.userData.pivot+breathe*.6+(walking?Math.abs(Math.sin(n.bob))*.02:0);
     n.talkT=Math.max(0,(n.talkT||0)-dt);P_.head.rotation.z=(n.talkT>0?Math.sin(n.anim*9)*.06:0)+(walking?Math.sin(n.bob*.5)*.03:0);P_.head.rotation.y=n.talkT>0?0:Math.sin(n.anim*.7)*.08;
-    n.doll.rotation.x=sleeping?-1.25:0;n.bust.rotation.x=sleeping?-1.2:0;n.fs.visible=!sleeping;});
+    n.doll.rotation.x=sleeping?-1.25:0;n.bust.rotation.x=sleeping?-1.2:0;n.fs.visible=!sleeping;
+    if(n.rig)rigTick(n,dt,walking,sitting,sleeping,rel);});
   for(const k in DOORS){const d=DOORS[k];if(d.npcHold>0){d.npcHold-=dt;if(d.npcHold<=0&&!d.playerOpen)d.target=0;}}}
+
+// ───── 23_rig.js ─────
+// ───────── 리깅 3D 인물 (Quaternius CC0, assets/models/quaternius_char): 옷 + 기본 머리 + 머리카락, 애니메이션 라이브러리 ─────────
+// 인물 데이터의 rig:{outfit,head,hair[],scale} 가 있으면 종이 인형 대신 3D 몸을 세운다. 창구의 큰 그림(bust)은 그대로 종이다.
+// ?norig 로 끈다. ?rig=all 은 rig 가 없는 인물도 기본 몸으로 세운다 (비교용).
+import {clone as skelClone} from 'three/addons/utils/SkeletonUtils.js';
+const RIG={on:!QF.has('norig'),all:QF.get('rig')==='all',ready:false,parts:{},clips:{},heads:{}};
+const RIG_DEFAULT={outfit:'Male_Peasant',head:'Superhero_Male_FullBody',hair:['Hair_SimpleParted'],scale:.95};
+const RIG_DEFAULT_F={outfit:'Female_Peasant',head:'Superhero_Female_FullBody',hair:['Hair_Long'],scale:.95};
+function rigSpec(n){const c=C[n.look];if(c&&c.rig)return c.rig;if(RIG.all)return (c&&/여|엘프|하플링/.test(c.race||'')&&c.id!=='pipi')?RIG_DEFAULT_F:RIG_DEFAULT;return null;}
+// 기본 몸(FullBody)에서 머리만 남긴다: 세 꼭짓점이 모두 머리·목 뼈에 붙은 삼각형만
+function headOnly(mesh){const sk=mesh.skeleton;const hb=new Set(sk.bones.map((b,i)=>/^(Head|neck_01)$/.test(b.name)?i:-1).filter(i=>i>=0));const g=mesh.geometry,si=g.attributes.skinIndex,sw=g.attributes.skinWeight;
+  const on=v=>{let w=0;for(let k=0;k<4;k++)if(hb.has(si.getComponent(v,k)))w+=sw.getComponent(v,k);return w>.5;};
+  const idx=g.index?Array.from(g.index.array):[...Array(g.attributes.position.count).keys()];const keep=[];for(let i=0;i<idx.length;i+=3){if(on(idx[i])&&on(idx[i+1])&&on(idx[i+2]))keep.push(idx[i],idx[i+1],idx[i+2]);}
+  const g2=g.clone();g2.setIndex(keep);g2.computeBoundingSphere();mesh.geometry=g2;}
+function rigInit(){if(!RIG.on||!ASSETS.man||!ASSETS.man.quaternius||!ASSETS.man.quaternius.quaternius_char)return;const have=ASSETS.man.quaternius.quaternius_char;
+  const specs=[];NPCS.forEach(n=>{const s=rigSpec(n);if(s)specs.push(s);});[RIG_DEFAULT,RIG_DEFAULT_F].forEach(s=>{if(RIG.all)specs.push(s);});Object.values(REG).concat(Object.values(STAFF),Object.values(GUEST)).forEach(c=>{if(c.rig)specs.push(c.rig);});
+  const need=new Set();specs.forEach(s=>{need.add(s.outfit);need.add(s.head);(s.hair||[]).forEach(h=>need.add(h));});
+  const files=[...need].filter(n=>have.includes(n+'.gltf')).map(n=>'quaternius_char/'+n+'.gltf');window.__rig=RIG;if(!files.length||!have.includes('UAL_clips.glb'))return;console.log('rig init',files.length,'files');
+  Promise.all(files.map(loadFile).concat([loadFile('quaternius_char/UAL_clips.glb')])).then(gs=>{
+    gs.slice(0,files.length).forEach((g,i)=>{const name=files[i].split('/')[1].replace('.gltf','');const root=g.scene;root.traverse(o=>{if(o.isSkinnedMesh){o.frustumCulled=false;if(/FullBody/.test(name)&&/SuperHero|Superhero/i.test(o.name))headOnly(o);}});RIG.parts[name]=root;});
+    gs[files.length].animations.forEach(c=>{RIG.clips[c.name]=c;});RIG.ready=true;NPCS.forEach(rigAttach);console.log('rig ready',Object.keys(RIG.parts).length,'parts',Object.keys(RIG.clips).length,'clips');}).catch(e=>console.warn('rig',e));}
+// 옷의 뼈대를 기준으로 머리·머리카락을 같은 뼈에 묶는다 (이름이 같은 65개 뼈)
+function rigBuild(spec){const outfit=RIG.parts[spec.outfit];if(!outfit)return null;const root=skelClone(outfit);const bones={};root.traverse(o=>{if(o.isBone)bones[o.name]=o;});let master=null;root.traverse(o=>{if(o.isSkinnedMesh&&!master)master=o;});if(!master)return null;
+  const arm=master.parent;const skin=[];root.traverse(o=>{if(o.isSkinnedMesh)o.material.forEach?o.material.forEach(m=>skin.push(m)):skin.push(o.material);});
+  // 머리(스킨 메시)는 옷의 뼈대에 다시 묶고, 머리카락·수염(스킨 없는 메시)은 Head 뼈에 붙인다
+  [spec.head,...(spec.hair||[])].forEach(name=>{const src=RIG.parts[name];if(!src)return;const c=skelClone(src);const skinned=[],plain=[];c.traverse(o=>{if(o.isSkinnedMesh)skinned.push(o);else if(o.isMesh)plain.push(o);});
+    skinned.forEach(o=>{const bl=o.skeleton.bones.map(b=>bones[b.name]||b);const sk=new THREE.Skeleton(bl,o.skeleton.boneInverses);const m=o.clone();m.bind(sk,o.bindMatrix);m.frustumCulled=false;m.castShadow=true;arm.add(m);});
+    plain.forEach(o=>{const m=o.clone();o.updateWorldMatrix(true,false);m.matrix.copy(o.matrixWorld);m.matrix.decompose(m.position,m.quaternion,m.scale);root.add(m);root.updateMatrixWorld(true);(bones.Head||arm).attach(m);m.castShadow=true;});});
+  root.scale.setScalar(spec.scale||1);const mixer=new THREE.AnimationMixer(root);const acts={};Object.entries(RIG.clips).forEach(([k,c])=>{acts[k]=mixer.clipAction(c);});
+  const skinMats=[];root.traverse(o=>{if(o.isMesh&&o.material&&/Regular|Superhero|SuperHero/i.test(o.material.name))skinMats.push(o.material);});
+  return {root,mixer,acts,cur:null,skinMats,arm};}
+function rigPlay(r,name,fade=.22){if(r.cur===name||!r.acts[name])return;const a=r.acts[name];a.reset().setEffectiveWeight(1).fadeIn(fade).play();if(r.cur&&r.acts[r.cur])r.acts[r.cur].fadeOut(fade);r.cur=name;}
+function rigAttach(n){if(!RIG.ready||n.rig)return;const spec=rigSpec(n);if(!spec)return;const r=rigBuild(spec);if(!r)return;n.rig=r;n.g.add(r.root);n.doll.visible=false;rigPlay(r,'Idle_Loop',0);}
+// 매 프레임: 상태에 맞는 동작, 몸의 방향, 앉기·눕기 보정
+function rigTick(n,dt,walking,sitting,sleeping,rel){const r=n.rig;const voidLook=n.look==='void';r.root.visible=!voidLook&&n.visible;n.doll.visible=voidLook;if(!r.root.visible)return;
+  const talking=(n.talkT||0)>0;let clip=walking?'Walk_Loop':sitting?(talking?'Sitting_Talking_Loop':'Sitting_Idle_Loop'):sleeping?'Idle_Loop':talking?'Idle_Talking_Loop':'Idle_Loop';
+  if(n.state==='hunt'||n.luring)clip=walking?'Jog_Fwd_Loop':'Idle_Loop';rigPlay(r,clip);if(r.acts.Walk_Loop)r.acts.Walk_Loop.timeScale=Math.max(.6,n.speed/1.35);
+  // 종이 인형은 카메라를 보지만 몸은 걷는 방향·의자 방향을 본다. 서 있을 때 가까이 오면 고개 대신 몸을 살짝 돌린다
+  let ty=0;if(!walking&&!sitting&&!sleeping&&Math.abs(rel)<1.4)ty=rel*.7;r.root.rotation.y+=(ty-r.root.rotation.y)*Math.min(1,dt*4);
+  r.root.position.y=sitting?.42:sleeping?.62+.25:0;r.root.rotation.x=sleeping?-Math.PI/2:0;r.root.position.z=sleeping?-.3:0;
+  const moss=n.o&&n.o.moss;r.skinMats.forEach(m=>{if(m.emissive)m.emissive.setHex(moss?0x1e4a18:0);});
+  r.mixer.update(dt);}
 
 // ───── 30_play.js ─────
 // ───────── 플레이어 ─────────
