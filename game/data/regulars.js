@@ -6,8 +6,7 @@ SRG.regulars={
  bor:{name:'보르',race:'드워프 · 전 부길드장',no:'0102',rank:'B',eye:'#8a9099',eyeN:'회색',outfit:'#5a4636',small:1,
   role:'수호',apt:{B1:1,B2:0},shoes:'worn_boots',fakeShoes:'new_boots',fakeF:{earring:{side:'L'}},
   // 3D 몸(assets/models/quaternius_char): 옷 · 머리 파일 · 머리카락 조각. 없으면 종이 인형으로 선다
-  rig:{outfit:'Male_Peasant',head:'Superhero_Male_FullBody',hair:['Hair_SimpleParted'],scale:.9},   // 수염은 얼굴 텍스처(art/faces.js)에 그린다
-  sprite:true,   // 픽셀 스프라이트 시험(art/sprites.js 에 그림이 있으면 rig 보다 우선)
+  sprite:true,   // 픽셀 스프라이트(art/sprites.js)로 선다. 없으면 종이 인형
   memo:['무뚝뚝. 장화 자랑.','"서류는 거짓말해도 장화는 안 해."'],
   lines:{hi:'"장화 봐라. 멀쩡하지."',ask:'"장화 닳도록 걸었지. 밑창 봐라."',voice:'쉰 목소리. 무뚝뚝하다.',knock:'"…누구냐. 장화 훔쳐 가면 가만 안 둔다."',listen:'쿨— 쿨—. 규칙적인 코골이.',wake:'"흠. 장화부터 신고."',eat:'천천히, 한 숟갈씩 씹어 먹는다.',witness:'"계단에서 잠깐 뒤처졌다. 그뿐이다."',bye:'"흠."'}},
  pipi:{name:'피피',race:'하플링 · 궁수',no:'0417',rank:'D',eye:'#7a4a2a',eyeN:'갈색',outfit:'#4f7a3a',small:1,
@@ -16,7 +15,6 @@ SRG.regulars={
   lines:{hi:'"아리! 들어 봐, 오늘 이끼쥐가 글쎄—"',ask:'"이끼 캤지! 그리고 도, 도망쳤지! 그리고 또 도망쳤지!"',voice:'빠르고 높다. 겁먹으면 더듬는다.',knock:'"누, 누구야?!"',listen:'잠꼬대. "도, 도망쳐…"',wake:'"으아, 벌써?"',eat:'허겁지겁 먹는다. 입가에 묻힌다.',witness:'"보, 보르 아저씨랑 갔는데 계단에서 잠깐 안 보였어."',bye:'"고마워 아리! 내일 봐!"'}},
  sere:{name:'세레나데',race:'엘프 · 음유시인',no:'0351',rank:'C',eye:'#8a5ec9',eyeN:'보라색',outfit:'#6b4a8a',
   role:'음유시인',apt:{B1:0,B2:1},shoes:'elf_boots',fakeF:{mole:{side:'L'}},
-  rig:{outfit:'Female_Peasant',head:'Superhero_Female_FullBody',hair:['Hair_Long'],scale:.95,anime:true},   // 일본 애니풍 시험(2단 명암·큰 눈·엘프 귀)
   memo:['말끝을 늘인다 (~요오~).','음치. 노래를 참지 못한다.'],
   lines:{hi:'"다녀왔어요오~ 한 곡 들으실래요오~?"',ask:'"이끼쥐한테 노래 불러 줬는데요오~ 도망갔어요오~"',voice:'말끝을 늘인다. 음정이 흔들린다.',knock:'"누구세요오~?"',listen:'음 틀린 콧노래.',wake:'"아침이에요오~?"',eat:'먹다 말고 콧노래를 흥얼거린다. 음이 틀렸다.',witness:'"황야에서 달이 두 개였어요오~ 무명 씨는 말이 없었고요오~"',bye:'"감사해요오~"'}},
  mumy:{name:'무명',race:'해골 기사',no:'0009',rank:'C',eye:'#8fe3ff',eyeN:'푸른 불빛',outfit:'#5d6068',
@@ -39,7 +37,6 @@ SRG.regulars={
 // 여관 사람과 손님 (파견하지 않는다)
 SRG.staff={
  helga:{name:'헬가',race:'오크 · 요리사',outfit:'#7a4b2c',look:'helga',
-  rig:{outfit:'Female_Peasant',head:'Superhero_Female_FullBody',hair:['Hair_Buns'],scale:1.02},
   lines:{hi:'"왔어? 스튜 올려 둬!"',talk:'"스튜 올려 뒀어? 고기랑 버섯! 포자 핀 건 빼고!"',listen:'"냠냠 스튜~" 콧노래.'}},
 };
 SRG.guests={
