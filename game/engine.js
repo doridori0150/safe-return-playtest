@@ -861,7 +861,7 @@ Object.defineProperty(P,'money',{get:()=>G.money,set:v=>{G.money=v;}});
 camera.position.set(P.x,P.eye,P.z);camera.rotation.set(0,Math.PI*.5,0);
 const KEY={};
 addEventListener('keydown',e=>{KEY[e.code]=true;onKey(e);});addEventListener('keyup',e=>{KEY[e.code]=false;});
-function movePlayer(dt){if(SEAT){seatCam(dt);return;}const lk=leanTick(dt),live=LIVE()&&!LEAN;
+function movePlayer(dt){if(SEAT){seatCam(dt);return;}const lk=leanTick(dt),live=LIVE()&&!LEAN&&!SPOTS.on;
   const sp=(KEY.ShiftLeft||KEY.ShiftRight)?5:3.1;const f=new THREE.Vector3();camera.getWorldDirection(f);f.y=0;f.normalize();const r=new THREE.Vector3(-f.z,0,f.x);
   let mx=0,mz=0;if(live&&KEY.KeyW){mx+=f.x;mz+=f.z;}if(live&&KEY.KeyS){mx-=f.x;mz-=f.z;}if(live&&KEY.KeyD){mx+=r.x;mz+=r.z;}if(live&&KEY.KeyA){mx-=r.x;mz-=r.z;}
   const l=Math.hypot(mx,mz);P.moving=l>0;if(l>0){mx=mx/l*sp*dt;mz=mz/l*sp*dt;
@@ -869,7 +869,7 @@ function movePlayer(dt){if(SEAT){seatCam(dt);return;}const lk=leanTick(dt),live=
     const nz=P.z+mz;if(!blocked(P.x,nz,P.y)&&!doorBlocked(P.x,nz,P.y,.28))P.z=nz;
     P.step+=Math.hypot(mx,mz);if(P.step>.62){P.step=0;sfx('step');}}
   const ty=floorY(P.x,P.z,P.y);P.y+=(ty-P.y)*Math.min(1,dt*14);
-  const bob=l>0?Math.sin(performance.now()/110)*.035:0;
+  const bob=l>0?Math.sin(performance.now()/110)*.035:0;if(SPOTS.on)spotTick();
   let ox=0,oz=0;if(LEAN){const dx=LEAN.x-P.x,dz=LEAN.z-P.z,dd=Math.hypot(dx,dz)||1;ox=dx/dd*.28*lk;oz=dz/dd*.28*lk;}
   camera.position.set(P.x+ox,P.y+P.eye+bob-.07*lk+(G.shake>0?(Math.random()-.5)*G.shake*.2:0),P.z+oz);}
 
@@ -921,6 +921,7 @@ addEventListener('mousedown',e=>{if(STN&&e.button===2){closeStation(true);return
 addEventListener('mouseup',e=>{if(e.button===0)G.mouse=false;});
 function onKey(e){
   if(e.code==='Tab'){e.preventDefault();toggleBook();return;}
+  if(SPOTS.on&&!WIN&&!STN&&!SEAT&&(RUNNING()||G.force)&&spotKey(e.code)){e.preventDefault();return;}
   if(e.code==='KeyF'&&G.started&&!G.over){setLamp(!P.lamp);return;}
   if(e.code==='F2'){mood.uniforms.uOn.value=1-mood.uniforms.uOn.value;sub('화면','필터 '+(mood.uniforms.uOn.value?'켜짐':'꺼짐'));}
   if(e.code==='BracketRight'){G.speed*=2;G.npcMul=(G.npcMul||1)*2;sub('치트',`시간 ×${(G.speed/(60/CAMP.HOUR_SEC)).toFixed(1)}`);}if(e.code==='BracketLeft'){G.speed/=2;G.npcMul=(G.npcMul||1)/2;sub('치트',`시간 ×${(G.speed/(60/CAMP.HOUR_SEC)).toFixed(1)}`);}
@@ -1083,7 +1084,7 @@ const stIcon=(k,w=34)=>itemIcon(k,w);
 const invAll=()=>{const m={};G.shelf.forEach(u=>{const k=u.k==='spore'&&!u.seen?'mush':u.k;m[k]=(m[k]||0)+1;});Object.entries(G.inv).forEach(([k,n])=>m[k]=(m[k]||0)+n);return m;};
 const marketOpen=()=>G.phase==='market'||G.phase==='send';
 const STATIONS={
- shelf:{name:'재료 선반',pos:[2.9,1.75,.55],r:2.8,
+ shelf:{name:'재료 선반',pos:[2.9,1.75,.55],r:3.6,
   card:()=>{const m={};G.shelf.forEach(u=>{const k=u.k==='spore'&&!u.seen?'mush':u.k;m[k]=(m[k]||0)+1;});const s=Object.entries(m).map(([k,n])=>`${ITN[k]} ${n}`).join(' · ');return s||'비었다';},
   panel:()=>{const m={};G.shelf.forEach(u=>{const k=u.k==='spore'&&!u.seen?'mush':u.k;m[k]=(m[k]||0)+1;});
    return `<h2>재료 선반</h2><p class="stsum">${Object.entries(m).map(([k,n])=>`<span>${stIcon(k,22)}${ITN[k]} <b>${n}</b></span>`).join('')||'<span>비었다</span>'}</p>
@@ -1175,6 +1176,55 @@ function renderStation(){if(!STN)return;const s=STATIONS[STN];const el=$('stpane
 function closeStation(soft){if(!STN)return;STN=null;WIN=null;G.scale=1;document.body.classList.remove('station');$('stpanel').hidden=true;if(soft)softUnlock();else relock();}
 let STLIVE=0;function stationLive(dt){if(!STN)return;const s=STATIONS[STN];if(!s.live)return;STLIVE+=dt;if(STLIVE>.5){STLIVE=0;const b=$('stpanel').querySelector('.bar i'),sm=$('stpanel').querySelector('.stState');if(b)b.style.width=Math.round(potProgress()*100)+'%';if(POT.state!==(sm&&sm.className.split(' ')[1]))renderStation();}}
 
+// ───── 33_spots.js ─────
+// ───────── 서는 자리(스팟) 이동: 걷지 않고 자리 사이를 옮긴다. 자리에서 마우스로 둘러본다(각도 제한) ─────────
+// data/spots.js 가 자리·링크·지도 평면을 준다. ?walk 면 옛 WASD 이동으로 돌아간다.
+const SPD=D.spots||null;
+const SPOTS={on:!!SPD&&!QF.has('walk'),cur:null,by:{},travel:false,viewFloor:1,navHtml:'',mapHtml:''};
+if(SPD)SPD.list.forEach(s=>{SPOTS.by[s.id]=s;});
+const spotOf=id=>SPOTS.by[id]||null;
+function spotCur(){return SPOTS.cur?SPOTS.by[SPOTS.cur]:null;}
+// 인접 그래프에서 hop 수 (BFS)
+function spotHops(a,b){if(a===b)return 0;const seen={[a]:0};const q=[a];while(q.length){const c=q.shift();for(const n of (spotOf(c).links||[])){if(seen[n]!==undefined)continue;seen[n]=seen[c]+1;if(n===b)return seen[n];q.push(n);}}return 99;}
+function spotYaw(){return new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ').y;}
+function wrapA(a){while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a;}
+// 자리 옮기기: 짧게 어두워졌다 밝아진다. 인접이 아니면 hop 수만큼 시간이 든다
+function goSpot(id,opt={}){const s=spotOf(id);if(!s||!SPOTS.on)return false;const from=SPOTS.cur;if(from===id&&!opt.instant)return false;
+  const hops=from?spotHops(from,id):0;const place=()=>{SPOTS.cur=id;P.x=s.x;P.z=s.z;P.y=s.y;camera.position.set(P.x,P.y+P.eye,P.z);
+    const keepYaw=opt.keepYaw&&from;if(!keepYaw)camera.rotation.set(0,s.yaw,0,'YXZ');SPOTS.viewFloor=s.floor;SPOTS.mapHtml='';if(hops>0)spend(SPD.HOP_MIN*hops);sfx('step');};
+  if(opt.instant){place();return true;}
+  if(SPOTS.travel)return false;SPOTS.travel=true;const b=$('black');b.style.transition='opacity .22s';b.classList.add('on');
+  setTimeout(()=>{place();setTimeout(()=>{b.classList.remove('on');setTimeout(()=>{b.style.transition='';SPOTS.travel=false;},260);},60);},230);return true;}
+// 링크를 현재 시선 기준 방향(앞·왼·오른·뒤)으로 나눈다
+function spotDirs(){const s=spotCur();if(!s)return {};const yaw=spotYaw();const out={};(s.links||[]).forEach(id=>{const t=spotOf(id);if(!t)return;let a=wrapA(Math.atan2(-(t.x-s.x),-(t.z-s.z))-yaw);
+    const k=Math.abs(a)<.7?'f':Math.abs(a)>2.45?'b':a>0?'l':'r';if(!out[k]||t.floor!==s.floor)out[k]=id;});return out;}
+function spotKey(code){if(!SPOTS.on||SPOTS.travel||!spotCur())return false;const m={ArrowUp:'f',KeyW:'f',ArrowDown:'b',KeyS:'b',ArrowLeft:'l',KeyA:'l',ArrowRight:'r',KeyD:'r'}[code];if(!m)return false;const d=spotDirs();if(d[m]){goSpot(d[m]);return true;}return false;}
+// 매 프레임: 시선 각도 제한, 화살표·지도 갱신
+function spotTick(){if(!SPOTS.on||!G.started)return;const s=spotCur();if(!s)return;
+  const away=Math.hypot(P.x-s.x,P.z-s.z)>.05;   // 디버그 텔레포트(tp)로 자리를 벗어났으면 각도 제한 없음
+  if(!SEAT&&!SPOTS.travel&&!away){const e=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');const yr=s.yawRange===undefined?1.3:s.yawRange,pr=s.pitchRange===undefined?.62:s.pitchRange;let ch=false;
+    if(yr<Math.PI-.01){const rel=wrapA(e.y-s.yaw);const c=Math.max(-yr,Math.min(yr,rel));if(c!==rel){e.y=s.yaw+c;ch=true;}}
+    const px=Math.max(-pr,Math.min(pr,e.x));if(px!==e.x){e.x=px;ch=true;}if(ch)camera.quaternion.setFromEuler(e);}
+  ray.far=s.reach||4.2;
+  // 화살표
+  const d=spotDirs();const lab={f:'▲',b:'▼',l:'◀',r:'▶'};const hide=WIN||SEAT||STN||!$('pause').hidden;
+  const nh=hide?'':['l','f','r','b'].filter(k=>d[k]).map(k=>`<div class="nav ${k}" data-go="${d[k]}">${k==='r'?'':lab[k]+' '}${spotOf(d[k]).name}${k==='r'?' '+lab[k]:''}${spotOf(d[k]).floor!==s.floor?'<small>'+(spotOf(d[k]).floor===2?'↑ 2층':'↓ 1층')+'</small>':''}</div>`).join('');
+  if(nh!==SPOTS.navHtml){SPOTS.navHtml=nh;$('nav').innerHTML=nh;$('nav').querySelectorAll('[data-go]').forEach(b=>b.onmousedown=e=>{e.stopPropagation();goSpot(b.dataset.go);});}
+  spotMap();}
+// 지도: 현재 층 평면 + 자리. 현재 = 금색, 목표 = 맥동, 나머지 = 클릭해서 이동
+const MAPW=228,MAPH=118,MSX=MAPW/24.6,MSZ=MAPH/15.6;
+const mx=x=>(x*MSX).toFixed(1),mz=z=>(z*MSZ).toFixed(1);
+function objSpot(){const o=G.obj;if(!o||!o.pos)return null;const fl=o.pos[1]>2.9?2:1;let best=null,bd=1e9;SPD.list.forEach(s=>{if(s.floor!==fl)return;const d=Math.hypot(s.x-o.pos[0],s.z-o.pos[2]);if(d<bd){bd=d;best=s.id;}});return best;}
+function spotMap(){const s=spotCur();if(!s)return;const fl=SPOTS.viewFloor,tgt=objSpot();const people=NPCS.filter(n=>n.visible&&n.state!=='gone'&&(n.y>1.5?2:1)===fl&&n.x>=0&&n.x<=24&&n.z>=0&&n.z<=12).map(n=>[n.x,n.z]);
+  const key=fl+'|'+s.id+'|'+tgt+'|'+people.map(p=>p[0].toFixed(0)+','+p[1].toFixed(0)).join(';');if(key===SPOTS.mapHtml)return;SPOTS.mapHtml=key;
+  const plan=(SPD.plan[fl]||[]).map(r=>`<rect x="${mx(r.r[0])}" y="${mz(r.r[1])}" width="${mx(r.r[2]-r.r[0])}" height="${mz(r.r[3]-r.r[1])}" class="rm${r.s?' st':''}${r.o?' out':''}"/>${r.n?`<text x="${mx((r.r[0]+r.r[2])/2)}" y="${(+mz((r.r[1]+r.r[3])/2)+3.5).toFixed(1)}">${r.n}</text>`:''}`).join('');
+  const links=[];SPD.list.forEach(a=>(a.links||[]).forEach(b=>{const t=spotOf(b);if(a.id<b&&a.floor===fl&&t.floor===fl)links.push(`<line x1="${mx(a.x)}" y1="${mz(a.z)}" x2="${mx(t.x)}" y2="${mz(t.z)}"/>`);}));
+  const dots=SPD.list.filter(x=>x.floor===fl).map(x=>`<g class="sp${x.id===s.id?' cur':''}${x.id===tgt?' tgt':''}" data-go="${x.id}"><circle cx="${mx(x.x)}" cy="${mz(x.z)}" r="${x.id===s.id?5:4}"/><title>${x.name}</title></g>`).join('');
+  const ppl=people.map(([x,z])=>`<circle class="npc" cx="${mx(x)}" cy="${mz(z)}" r="2"/>`).join('');
+  const stairsUp=fl===1?`<text class="hint" x="${mx(20)}" y="${mz(4.4)}">▲ 2층</text>`:`<text class="hint" x="${mx(20)}" y="${mz(4.4)}">▼ 1층</text>`;
+  const html=`<div class="mapHead"><b>${fl}층</b><span>${s.name}</span><button data-fl="1" class="${fl===1?'on':''}">1</button><button data-fl="2" class="${fl===2?'on':''}">2</button></div><svg viewBox="0 0 ${MAPW} ${MAPH}" width="${MAPW}" height="${MAPH}">${plan}<g class="lk">${links}</g>${ppl}${dots}${stairsUp}</svg>`;
+  const el=$('map');el.innerHTML=html;el.querySelectorAll('[data-go]').forEach(g=>g.onmousedown=e=>{e.stopPropagation();const id=g.dataset.go;if(id!==SPOTS.cur)goSpot(id);});el.querySelectorAll('[data-fl]').forEach(b=>b.onmousedown=e=>{e.stopPropagation();SPOTS.viewFloor=+b.dataset.fl;SPOTS.mapHtml='';});}
+
 // ───── 40_state.js ─────
 // ───────── 게임 상태 (여러 날) ─────────
 // 시간: G.t = 1일째 00:00부터 흐른 분. 게임의 하루는 06:00에 시작한다(dm = 그날 06:00부터 흐른 분).
@@ -1189,7 +1239,7 @@ function dm(){return ((G.t-DAY0)%1440+1440)%1440;}          // 그날 06:00부�
 const atMin=h=>((h*60-DAY0)%1440+1440)%1440;               // 시각(시) → dm
 const phAt=ph=>((ph.at-DAY0)%1440+1440)%1440;              // 시간표의 시각(분) → dm
 function newLog(){return{admit:[],refuse:[],refusedReal:[],missing:[],spread:0,killed:[],barred:[],fled:[],lured:false,woke:0,late:[],evicted:false,enoch:0,cursed:[],served:null,delivered:[],notes:[]};}
-function freshState(){G.t=(CAMP.START.day-1)*1440+CAMP.START.min;G.day=CAMP.START.day;G.fired={};G.money=CAMP.MONEY0;G.thread=CAMP.THREAD0;
+function freshState(){if(SPOTS.on)goSpot(SPD.START,{instant:true});G.t=(CAMP.START.day-1)*1440+CAMP.START.min;G.day=CAMP.START.day;G.fired={};G.money=CAMP.MONEY0;G.thread=CAMP.THREAD0;
   G.inv={};Object.entries(CAMP.INV0).forEach(([k,n])=>{if(ITEM[k].kind==='ing')for(let i=0;i<n;i++)G.shelf.push({k,seen:false});else G.inv[k]=n;});
   G.shelf=CAMP.SHELF0.map(k=>({k,seen:false})).concat(G.shelf);
   G.regs={};REG_IDS.forEach(id=>G.regs[id]={grudge:0,hurt:null,gone:null,cured:false});
@@ -1209,7 +1259,7 @@ function money(d,why){G.money+=d;if(d>0)sfx('coin');if(why)G.log.notes.push({t:w
 function grudge(id,d=1){if(G.regs[id])G.regs[id].grudge+=d;}
 // 저장·이어하기 (아침·소등 때 스냅숏)
 const SAVE_KEY='srg3d_save';
-function snapshot(tag){const s={tag,at:Date.now(),G:JSON.parse(JSON.stringify({...G,cases:[],threadFlash:0})),P:{oil:P.oil,hp:P.hp,bars:P.bars,heal:P.heal,held:P.held},
+function snapshot(tag){const s={tag,at:Date.now(),G:JSON.parse(JSON.stringify({...G,cases:[],threadFlash:0})),P:{oil:P.oil,hp:P.hp,bars:P.bars,heal:P.heal,held:P.held},spot:SPOTS.cur,spot:SPOTS.cur,
   occ:Object.fromEntries(Object.entries(OCC).filter(([r,n])=>n).map(([r,n])=>[r,{uid:n.uid,state:n.state}])),
   rooms:JSON.parse(JSON.stringify(ROOMST)),doors:Object.fromEntries(Object.keys(DOORS).map(k=>[k,{locked:DOORS[k].locked,lamp:!!DOORS[k].lampHung}])),
   cases:G.cases.map(c=>caseToJSON(c))};
@@ -1473,7 +1523,7 @@ function huntTick(dt){const n=HUNT;if(!n)return;const H=fakeFam(n).hunt||{};cons
   else if(d>1.2){const sp=H.speed||1.7;n.x+=dx/d*sp*dt;n.z+=dz/d*sp*dt;}
   n.y=floorY(n.x,n.z,n.y);n.cd-=dt;if(d<1.35&&n.cd<=0){n.cd=1.3;P.hp--;G.hurt=1;G.shake=1;sfx('hurt');sub('아리',P.hp>0?'읏—! (체력 '+P.hp+')':'…눈앞이 캄캄해진다.');if(P.hp<=0)faint();}
   if(Math.random()<dt*3)setLook(n,Math.random()<.5?'void':n.look,n.o);}
-function faint(){const n=HUNT;HUNT=null;n.state='wander';$('black').classList.add('on');setTimeout(()=>{G.t=Math.max(G.t,dayStart()+atMin(5)+55);P.hp=1;P.x=8;P.z=6;P.y=3;$('black').classList.remove('on');sub('아리','복도 바닥에서 깨어났다. 새벽이다.',1);},2200);}
+function faint(){const n=HUNT;HUNT=null;n.state='wander';$('black').classList.add('on');setTimeout(()=>{G.t=Math.max(G.t,dayStart()+atMin(5)+55);P.hp=1;if(SPOTS.on)goSpot('cor_m',{instant:true});else{P.x=8;P.z=6;P.y=3;}$('black').classList.remove('on');sub('아리','복도 바닥에서 깨어났다. 새벽이다.',1);},2200);}
 const ASH=[];function ash(x,y,z){for(let i=0;i<40;i++){const m=new THREE.Mesh(new THREE.BoxGeometry(.06,.06,.06),new THREE.MeshBasicMaterial({color:0x6a6a64}));m.position.set(x+(Math.random()-.5)*.5,y+Math.random(),z+(Math.random()-.5)*.5);m.v=new THREE.Vector3((Math.random()-.5)*.8,Math.random()*.5,(Math.random()-.5)*.8);scene.add(m);ASH.push(m);}}
 function ashTick(dt){for(let i=ASH.length-1;i>=0;i--){const m=ASH[i];m.v.y-=dt*1.2;m.position.addScaledVector(m.v,dt);if(m.position.y<0){scene.remove(m);ASH.splice(i,1);}}}
 function mossDoor(r){const d=DOORS[r];if(d.moss)return;const m=new THREE.Mesh(new THREE.PlaneGeometry(1.1,.35),new THREE.MeshBasicMaterial({color:0x6a8a3a,transparent:true,opacity:.8}));m.rotation.x=-Math.PI/2;m.position.set(d.x,3.02,d.z+(RM[r].north?.3:-.3));scene.add(m);d.moss=m;}
@@ -1635,7 +1685,7 @@ function finale(){G.over=true;controls.unlock();const lost=REG_IDS.filter(id=>G.
 // ───────── 이어하기: 스냅숏에서 세상을 다시 세운다 ─────────
 function restoreFrom(snap){try{if(!snap||!snap.G)return false;
   Object.keys(snap.G).forEach(k=>{G[k]=snap.G[k];});G.started=false;G.over=false;G.cases=[];G.scale=1;G.force=false;G.threadFlash=0;
-  Object.assign(P,snap.P||{});P.lamp=false;
+  Object.assign(P,snap.P||{});P.lamp=false;if(SPOTS.on)goSpot(snap.spot&&SPOTS.by[snap.spot]?snap.spot:SPD.START,{instant:true});
   Object.keys(ROOMST).forEach(r=>Object.assign(ROOMST[r],(snap.rooms||{})[r]||{}));
   Object.entries(snap.doors||{}).forEach(([k,d])=>{if(DOORS[k]){DOORS[k].locked=!!d.locked;DOORS[k].target=0;}});
   ROOMS.forEach(r=>{OCC[r]=null;});NPCS.forEach(n=>{if(n.uid==='helga'||n.merchantNPC)return;resetActor(n);});RETN.length=0;Object.keys(CH_USED).forEach(k=>delete CH_USED[k]);
@@ -1772,7 +1822,7 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/
   const run=G.started&&!G.over&&(RUNNING()||WIN||G.force);const gdt=run?dt*G.scale:0;
   if(run)G.t+=gdt*G.speed*(G.tutSlow?.5:1);
   movePlayer(dt);vmTick(dt,!!P.moving&&!SEAT);updateNPCs(run?gdt*(G.npcMul||1):0);updateDoors(dt);potTick(gdt*(G.npcMul||1));
-  if(run){schedule();queueTick();patience();huntTick(gdt);}stationTick();
+  if(run){schedule();queueTick();patience();if(!SPOTS.travel)huntTick(gdt);}stationTick();
   ashTick(dt);atmosphere(dt);ambience(dt);aim();hudTick(dt);markTick(dt);
   // 떠도는 가짜 근처는 위험
   if(!HUNT){const f=fakeOut();G.danger=f&&P.y>1.5?Math.max(0,1-Math.hypot(P.x-f.x,P.z-f.z)/10)*.7:Math.max(0,G.danger-dt);}
@@ -1789,6 +1839,8 @@ window.__g={G,P,NPCS,RETN,OCC,DOORS,POT,ACTOR,STATIONS,SEND,REG,ITEM,setTime:m=>
   admit:(uid,r)=>{const n=NPCS.find(x=>x.uid===uid);admitRet(n,r);},refuse:uid=>{const n=NPCS.find(x=>x.uid===uid);refuseRet(n);},
   doit:(it,k,uid)=>{const n=uid?NPCS.find(x=>x.uid===uid):null;const i=ACT(it,n);const a=i&&i.verbs.find(v=>v.k===k);if(a){if(a.need==='lamp'&&!P.lamp)return 'need-lamp';a.fn();return a.t;}return null;},
   verbs:(it,uid)=>{const n=uid?NPCS.find(x=>x.uid===uid):null;const i=ACT(it,n);return i?i.verbs.map(v=>v.k):null;},lamp:on=>setLamp(on),tut:()=>({cur:(tutCur()||{}).id||null,over:TUT_OVER}),endTut:()=>tutEnd(),obj:()=>OBJ().t,shelf:()=>G.shelf,reveal:()=>{if(AIM)lampReveal(AIM);},
+  restore:snap=>restoreFrom(snap),snapshot:tag=>snapshot(tag),
+  spot:()=>SPOTS.cur,go:(id,inst)=>goSpot(id,{instant:!!inst}),dirs:()=>spotDirs(),SPOTS:SPD?SPD.list:[],
   helga:()=>helga,close:()=>closeWin(),leave:()=>closeSeat(),win:()=>WIN,stn:()=>STN,open:id=>openStation(id),closeStn:()=>closeStation(),yaw:()=>+new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ').y.toFixed(3),
   act:(it,k)=>{const i=ACT(it,null);const a=i&&i.verbs.find(v=>v.k===k);if(a){a.fn();return a.t;}return null;},click:()=>doVerb(),drops:()=>DROPS.filter(Boolean).map(d=>d.k),vm:()=>VM.key,vlist:()=>VLIST.map(v=>v.k),aim:()=>AIM,
   send:(plan)=>{const qs=todayQuests();const ps=plan.map(([qi,mem,opt])=>({req:qs[qi],mem,lunch:!!(opt&&opt.lunch),recall:!!(opt&&opt.recall),on:true}));dispatch(ps);tutEvent('send');return G.cases.map(c=>({cid:c.cid,kind:c.kind,id:c.regId||c.guest||c.kind,fake:c.fake&&c.fake.fam,at:c.at,hurt:c.hurt,loot:c.loot.map(x=>x.k)}));},

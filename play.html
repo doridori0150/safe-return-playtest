@@ -45,9 +45,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:var
 #obj small{font-size:11px;letter-spacing:.12em;color:var(--brass)}#obj b{font-size:17px;color:#fff3d6;line-height:1.35}#obj b.hot{color:#ffd48a;animation:hot 1s ease-in-out infinite}#obj span{font-size:12.5px;color:#cdb48a;line-height:1.45}
 #mark{transform:translate(-50%,-50%);width:26px;height:26px;border:2.5px solid var(--brass-hi);border-radius:50%;box-shadow:0 0 0 2px #0008,0 0 12px #f2c14e88;animation:mk 1.4s ease-in-out infinite}#mark i{position:absolute;top:28px;left:50%;transform:translateX(-50%);font-style:normal;font-size:11px;color:var(--brass-hi);white-space:nowrap}
 #mark.flash{animation:mk .3s ease-in-out infinite}@keyframes mk{50%{transform:translate(-50%,-50%) scale(1.25)}}
-#tip{bottom:70px;left:18px;max-width:360px;background:#f3e7c9;color:var(--ol);border:2.5px solid var(--ol);border-radius:8px;box-shadow:0 4px 0 var(--ol);padding:9px 14px;font-size:14px;line-height:1.55;text-shadow:none;opacity:0;transform:translateY(10px);transition:opacity .3s,transform .3s}#tip.show{opacity:1;transform:none}#tip b{color:#8a3a1a}
+#tip{bottom:70px;left:262px;max-width:360px;background:#f3e7c9;color:var(--ol);border:2.5px solid var(--ol);border-radius:8px;box-shadow:0 4px 0 var(--ol);padding:9px 14px;font-size:14px;line-height:1.55;text-shadow:none;opacity:0;transform:translateY(10px);transition:opacity .3s,transform .3s}#tip.show{opacity:1;transform:none}#tip b{color:#8a3a1a}
 #edges .edge{position:fixed;top:50%;padding:5px 10px;background:#1a110bcc;border:2px solid var(--brass);color:var(--brass-hi);border-radius:6px;font-weight:800;font-size:13px;z-index:5;pointer-events:none}
 #edges .edge.l{left:14px}#edges .edge.r{right:14px}#edges .edge.b{top:18px;bottom:auto;left:50%;transform:translateX(-50%)}
+#nav .nav{position:fixed;top:60%;padding:6px 12px;background:#1a110bd0;border:2px solid var(--brass);color:var(--brass-hi);border-radius:7px;font-weight:800;font-size:14px;z-index:5;cursor:pointer;pointer-events:auto;box-shadow:0 3px 0 #000a}#nav .nav small{display:block;font-size:11px;color:#dcc6a0;font-weight:600}#nav .nav.l{left:14px}#nav .nav.r{right:14px}#nav .nav.f{top:22%;left:50%;transform:translateX(-50%)}#nav .nav.b{top:auto;bottom:196px;left:50%;transform:translateX(-50%)}#nav .nav:hover{background:#3a2a16}
+#map{bottom:14px;left:18px;background:#1a110bcc;border:2px solid var(--ol);border-radius:9px;padding:6px 8px 6px;box-shadow:0 3px 0 #000a;pointer-events:auto}#map .mapHead{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:4px}#map .mapHead b{color:var(--brass-hi)}#map .mapHead span{color:#dcc6a0;flex:1}#map .mapHead button{font-size:11px;padding:0 7px;border:1.5px solid var(--brass);background:#2a1c10;color:#dcc6a0;border-radius:4px;cursor:pointer}#map .mapHead button.on{background:var(--brass);color:#1a110b}#map svg{display:block}#map .rm{fill:#3a2a1a;stroke:#8a6a3a;stroke-width:1}#map .rm.st{fill:#5a4020}#map .rm.out{fill:#22180f;stroke-dasharray:3 2}#map text{font-size:8px;fill:#bfae90;text-anchor:middle;pointer-events:none}#map text.hint{fill:#e8a24a;font-size:8px}#map .lk line{stroke:#8a6a3a;stroke-width:1.2;stroke-dasharray:2 2}#map .sp circle{fill:#dcc6a0;stroke:#382c2b;stroke-width:1.2;cursor:pointer}#map .sp:hover circle{fill:#fff}#map .sp.cur circle{fill:var(--brass-hi);stroke:#fff}#map .sp.tgt circle{stroke:#e8a24a;stroke-width:2.5;animation:mapPulse 1s infinite}#map .npc{fill:#7a8a9a}@keyframes mapPulse{50%{stroke-width:1}}
+body.seat #nav,body.seat #map,body.station #nav,body.station #map{display:none!important}
 #black{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity 1s;z-index:20}#black.on{opacity:1}
 /* 창 (종이) */
 #winWrap{position:fixed;inset:0;z-index:10;background:radial-gradient(ellipse at 50% 40%,#1a110b88,#070403cc);display:grid;place-items:center}
@@ -161,13 +164,13 @@ body.big{font-size:118%}body.big #prompt{font-size:16px}body.big #sub{font-size:
 <canvas id="cv"></canvas>
 <div class="hud" id="clock"></div><div class="hud" id="stats"></div><div class="hud" id="obj"></div><div class="hud" id="stcard" hidden></div><div id="stpanel" hidden></div><ul class="hud" id="todo"></ul><div class="hud" id="mark" hidden><i></i></div><div class="hud" id="tip"></div>
 <div class="hud" id="cross"></div><div class="hud" id="ring"></div><div class="hud" id="prompt"></div>
-<div class="hud" id="sub"></div><div class="hud" id="belt"></div><div id="edges"></div><div class="hud" id="lockHint" hidden>화면을 클릭하면 다시 움직인다</div>
+<div class="hud" id="sub"></div><div class="hud" id="belt"></div><div id="edges"></div><div id="nav"></div><div class="hud" id="map"></div><div class="hud" id="lockHint" hidden>화면을 클릭하면 다시 움직인다</div>
 <div id="black"></div>
 <div id="seat" hidden></div>
 <div id="winWrap" hidden><div class="card3" id="win"></div></div><div id="loupe3" hidden></div>
 <div class="screen" id="start"><div class="card3"><h1><small>무사귀환 · 3D 그레이박스 테스트</small>등불 길드 여관의 하루</h1>
  <p class="lead">사흘 동안 등불 길드 여관을 맡는다. 아침엔 장사·가마솥·보내기, 저녁엔 창구와 식당, 밤엔 순찰. 시간은 <b>실시간</b>으로 흐르고 아침마다 저장된다. 처음엔 <b>헬가가 하나씩 알려 준다.</b></p>
- <div class="keys"><div><kbd>W A S D</kbd>걷기<small>마우스로 둘러본다</small></div><div><kbd>클릭</kbd>하기<small>조준점 아래 밝은 줄을 한다</small></div><div><kbd>휠</kbd>고르기<small>할 일이 여러 줄일 때 (Q도 된다)</small></div>
+ <div class="keys"><div><kbd>지도 · 화살표</kbd>자리 옮기기<small>왼쪽 아래 지도나 화면 화살표(← → ↑ ↓)로 · 마우스로 둘러본다</small></div><div><kbd>클릭</kbd>하기<small>조준점 아래 밝은 줄을 한다</small></div><div><kbd>휠</kbd>고르기<small>할 일이 여러 줄일 때 (Q도 된다)</small></div>
   <div><kbd>F</kbd>등불<small>들면 숨은 것이 보인다 · 기름이 준다</small></div><div><kbd>Tab</kbd>장부<small>수칙 · 단골 · 숙박부 · 메모</small></div><div><kbd>H</kbd>힌트<small>막히면 지금 할 일을 다시 본다</small></div></div>
  <p class="nobuy">소리를 켜 주세요. ESC 일시정지 · F2 필터 끄기 · [ ] 시간 속도(디버그)</p><br>
  <div class="startBtns"><button class="primary" id="startBtn">처음부터</button><button class="primary alt" id="contBtn" hidden disabled>이어하기</button></div></div></div>
@@ -187,6 +190,7 @@ body.big{font-size:118%}body.big #prompt{font-size:16px}body.big #sub{font-size:
 <script src="art/legs.js"></script>
 <script src="art/faces.js"></script>
 <script src="art/sprites.js"></script>
+<script src="game/data/spots.js"></script>
 <script src="game/data/regulars.js"></script>
 <script src="game/data/floors.js"></script>
 <script src="game/data/items.js"></script>
