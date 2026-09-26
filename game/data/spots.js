@@ -1,5 +1,6 @@
 // 무사귀환 — 서는 자리(스팟). 플레이어는 걷지 않고 자리 사이를 옮겨 다닌다. 자리에서 마우스로 둘러본다(각도 제한).
-// x,z,y: 서는 좌표 / yaw: 기본 시선(rad; 0=북(-z), π/2=서(-x), -π/2=동(+x), π=남(+z)) / yawRange: 좌우 회전 한계(±rad, Math.PI 면 자유)
+// links 항목은 id 문자열이거나 {id, dir:'l'|'r'|'f'|'b'} (dir 을 주면 시선과 상관없이 그 화살표·키에 고정)
+// x,z,y: 서는 좌표 / pitch: 기본 상하 시선 / yaw: 기본 시선(rad; 0=북(-z), π/2=서(-x), -π/2=동(+x), π=남(+z)) / yawRange: 좌우 회전 한계(±rad, Math.PI 면 자유)
 // pitchRange: 상하 한계 / reach: 조준 거리(m) / links: 인접 자리 / floor: 층 / map:[x,z] 지도 표기 좌표(세계 좌표 그대로 쓰면 생략)
 // 자리를 더하려면 항목 하나와 links 를 더한다. 이동 비용은 인접 한 칸에 HOP_MIN 게임 분.
 window.SRG=window.SRG||{};
@@ -7,10 +8,11 @@ SRG.spots={
  HOP_MIN:4,
  START:'hearth',
  list:[
-  {id:'hearth', name:'벽난로',  x:4.6,  z:9.9,  y:0, yaw:Math.PI/2,  yawRange:1.4, reach:4.5, floor:1, links:['hall','kitchen']},
-  {id:'hall',   name:'홀',     x:6.6,  z:10.4, y:0, yaw:0,          yawRange:Math.PI, reach:5, floor:1, links:['hearth','kitchen','dining','window','stairs','alley']},
-  {id:'kitchen',name:'부엌',    x:2.6,  z:3.5,  y:0, yaw:-.12,       yawRange:1.5, reach:4.8, floor:1, links:['hearth','hall','dining']},
-  {id:'dining', name:'식당',    x:11.5, z:4.4,  y:0, yaw:0,          yawRange:1.5, reach:4.2, floor:1, links:['kitchen','hall']},
+  {id:'hearth', name:'벽난로',  x:4.6,  z:9.9,  y:0, yaw:Math.PI/2,  yawRange:1.4, reach:4.5, floor:1, links:['hall',{id:'shelf',dir:'r'}]},
+  {id:'hall',   name:'홀',     x:6.6,  z:10.4, y:0, yaw:0,          yawRange:Math.PI, reach:5, floor:1, links:['hearth',{id:'pot',dir:'f'},'dining','window','stairs','alley']},
+  {id:'shelf',  name:'선반',    x:2.6,  z:2.8,  y:0, yaw:0, pitch:.05, yawRange:.85, pitchRange:.5, reach:4.2, floor:1, links:[{id:'pot',dir:'r'},{id:'hearth',dir:'b'}]},
+  {id:'pot',    name:'가마솥',   x:4.9,  z:3.6,  y:0, yaw:.86, pitch:-.22, yawRange:.8, pitchRange:.5, reach:3.2, floor:1, links:[{id:'shelf',dir:'l'},{id:'dining',dir:'r'},{id:'hall',dir:'b'}]},
+  {id:'dining', name:'식당',    x:11.5, z:4.4,  y:0, yaw:0,          yawRange:1.5, reach:4.2, floor:1, links:[{id:'pot',dir:'l'},'hall']},
   {id:'window', name:'창구',    x:22.3, z:9.4,  y:0, yaw:-Math.PI/2, yawRange:1.3, reach:3.4, floor:1, links:['hall','stairs']},
   {id:'stairs', name:'계단 아래',x:21.5, z:9.6,  y:0, yaw:2.6,        yawRange:1.4, reach:4.5, floor:1, links:['hall','window','cor_e']},
   {id:'alley',  name:'골목',    x:6.4,  z:14.6, y:0, yaw:0,          yawRange:1.5, reach:4.5, floor:1, links:['hall']},

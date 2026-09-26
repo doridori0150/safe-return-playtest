@@ -1185,19 +1185,21 @@ if(SPD)SPD.list.forEach(s=>{SPOTS.by[s.id]=s;});
 const spotOf=id=>SPOTS.by[id]||null;
 function spotCur(){return SPOTS.cur?SPOTS.by[SPOTS.cur]:null;}
 // 인접 그래프에서 hop 수 (BFS)
-function spotHops(a,b){if(a===b)return 0;const seen={[a]:0};const q=[a];while(q.length){const c=q.shift();for(const n of (spotOf(c).links||[])){if(seen[n]!==undefined)continue;seen[n]=seen[c]+1;if(n===b)return seen[n];q.push(n);}}return 99;}
+const linkId=l=>typeof l==='string'?l:l.id;
+function spotHops(a,b){if(a===b)return 0;const seen={[a]:0};const q=[a];while(q.length){const c=q.shift();for(const n of (spotOf(c).links||[]).map(linkId)){if(seen[n]!==undefined)continue;seen[n]=seen[c]+1;if(n===b)return seen[n];q.push(n);}}return 99;}
 function spotYaw(){return new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ').y;}
 function wrapA(a){while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a;}
 // 자리 옮기기: 짧게 어두워졌다 밝아진다. 인접이 아니면 hop 수만큼 시간이 든다
 function goSpot(id,opt={}){const s=spotOf(id);if(!s||!SPOTS.on)return false;const from=SPOTS.cur;if(from===id&&!opt.instant)return false;
   const hops=from?spotHops(from,id):0;const place=()=>{SPOTS.cur=id;P.x=s.x;P.z=s.z;P.y=s.y;camera.position.set(P.x,P.y+P.eye,P.z);
-    const keepYaw=opt.keepYaw&&from;if(!keepYaw)camera.rotation.set(0,s.yaw,0,'YXZ');SPOTS.viewFloor=s.floor;SPOTS.mapHtml='';if(hops>0)spend(SPD.HOP_MIN*hops);sfx('step');};
+    const keepYaw=opt.keepYaw&&from;if(!keepYaw)camera.rotation.set(s.pitch||0,s.yaw,0,'YXZ');SPOTS.viewFloor=s.floor;SPOTS.mapHtml='';if(hops>0)spend(SPD.HOP_MIN*hops);sfx('step');if(typeof AR!=='undefined'){AR.cool=Math.max(AR.cool,3);AR.acc=AR.n=AR.t=0;}   // 옮긴 직후 프레임 튐으로 해상도가 내려가지 않게};
   if(opt.instant){place();return true;}
   if(SPOTS.travel)return false;SPOTS.travel=true;const b=$('black');b.style.transition='opacity .22s';b.classList.add('on');
   setTimeout(()=>{place();setTimeout(()=>{b.classList.remove('on');setTimeout(()=>{b.style.transition='';SPOTS.travel=false;},260);},60);},230);return true;}
 // 링크를 현재 시선 기준 방향(앞·왼·오른·뒤)으로 나눈다
-function spotDirs(){const s=spotCur();if(!s)return {};const yaw=spotYaw();const out={};(s.links||[]).forEach(id=>{const t=spotOf(id);if(!t)return;let a=wrapA(Math.atan2(-(t.x-s.x),-(t.z-s.z))-yaw);
-    const k=Math.abs(a)<.7?'f':Math.abs(a)>2.45?'b':a>0?'l':'r';if(!out[k]||t.floor!==s.floor)out[k]=id;});return out;}
+function spotDirs(){const s=spotCur();if(!s)return {};const yaw=spotYaw();const out={};const fixed=(s.links||[]).filter(l=>typeof l!=='string'&&l.dir);fixed.forEach(l=>{out[l.dir]=l.id;});
+  (s.links||[]).forEach(l=>{if(typeof l!=='string'&&l.dir)return;const id=linkId(l);const t=spotOf(id);if(!t)return;let a=wrapA(Math.atan2(-(t.x-s.x),-(t.z-s.z))-yaw);
+    const k=Math.abs(a)<.7?'f':Math.abs(a)>2.45?'b':a>0?'l':'r';if(!out[k])out[k]=id;});return out;}
 function spotKey(code){if(!SPOTS.on||SPOTS.travel||!spotCur())return false;const m={ArrowUp:'f',KeyW:'f',ArrowDown:'b',KeyS:'b',ArrowLeft:'l',KeyA:'l',ArrowRight:'r',KeyD:'r'}[code];if(!m)return false;const d=spotDirs();if(d[m]){goSpot(d[m]);return true;}return false;}
 // 매 프레임: 시선 각도 제한, 화살표·지도 갱신
 function spotTick(){if(!SPOTS.on||!G.started)return;const s=spotCur();if(!s)return;
@@ -1218,7 +1220,7 @@ function objSpot(){const o=G.obj;if(!o||!o.pos)return null;const fl=o.pos[1]>2.9
 function spotMap(){const s=spotCur();if(!s)return;const fl=SPOTS.viewFloor,tgt=objSpot();const people=NPCS.filter(n=>n.visible&&n.state!=='gone'&&(n.y>1.5?2:1)===fl&&n.x>=0&&n.x<=24&&n.z>=0&&n.z<=12).map(n=>[n.x,n.z]);
   const key=fl+'|'+s.id+'|'+tgt+'|'+people.map(p=>p[0].toFixed(0)+','+p[1].toFixed(0)).join(';');if(key===SPOTS.mapHtml)return;SPOTS.mapHtml=key;
   const plan=(SPD.plan[fl]||[]).map(r=>`<rect x="${mx(r.r[0])}" y="${mz(r.r[1])}" width="${mx(r.r[2]-r.r[0])}" height="${mz(r.r[3]-r.r[1])}" class="rm${r.s?' st':''}${r.o?' out':''}"/>${r.n?`<text x="${mx((r.r[0]+r.r[2])/2)}" y="${(+mz((r.r[1]+r.r[3])/2)+3.5).toFixed(1)}">${r.n}</text>`:''}`).join('');
-  const links=[];SPD.list.forEach(a=>(a.links||[]).forEach(b=>{const t=spotOf(b);if(a.id<b&&a.floor===fl&&t.floor===fl)links.push(`<line x1="${mx(a.x)}" y1="${mz(a.z)}" x2="${mx(t.x)}" y2="${mz(t.z)}"/>`);}));
+  const links=[];SPD.list.forEach(a=>(a.links||[]).map(linkId).forEach(b=>{const t=spotOf(b);if(a.id<b&&a.floor===fl&&t.floor===fl)links.push(`<line x1="${mx(a.x)}" y1="${mz(a.z)}" x2="${mx(t.x)}" y2="${mz(t.z)}"/>`);}));
   const dots=SPD.list.filter(x=>x.floor===fl).map(x=>`<g class="sp${x.id===s.id?' cur':''}${x.id===tgt?' tgt':''}" data-go="${x.id}"><circle cx="${mx(x.x)}" cy="${mz(x.z)}" r="${x.id===s.id?5:4}"/><title>${x.name}</title></g>`).join('');
   const ppl=people.map(([x,z])=>`<circle class="npc" cx="${mx(x)}" cy="${mz(z)}" r="2"/>`).join('');
   const stairsUp=fl===1?`<text class="hint" x="${mx(20)}" y="${mz(4.4)}">▲ 2층</text>`:`<text class="hint" x="${mx(20)}" y="${mz(4.4)}">▼ 1층</text>`;
