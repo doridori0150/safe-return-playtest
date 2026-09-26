@@ -664,7 +664,7 @@ function makeNPC(uid,look,o={},opt={}){const g=new THREE.Group(),doll=new THREE.
   const hit=new THREE.Mesh(new THREE.BoxGeometry(.7,2.1,.4),new THREE.MeshBasicMaterial({visible:false}));hit.position.y=1.05;g.add(hit);hit.userData.it='npc:'+uid;INTER.push(hit);
   const fs=new THREE.Mesh(new THREE.CircleGeometry(.34,16),new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:.38,depthWrite:false}));fs.rotation.x=-Math.PI/2;fs.position.y=.015;g.add(fs);
   const small=C[look]&&C[look].small;if(small)g.scale.setScalar(.8);
-  scene.add(g);const n={fs,uid,look,o,g,doll,bust,hit,parts:{torso,item,head,legL:legs[0],legR:legs[1]},shoes,x:0,z:0,y:0,path:[],speed:1.35,state:'idle',face:0,visible:true,anim:0,...opt};NPCS.push(n);hit.userData.npc=n;bust.userData.npc=n;if(typeof rigAttach==='function')rigAttach(n);return n;}
+  scene.add(g);const n={fs,uid,look,o,g,doll,bust,hit,parts:{torso,item,head,legL:legs[0],legR:legs[1]},shoes,x:0,z:0,y:0,path:[],speed:1.35,state:'idle',face:0,visible:true,anim:0,...opt};NPCS.push(n);hit.userData.npc=n;bust.userData.npc=n;if(typeof spriteAttach==='function')spriteAttach(n);if(typeof rigAttach==='function')rigAttach(n);return n;}
 function setLook(n,look,o={}){n.look=look;n.o=o;const b=!!n.back;const P_=n.parts;
   P_.torso.material.map=figTex(look+'|t|'+JSON.stringify(o)+(b?'b':''),layerFig(look,o,b,'torso'));P_.item.material.map=figTex(look+'|i|'+JSON.stringify(o)+(b?'b':''),layerFig(look,o,b,'item'));P_.head.material.map=figTex(look+'|h|'+JSON.stringify(o)+(b?'b':''),layerFig(look,o,b,'head'));
   n.bust.material.map=figTex(look+JSON.stringify(o)+(b?'b':''),fig(look,o,b));[P_.torso,P_.item,P_.head,n.bust].forEach(m=>m.material.needsUpdate=true);}
@@ -692,7 +692,7 @@ function updateNPCs(dt){const cam=camera.position;
     const breathe=walking?0:Math.sin(n.anim*1.8)*.012;P_.torso.scale.y=1+breathe;P_.head.position.y=P_.head.userData.pivot+breathe*.6+(walking?Math.abs(Math.sin(n.bob))*.02:0);
     n.talkT=Math.max(0,(n.talkT||0)-dt);P_.head.rotation.z=(n.talkT>0?Math.sin(n.anim*9)*.06:0)+(walking?Math.sin(n.bob*.5)*.03:0);P_.head.rotation.y=n.talkT>0?0:Math.sin(n.anim*.7)*.08;
     n.doll.rotation.x=sleeping?-1.25:0;n.bust.rotation.x=sleeping?-1.2:0;n.fs.visible=!sleeping;
-    if(n.rig)rigTick(n,dt,walking,sitting,sleeping,rel);});
+    if(n.sprite)spriteTick(n,dt,walking,sitting,sleeping,rel);else if(n.rig)rigTick(n,dt,walking,sitting,sleeping,rel);});
   for(const k in DOORS){const d=DOORS[k];if(d.npcHold>0){d.npcHold-=dt;if(d.npcHold<=0&&!d.playerOpen)d.target=0;}}}
 
 // ───── 23_rig.js ─────
@@ -793,7 +793,7 @@ function rigProps(n){const r=n.rig;const A=headAnchors(r);if(!A)return;r.props.f
     else if(p.kind==='ribbon'){mesh=new THREE.Mesh(new THREE.BoxGeometry(.05,.02,.01),new THREE.MeshStandardMaterial({color:p.color||0xc03050,roughness:.8}));mesh.position.copy(at).add(new THREE.Vector3(0,.03,0));}
     if(!mesh)return;mesh.traverse(q=>{if(q.isMesh)q.castShadow=true;});r.bones.Head.add(mesh);r.props.push(mesh);});}
 function rigPlay(r,name,fade=.22){if(r.cur===name||!r.acts[name])return;const a=r.acts[name];a.reset().setEffectiveWeight(1).fadeIn(fade).play();if(r.cur&&r.acts[r.cur])r.acts[r.cur].fadeOut(fade);r.cur=name;}
-function rigAttach(n){if(!RIG.ready||n.rig)return;const spec=rigSpec(n);if(!spec)return;const r=rigBuild(spec);if(!r)return;n.rig=r;n.g.add(r.root);n.doll.visible=false;rigPlay(r,'Idle_Loop',0);rigFace(n,'neutral');}
+function rigAttach(n){if(!RIG.ready||n.rig||n.sprite)return;const spec=rigSpec(n);if(!spec)return;const r=rigBuild(spec);if(!r)return;n.rig=r;n.g.add(r.root);n.doll.visible=false;rigPlay(r,'Idle_Loop',0);rigFace(n,'neutral');}
 // 매 프레임: 상태에 맞는 동작, 몸의 방향, 앉기·눕기 보정
 function rigTick(n,dt,walking,sitting,sleeping,rel){const r=n.rig;const voidLook=n.look==='void';r.root.visible=!voidLook&&n.visible;n.doll.visible=voidLook;if(!r.root.visible)return;
   const talking=(n.talkT||0)>0;let clip=walking?'Walk_Loop':sitting?(talking?'Sitting_Talking_Loop':'Sitting_Idle_Loop'):sleeping?'Idle_Loop':talking?'Idle_Talking_Loop':'Idle_Loop';
@@ -813,6 +813,35 @@ function rigTick(n,dt,walking,sitting,sleeping,rel){const r=n.rig;const voidLook
     // 세계 축 회전을 부모 뼈 공간으로 옮겨 곱한다 (rotateOnWorldAxis 는 부모 회전을 무시한다)
     const pq=new THREE.Quaternion();hb.parent.getWorldQuaternion(pq);const inv=pq.clone().invert();const rot=(axis,ang)=>{const a=axis.clone().applyQuaternion(inv).normalize();hb.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(a,ang));};
     rot(new THREE.Vector3(0,1,0),r.lookY);const ang=n.face+r.root.rotation.y+r.lookY;rot(new THREE.Vector3(Math.cos(ang),0,-Math.sin(ang)),-r.lookP);}}}
+
+// ───── 24_sprite.js ─────
+// ───────── 픽셀 스프라이트 인물 (HD-2D 하이브리드): art/sprites.js 의 도트 프레임을 판 한 장에 세운다 ─────────
+// 인물 데이터에 sprite:true 가 있고 SPRITE_ART 에 그림이 있으면 종이 인형·리깅 몸 대신 쓴다. ?nosprite 로 끈다, ?sprite=all 은 그림이 있는 인물 전부.
+const SPR=window.SPRITE_ART||null,SPRTEX={};
+const SPR_ON=!QF.has('nosprite');
+function sprHas(id){return !!(SPR&&SPR.DATA&&SPR.DATA[id]);}
+function sprWant(n){if(!SPR_ON||!sprHas(n.look))return false;const c=C[n.look];return !!(c&&c.sprite)||QF.get('sprite')==='all';}
+// 문자열 프레임 → 캔버스 텍스처 (nearest, 밉맵 없음)
+function sprTex(key,rows,pal,w,h){if(SPRTEX[key])return SPRTEX[key];const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+  for(let y=0;y<h;y++){const r=rows[y]||'';for(let i=0;i<w;i++){const ch=r[i];if(!ch||ch==='.'||!pal[ch])continue;x.fillStyle=pal[ch];x.fillRect(i,y,1,1);}}
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;return SPRTEX[key]=t;}
+function sprSheet(n){const key=n.look+JSON.stringify(n.o||{});if(n.sprite&&n.sprite.key===key)return n.sprite.sheet;let sheet=null;try{sheet=SPR.get(n.look,n.o||{});}catch(e){console.warn('sprites',e);}return sheet;}
+function spriteAttach(n){if(n.sprite||!sprWant(n))return;const sheet=sprSheet(n);if(!sheet)return;const D=SPR.DATA[n.look]||{};const H=(D.height||1.6)*(sheet.h/(sheet.h-2)),W=H*sheet.w/sheet.h;
+  const g=new THREE.PlaneGeometry(W,H);g.translate(0,H/2,0);const m=new THREE.MeshLambertMaterial({transparent:true,alphaTest:.5,side:THREE.DoubleSide});const plane=new THREE.Mesh(g,m);plane.castShadow=true;plane.receiveShadow=false;
+  const holder=new THREE.Group();holder.add(plane);n.g.add(holder);n.doll.visible=false;if(n.rig)n.rig.root.visible=false;
+  n.sprite={key:n.look+JSON.stringify(n.o||{}),sheet,plane,holder,t:0,frame:0,dir:'front',anim:'idle'};sprFrame(n,'front','idle',0);}
+function sprFrame(n,dir,anim,i){const s=n.sprite;const sheet=s.sheet;const A=(sheet.anims[dir]||sheet.anims.front||{});let rows=(A[anim]||A.idle||[])[i];if(!rows){const alt=sheet.anims.front||{};rows=(alt[anim]||alt.idle||[])[i]||(alt.idle||[])[0];}if(!rows)return;
+  const key=s.key+'|'+dir+'|'+anim+'|'+i;const t=sprTex(key,rows,sheet.pal,sheet.w,sheet.h);if(s.plane.material.map!==t){s.plane.material.map=t;s.plane.material.needsUpdate=true;}}
+function spriteRefresh(n){if(!n.sprite)return;const key=n.look+JSON.stringify(n.o||{});if(n.sprite.key===key)return;const sheet=sprSheet(n);if(!sheet)return;n.sprite.sheet=sheet;n.sprite.key=key;sprFrame(n,n.sprite.dir,n.sprite.anim,n.sprite.frame);}
+// 매 프레임: 카메라를 향해 서고, 보는 각도에 따라 앞·뒤·옆 그림, 상태에 따라 동작
+function spriteTick(n,dt,walking,sitting,sleeping,rel){const s=n.sprite;if(!s)return;spriteRefresh(n);const voidLook=n.look==='void';s.holder.visible=!voidLook&&n.visible;n.doll.visible=voidLook;if(!s.holder.visible)return;
+  s.holder.rotation.y=rel;s.holder.rotation.x=sleeping?-1.25:0;s.holder.position.y=sitting?.42:sleeping?.62:0;
+  const a=Math.abs(rel);let dir=a<Math.PI/4?'front':a>Math.PI*3/4?'back':(rel>0?'left':'right');if(sleeping)dir='front';
+  const talking=(n.talkT||0)>0;const anim=walking?'walk':(talking&&dir==='front'&&s.sheet.anims.front.talk)?'talk':'idle';
+  const A=s.sheet.anims[dir]||s.sheet.anims.front;const frames=(A[anim]||A.idle||[]).length||1;const rate=anim==='walk'?Math.max(4,n.speed*5.5):anim==='talk'?4:.9;
+  s.t+=dt*rate;const fi=Math.floor(s.t)%frames;if(dir!==s.dir||anim!==s.anim||fi!==s.frame){s.dir=dir;s.anim=anim;s.frame=fi;sprFrame(n,dir,anim,fi);}}
+// 창구 초상
+function spritePortrait(n){if(!n.sprite||!n.sprite.sheet.portrait)return null;const P=n.sprite.sheet.portrait;return sprTex(n.sprite.key+'|portrait',P.rows,P.pal||n.sprite.sheet.pal,P.w,P.h);}
 
 // ───── 30_play.js ─────
 // ───────── 플레이어 ─────────
@@ -978,7 +1007,7 @@ const DUST=(()=>{const n=90,g=new THREE.BufferGeometry(),p=new Float32Array(n*3)
   g.setAttribute('position',new THREE.BufferAttribute(p,3));const m=new THREE.Points(g,new THREE.PointsMaterial({color:0xd8c8a8,size:.018,transparent:true,opacity:.55,depthWrite:false}));m.visible=false;scene.add(m);return m;})();
 // 창구용 고해상도 얼굴
 const HITEX={};
-function hiTex(n){const key=n.look+JSON.stringify(n.o||{});if(!HITEX[key]){const c=document.createElement('canvas');c.width=600;c.height=720;const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;
+function hiTex(n){if(n.sprite){const pt=spritePortrait(n);if(pt){n.bust.material.map=pt;n.bust.material.needsUpdate=true;return;}}const key=n.look+JSON.stringify(n.o||{});if(!HITEX[key]){const c=document.createElement('canvas');c.width=600;c.height=720;const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;
     const img=new Image();img.onload=()=>{c.getContext('2d').drawImage(img,0,0,600,720);t.needsUpdate=true;};img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="720" viewBox="0 0 200 240">${fig(n.look,n.o||{})}</svg>`);HITEX[key]=t;}
   n.bust.material.map=HITEX[key];n.bust.material.needsUpdate=true;}
 function drawDeskCard(n){const c=deskCardTex.image,x=c.getContext('2d'),C0=C[n.look];x.fillStyle='#eadfc6';x.fillRect(0,0,256,340);x.strokeStyle='#382c2b';x.lineWidth=6;x.strokeRect(3,3,250,334);
@@ -987,12 +1016,12 @@ function drawDeskCard(n){const c=deskCardTex.image,x=c.getContext('2d'),C0=C[n.l
   x.fillStyle='#7a6b58';for(let i=0;i<5;i++)x.fillRect(20,260+i*14,160+((i*37)%60),5);deskCardTex.needsUpdate=true;}
 // 앉기와 일어나기
 function winSeat(n){if(SEAT){if(SEAT.done)closeSeat();else return;}const q=camera.quaternion.clone();SEAT={n,t:0,from:{x:camera.position.x,y:camera.position.y,z:camera.position.z,q},q:new THREE.Quaternion(),asked:{},keys:false};
-  WIN='seat';G.scale=.5;controls.unlock();document.body.classList.add('seat');DUST.visible=true;hiTex(n);n.doll.visible=false;n.bust.visible=!n.rig;drawDeskCard(n);if(!SHUT)shutterOpen(true);
+  WIN='seat';G.scale=.5;controls.unlock();document.body.classList.add('seat');DUST.visible=true;hiTex(n);n.doll.visible=false;if(n.sprite)n.sprite.holder.visible=false;n.bust.visible=!n.rig||!!n.sprite;drawDeskCard(n);if(!SHUT)shutterOpen(true);
   const sc=n.g.scale.x,top=n.y+1.6*sc;SEAT.pitch=Math.atan2(top-SEATPOS.y-.05,24.9-SEATPOS.x);
   renderSeat();tip('seat1','질문 칩은 <b>시간이 든다</b>. 카드와 다른 점, 말투, 부절을 맞춰 본다.');tip('seat2','<b>F</b>로 등불을 들고 얼굴 위로 마우스를 움직이면 돋보기(기름이 준다).');tip('seat3','판단이 서면 오른쪽 아래 <b>도장</b>. 수칙은 <b>Tab</b>.');}
 function closeSeat(){if(!SEAT)return;const n=SEAT.n;camera.quaternion.copy(SEAT.from.q);camera.fov=70;camera.updateProjectionMatrix();
   P.x=SEATPOS.x-.15;P.z=SEATPOS.z;P.y=0;SEAT=null;WIN=null;G.scale=1;document.body.classList.remove('seat');DUST.visible=false;lampSpot.intensity=0;backLight.intensity=0;
-  $('seat').hidden=true;$('loupe3').hidden=true;n.doll.visible=true;n.bust.visible=false;if(n.visible)setLook(n,n.look,n.o);relock();$('lockHint').hidden=!!G.free?false:controls.isLocked;}
+  $('seat').hidden=true;$('loupe3').hidden=true;n.doll.visible=!n.sprite&&!n.rig;if(n.sprite)n.sprite.holder.visible=true;n.bust.visible=false;if(n.visible)setLook(n,n.look,n.o);relock();$('lockHint').hidden=!!G.free?false:controls.isLocked;}
 function seatCam(dt){const S=SEAT;S.t=Math.min(1,S.t+dt/.6);const e=1-Math.pow(1-S.t,3);
   camera.position.set(S.from.x+(SEATPOS.x-S.from.x)*e,S.from.y+(SEATPOS.y-S.from.y)*e,S.from.z+(SEATPOS.z-S.from.z)*e);
   S.q.setFromEuler(new THREE.Euler(S.pitch+(.5-SEATM.y)*.12,-Math.PI/2+(.5-SEATM.x)*.36,0,'YXZ'));
