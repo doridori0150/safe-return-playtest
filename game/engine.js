@@ -1385,7 +1385,7 @@ function nightPlansResolve(){NPCS.forEach(n=>{if(!n.fake||n.state==='gone')retur
   else if(n.barred){G.log.barred.push(n.name);}});}
 // ───────── 아침: 결과와 창고 ─────────
 function nightResolve(){const L=G.log,T=CAMP.thread,R=[];
-  L.missing.forEach(id=>{thread(T.missing);R.push({k:'bad',t:DLG.morning.missing(nameOf(id))});});
+  L.missing.forEach(id=>{thread(T.missing);const n=NPCS.find(x=>x.uid===id);R.push({k:'bad',t:DLG.morning.missing(n?n.name:nameOf(id))});});
   G.stained.forEach(r=>{if(!L.stainedSeen)R.push({k:'bad',t:DLG.morning.stain(r)});});
   L.fled.forEach(nm=>{thread(-1);R.push({k:'bad',t:DLG.morning.fled(nm)});});
   L.barred.forEach(nm=>{thread(T.barred);R.push({k:'good',t:DLG.morning.barred(nm)});});
@@ -1416,7 +1416,7 @@ function redEnd(msg){G.over=true;controls.unlock();const snap=loadSave();
 function finale(){G.over=true;controls.unlock();const lost=REG_IDS.filter(id=>G.regs[id].gone);const rentFail=G.rentDue&&G.money<0;
   const h=`<div class="endc"><h2>${CAMP.DAYS}일이 지났다 — 결산</h2>
    <div class="sum"><div><b>${G.thread}/${CAMP.THREAD_MAX}</b>경계의 실</div><div><b>${G.money}G</b>돈</div><div><b>${lost.length}</b>사라진 단골</div><div><b>${G.stained.length}</b>얼룩진 방</div><div><b>${REG_IDS.filter(id=>G.regs[id].grudge>0).length}</b>원망하는 단골</div></div>
-   <ul>${G.days.map(d=>`<li><b>${d.day}일째</b> 실 ${d.thread} · ${d.money}G — ${d.cards.filter(c=>c.k!=='good').slice(0,2).map(c=>c.t).join(' / ')||'조용한 밤'}</li>`).join('')}${lost.map(id=>`<li><b>${nameOf(id)}</b>: ${G.regs[id].gone==='missing'?'방에서 사라졌다. 벽에 잿빛 얼룩.':'길드를 떠났다.'}</li>`).join('')}</ul>
+   <ul>${G.days.map(d=>`<li><b>${d.day}일째</b> 실 ${d.thread} · ${d.money}G — ${d.cards.filter(c=>c.k!=='good').slice(0,2).map(c=>c.t).join(' / ')||'조용한 밤'}</li>`).join('')}${lost.map(id=>`<li><b>${nameOf(id)}</b>: ${G.regs[id].gone==='missing'?'방에서 사라졌다. 벽에 잿빛 얼룩. 다시 보낼 수 없다.':'길드를 떠났다.'}</li>`).join('')}</ul>
    <p class="nobuy">${G.thread<=0?'실이 다 풀렸다. 여관이 미궁에 먹힌다.':G.thread>=CAMP.THREAD_MAX?'실이 팽팽하다. 마그다가 좋아했을 것이다.':'실은 아직 버틴다.'} 느낌(조작·시간 흐름·밤의 분위기)이 어땠는지 알려 주세요.</p>
    <button class="primary" onclick="localStorage.removeItem('${SAVE_KEY}');location.reload()">처음부터</button></div>`;
   openWin('end',josa(h),0);clearSave();}
