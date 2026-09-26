@@ -151,7 +151,7 @@ body.station #belt,body.station #obj,body.station #todo,body.station #prompt,bod
 .screen ul{margin:10px 0 14px 20px;font-size:15px}
 .keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0 12px}.keys div{display:flex;flex-direction:column;align-items:center;gap:6px;background:#e2d4b4;border:2px solid var(--ol);border-radius:8px;padding:10px 6px;font-size:14px;font-weight:700;color:var(--ol)}
 .keys kbd{font-size:15px!important;padding:3px 9px!important;border-radius:5px!important;box-shadow:0 3px 0 #000}.keys small{font-weight:500;font-size:12px;color:var(--pmute);text-align:center}.lead{font-size:15px;color:var(--paper-ink);margin-top:6px}.screen .primary{background:linear-gradient(#f3d995,#d4ae62);font-size:18px;padding:12px 28px;text-align:center}
-#pause{background:#000a}.pauseCard{min-width:380px}.pauseCard h2{margin-bottom:10px}.setRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1.5px dashed #c9b996;font-size:14px}.setRow input[type=range]{width:160px}
+#pause{background:#000a}.pauseCard{min-width:380px}.cheat{margin-top:10px;padding:8px 10px;border:1.5px dashed #8a6a3a;border-radius:8px;font-size:13px}.cheat b{display:block;margin-bottom:4px;color:#d9b46c}.cheat .strow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0}.cheat .strow span{min-width:60px;color:#bfae90}.cheat button{padding:3px 9px;font-size:13px}#clock em{font-style:normal;color:#e8a24a;margin-left:4px}.pauseCard h2{margin-bottom:10px}.setRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1.5px dashed #c9b996;font-size:14px}.setRow input[type=range]{width:160px}
 body.big{font-size:118%}body.big #prompt{font-size:16px}body.big #sub{font-size:19px}body.big .stBody{font-size:16px}
 #lockHint{bottom:170px;left:50%;transform:translateX(-50%);font-size:13px;opacity:.8}
 </style>
@@ -177,6 +177,7 @@ body.big{font-size:118%}body.big #prompt{font-size:16px}body.big #sub{font-size:
  <div class="setRow"><label>저사양 (해상도 낮춤)</label><input type="checkbox" id="setLow"></div>
  <div class="setRow"><label>큰 글자</label><input type="checkbox" id="setBig"></div>
  <p class="nobuy">저장은 아침·저녁·밤 시작에 자동으로 된다.</p>
+ <div class="cheat"><b>테스트 치트</b><div class="strow"><span>시간</span><button data-spd="1">×1</button><button data-spd="4">×4</button><button data-spd="16">×16</button></div><div class="strow"><span>건너뛰기</span><button data-jump="market">아침 장사</button><button data-jump="send">보내기</button><button data-jump="evening">창구</button><button data-jump="dinner">식당</button><button data-jump="lightsOut">소등</button><button data-jump="dawn">다음 아침</button></div><p class="nobuy">키보드: <kbd>]</kbd> 빠르게 <kbd>[</kbd> 느리게</p></div>
  <div class="startBtns"><button class="primary" id="resumeBtn">계속한다</button><button class="primary alt" id="restartBtn">처음부터</button></div></div></div>
 <!--SCRIPTS-->
 </body>

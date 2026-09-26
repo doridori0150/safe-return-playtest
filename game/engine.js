@@ -847,8 +847,10 @@ function spritePortrait(n){if(!n.sprite||!n.sprite.sheet.portrait)return null;co
 // ───────── 플레이어 ─────────
 const controls=new PointerLockControls(camera,document.body);
 // 포인터 잠금이 막힌 환경(일부 임베드·자동화 창)에서는 오른쪽 버튼을 끌어서 둘러본다
-const LIVE=()=>controls.isLocked||(!!G.free&&!WIN&&G.started&&!G.over);
+const LIVE=()=>controls.isLocked||(!!G.free&&!WIN&&G.started&&!G.over);const RUNNING=()=>LIVE()||(!!G.soft&&!WIN&&G.started&&!G.over);
 function relock(){if(!G.free&&!SEAT)controls.lock();}
+// 창을 ESC 로 닫은 직후: 브라우저가 바로 다시 잠그는 것을 막으므로, 잠그지 않은 채 '클릭하면 계속' 상태로 둔다(시간은 흐른다)
+function softUnlock(){if(G.free)return;G.soft=true;$('pause').hidden=true;$('lockHint').textContent='클릭하면 계속';$('lockHint').hidden=false;}
 document.addEventListener('pointerlockerror',()=>{if(G.free)return;G.free=true;document.body.classList.add('free');$('lockHint').textContent='마우스 잠금이 막힌 창 — 오른쪽 버튼을 누른 채 끌어서 둘러본다';$('lockHint').hidden=false;$('pause').hidden=true;
   sub('안내','이 창에선 마우스 잠금이 막혀 있다. 오른쪽 버튼을 누른 채 끌어서 둘러보자.',1);});
 const EUL=new THREE.Euler(0,0,0,'YXZ');
@@ -915,15 +917,16 @@ let LEAN=null;
 function lean(x,z,fn){if(LEAN)return;LEAN={t:0,x,z,fn};$('ring').classList.add('go');}
 function leanTick(dt){if(!LEAN)return 0;LEAN.t+=dt;const k=Math.sin(Math.min(1,LEAN.t/1.3)*Math.PI);if(LEAN.t>=1.3){const fn=LEAN.fn;LEAN=null;$('ring').classList.remove('go');fn();return 0;}return k;}
 addEventListener('wheel',e=>{if(!LIVE())return;nextVerb(e.deltaY>0?1:-1);});
-addEventListener('mousedown',e=>{if(STN&&e.button===2){closeStation();return;}if(!LIVE())return;if(e.button===0){G.mouse=true;doVerb();}else if(e.button===2&&!G.free)nextVerb(1);});
+addEventListener('mousedown',e=>{if(STN&&e.button===2){closeStation(true);return;}if(G.soft&&!WIN&&!controls.isLocked&&e.button===0&&$('pause').hidden&&$('start').hidden){G.soft=false;relock();return;}if(!LIVE())return;if(e.button===0){G.mouse=true;doVerb();}else if(e.button===2&&!G.free)nextVerb(1);});
 addEventListener('mouseup',e=>{if(e.button===0)G.mouse=false;});
 function onKey(e){
   if(e.code==='Tab'){e.preventDefault();toggleBook();return;}
   if(e.code==='KeyF'&&G.started&&!G.over){setLamp(!P.lamp);return;}
   if(e.code==='F2'){mood.uniforms.uOn.value=1-mood.uniforms.uOn.value;sub('화면','필터 '+(mood.uniforms.uOn.value?'켜짐':'꺼짐'));}
-  if(e.code==='BracketRight'){G.speed*=2;sub('디버그',`시간 ×${(G.speed/(60/45)).toFixed(1)}`);}if(e.code==='BracketLeft'){G.speed/=2;sub('디버그',`시간 ×${(G.speed/(60/45)).toFixed(1)}`);}
-  if(STN){if(e.code==='Escape'||e.code==='KeyE'||e.code==='Tab'){e.preventDefault();closeStation();}return;}
-  if(SEAT){if(e.code==='KeyS'||e.code==='Escape')closeSeat();return;}
+  if(e.code==='BracketRight'){G.speed*=2;G.npcMul=(G.npcMul||1)*2;sub('치트',`시간 ×${(G.speed/(60/CAMP.HOUR_SEC)).toFixed(1)}`);}if(e.code==='BracketLeft'){G.speed/=2;G.npcMul=(G.npcMul||1)/2;sub('치트',`시간 ×${(G.speed/(60/CAMP.HOUR_SEC)).toFixed(1)}`);}
+  if(STN){if(e.code==='Escape'||e.code==='KeyE'||e.code==='Tab'){e.preventDefault();closeStation(e.code==='Escape');}return;}
+  if(SEAT){if(e.code==='KeyS'||e.code==='Escape')closeSeat(e.code==='Escape');return;}
+  if(e.code==='Escape'&&G.soft&&!WIN&&G.started){G.soft=false;$('lockHint').hidden=true;$('pause').hidden=false;return;}
   if(!LIVE())return;
   if(e.code==='KeyE')doVerb();
   if(e.code==='KeyQ')nextVerb(1);
@@ -944,9 +947,12 @@ function openWin(id,html,slow=.25){WIN=id;G.scale=slow;controls.unlock();const w
 function closeWin(){WIN=null;G.scale=1;$('winWrap').hidden=true;$('loupe3').hidden=true;$('lockHint').hidden=false;if(SEAT){WIN='seat';G.scale=.5;$('lockHint').hidden=true;}}
 $('winWrap').addEventListener('click',e=>{if(e.target.id==='winWrap')closeWin();});
 cv.addEventListener('click',()=>{if(!WIN&&G.started&&!G.over)relock();});
-controls.addEventListener('lock',()=>{$('lockHint').hidden=true;$('pause').hidden=true;});
-controls.addEventListener('unlock',()=>{if(!WIN&&G.started&&!G.over){$('pause').hidden=false;}});
-$('resumeBtn').onclick=()=>{$('pause').hidden=true;relock();};$('restartBtn').onclick=()=>{clearSave();location.reload();};
+controls.addEventListener('lock',()=>{G.soft=false;$('lockHint').hidden=true;$('pause').hidden=true;});
+controls.addEventListener('unlock',()=>{if(!WIN&&!G.soft&&G.started&&!G.over){$('pause').hidden=false;}});
+$('resumeBtn').onclick=()=>{$('pause').hidden=true;softUnlock();};
+// 치트(테스트용): 속도·단계 건너뛰기
+$('pause').querySelectorAll('[data-spd]').forEach(b=>b.onclick=()=>{G.speed=(60/CAMP.HOUR_SEC)*(+b.dataset.spd);G.npcMul=+b.dataset.spd;sub('치트',`시간 ×${b.dataset.spd}`);});
+$('pause').querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>{const ph=CAMP.timeline.find(p=>p.id===b.dataset.jump);if(!ph)return;const tgt=phAt(ph);const cur=dm();if(tgt>cur){G.t+=tgt-cur;}else{G.t+=tgt-cur+1440;}$('pause').hidden=true;softUnlock();sub('치트',`${ph.label}(으)로 건너뜀`);});$('restartBtn').onclick=()=>{clearSave();location.reload();};
 $('setSens').oninput=e=>{controls.pointerSpeed=+e.target.value;try{localStorage.setItem('srg_sens',e.target.value);}catch(x){}};
 $('setVol').oninput=e=>{if(MASTER)MASTER.gain.value=+e.target.value;try{localStorage.setItem('srg_vol',e.target.value);}catch(x){}};
 $('setFilter').onchange=e=>{mood.uniforms.uOn.value=e.target.checked?1:0;};
@@ -1019,9 +1025,9 @@ function winSeat(n){if(SEAT){if(SEAT.done)closeSeat();else return;}const q=camer
   WIN='seat';G.scale=.5;controls.unlock();document.body.classList.add('seat');DUST.visible=true;hiTex(n);n.doll.visible=false;if(n.sprite)n.sprite.holder.visible=false;n.bust.visible=!n.rig||!!n.sprite;drawDeskCard(n);if(!SHUT)shutterOpen(true);
   const sc=n.g.scale.x,top=n.y+1.6*sc;SEAT.pitch=Math.atan2(top-SEATPOS.y-.05,24.9-SEATPOS.x);
   renderSeat();tip('seat1','질문 칩은 <b>시간이 든다</b>. 카드와 다른 점, 말투, 부절을 맞춰 본다.');tip('seat2','<b>F</b>로 등불을 들고 얼굴 위로 마우스를 움직이면 돋보기(기름이 준다).');tip('seat3','판단이 서면 오른쪽 아래 <b>도장</b>. 수칙은 <b>Tab</b>.');}
-function closeSeat(){if(!SEAT)return;const n=SEAT.n;camera.quaternion.copy(SEAT.from.q);camera.fov=70;camera.updateProjectionMatrix();
+function closeSeat(soft){if(!SEAT)return;const n=SEAT.n;camera.quaternion.copy(SEAT.from.q);camera.fov=70;camera.updateProjectionMatrix();
   P.x=SEATPOS.x-.15;P.z=SEATPOS.z;P.y=0;SEAT=null;WIN=null;G.scale=1;document.body.classList.remove('seat');DUST.visible=false;lampSpot.intensity=0;backLight.intensity=0;
-  $('seat').hidden=true;$('loupe3').hidden=true;n.doll.visible=!n.sprite&&!n.rig;if(n.sprite)n.sprite.holder.visible=true;n.bust.visible=false;if(n.visible)setLook(n,n.look,n.o);relock();$('lockHint').hidden=!!G.free?false:controls.isLocked;}
+  $('seat').hidden=true;$('loupe3').hidden=true;n.doll.visible=!n.sprite&&!n.rig;if(n.sprite)n.sprite.holder.visible=true;n.bust.visible=false;if(n.visible)setLook(n,n.look,n.o);if(soft)softUnlock();else{relock();$('lockHint').hidden=!!G.free?false:controls.isLocked;}}
 function seatCam(dt){const S=SEAT;S.t=Math.min(1,S.t+dt/.6);const e=1-Math.pow(1-S.t,3);
   camera.position.set(S.from.x+(SEATPOS.x-S.from.x)*e,S.from.y+(SEATPOS.y-S.from.y)*e,S.from.z+(SEATPOS.z-S.from.z)*e);
   S.q.setFromEuler(new THREE.Euler(S.pitch+(.5-SEATM.y)*.12,-Math.PI/2+(.5-SEATM.x)*.36,0,'YXZ'));
@@ -1166,7 +1172,7 @@ function stationTick(){if(!G.started||G.over||WIN||SEAT){$('stcard').hidden=true
   el.hidden=false;el.style.left=((MV.x+1)/2*innerWidth)+'px';el.style.top=((1-MV.y)/2*innerHeight-70)+'px';const h=`<b>${s.name}</b><span>${josa(s.card())}</span><kbd>E</kbd> 열기`;if(h!==STCARD){STCARD=h;el.innerHTML=h;}G.nearStation=best;}
 function openStation(id){if(!STATIONS[id])return;STN=id;WIN='station';G.scale=.5;controls.unlock();document.body.classList.add('station');$('stpanel').hidden=false;$('stcard').hidden=true;renderStation();tip('station');}
 function renderStation(){if(!STN)return;const s=STATIONS[STN];const el=$('stpanel');el.innerHTML=`<div class="stHead"><span>${s.name}</span><button id="stClose">닫기 <kbd>ESC</kbd></button></div><div class="stBody">${s.panel()}</div>`;s.bind(el);$('stClose').onclick=closeStation;}
-function closeStation(){if(!STN)return;STN=null;WIN=null;G.scale=1;document.body.classList.remove('station');$('stpanel').hidden=true;relock();}
+function closeStation(soft){if(!STN)return;STN=null;WIN=null;G.scale=1;document.body.classList.remove('station');$('stpanel').hidden=true;if(soft)softUnlock();else relock();}
 let STLIVE=0;function stationLive(dt){if(!STN)return;const s=STATIONS[STN];if(!s.live)return;STLIVE+=dt;if(STLIVE>.5){STLIVE=0;const b=$('stpanel').querySelector('.bar i'),sm=$('stpanel').querySelector('.stState');if(b)b.style.width=Math.round(potProgress()*100)+'%';if(POT.state!==(sm&&sm.className.split(' ')[1]))renderStation();}}
 
 // ───── 40_state.js ─────
@@ -1722,7 +1728,7 @@ let HT=0;
 function hudTick(dt){HT-=dt;SUBT-=dt;if(SUBT<=0)$('sub').classList.remove('show');tipTick(dt);stationLive(dt);
   if(HT>0)return;HT=.15;const {h}=tod();
   const ph=CAMP.timeline.slice().reverse().find(p=>G.fired[G.day+':'+p.id]);
-  $('clock').innerHTML=`<small>${G.day}일째</small><b>${hhmm(G.t)}</b><span>${ph?ph.label:''}</span>`;
+  const spd=G.speed/(60/CAMP.HOUR_SEC);$('clock').innerHTML=`<small>${G.day}일째</small><b>${hhmm(G.t)}</b><span>${ph?ph.label:''}${Math.abs(spd-1)>.01?` <em>×${spd.toFixed(0)}</em>`:''}</span>`;
   const tf=G.threadFlash||0;if(tf)G.threadFlash=0;
   $('stats').innerHTML=`<span class="thr ${tf>0?'up':tf<0?'down':''}" title="경계의 실">${'┃'.repeat(Math.max(0,Math.round(G.thread/CAMP.THREAD_MAX*10)))}<i>${'┃'.repeat(10-Math.max(0,Math.round(G.thread/CAMP.THREAD_MAX*10)))}</i> ${G.thread}</span><span class="hp">${'●'.repeat(Math.max(0,P.hp))}${'○'.repeat(Math.max(0,3-P.hp))}</span><span>${G.money}G</span>`;
   const og=$('belt').querySelector('.og i');if(og)og.style.width=P.oil+'%';
@@ -1763,7 +1769,7 @@ function autoRes(dt){if(!G.started||QF.has('fixres'))return;AR.acc+=dt;AR.n++;AR
   if(avg>19&&PIX<2.4){PIX=Math.min(2.4,PIX+.25);AR.cool=6;resize();}else if(avg<17.5&&PIX>BASEPIX&&AR.cool<=0){PIX=Math.max(BASEPIX,PIX-.1);AR.cool=2;resize();}
   mood.uniforms.uAO.value=PIX>=2.2?0:1;}
 function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;if(PRE<3){PRE++;if(PRE===2)precompile();}autoRes((now-(loop.lt||now))/1000);loop.lt=now;
-  const run=G.started&&!G.over&&(LIVE()||WIN||G.force);const gdt=run?dt*G.scale:0;
+  const run=G.started&&!G.over&&(RUNNING()||WIN||G.force);const gdt=run?dt*G.scale:0;
   if(run)G.t+=gdt*G.speed*(G.tutSlow?.5:1);
   movePlayer(dt);vmTick(dt,!!P.moving&&!SEAT);updateNPCs(run?gdt*(G.npcMul||1):0);updateDoors(dt);potTick(gdt*(G.npcMul||1));
   if(run){schedule();queueTick();patience();huntTick(gdt);}stationTick();
