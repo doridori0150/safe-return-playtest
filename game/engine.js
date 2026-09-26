@@ -1147,7 +1147,7 @@ function deskPanel(){const tabs=[['trade','장사'],['book','숙박부'],['time'
     <h3>의뢰 납품</h3>${pend||'<p class="nobuy">납품할 의뢰가 없다.</p>'}
     <h3>수선</h3>${G.stained.length?G.stained.map(r=>`<div class="trow"><b>${r}호 얼룩</b><button data-repair="${r}" ${G.money>=CAMP.fees.repair?'':'disabled'}>${CAMP.fees.repair}G</button></div>`).join(''):'<p class="nobuy">얼룩진 방이 없다.</p>'}`;}
   if(DESKTAB==='book')body=STATIONS.keys.panel();
-  if(DESKTAB==='time'){const canSkip=(G.phase==='noon'||(G.phase==='send'&&G.sent.length))&&!NPCS.some(n=>n.state==='atdesk');body=`<p>${G.day}일째 ${hhmm(G.t)}</p><p class="nobuy">${canSkip?'할 일이 없으면 오후까지 쉰다. 4시 반에 창구를 연다.':G.phase==='send'&&!G.sent.length?'먼저 게시판에서 파티를 보낸다.':'지금은 건너뛸 수 없다.'}</p><div class="strow"><button class="primary" data-skip ${canSkip?'':'disabled'}>오후까지 쉰다</button></div>`;}
+  if(DESKTAB==='time'){const canSkip=(G.phase==='noon'||((G.phase==='send'||G.phase==='market')&&G.sent.length))&&!NPCS.some(n=>n.state==='atdesk');body=`<p>${G.day}일째 ${hhmm(G.t)}</p><p class="nobuy">${canSkip?'할 일이 없으면 오후까지 쉰다. 4시 반에 창구를 연다.':G.phase==='send'&&!G.sent.length?'먼저 게시판에서 파티를 보낸다.':'지금은 건너뛸 수 없다.'}</p><div class="strow"><button class="primary" data-skip ${canSkip?'':'disabled'}>오후까지 쉰다</button></div>`;}
   return `<h2>계산대</h2><div class="tabs">${tabs}</div>${body}`;}
 function deskBind(el){el.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{DESKTAB=b.dataset.tab;renderStation();});
   const take=(k,n=1)=>{if(ITEM[k].kind==='ing'){for(let i=0;i<n;i++){let j=G.shelf.findIndex(u=>u.k===k);if(j<0&&k==='mush')j=G.shelf.findIndex(u=>u.k==='spore'&&!u.seen);if(j>=0)G.shelf.splice(j,1);}refreshShelf();}else addInv(k,-n);};
@@ -1327,13 +1327,13 @@ const TDONE={};let TUT_OVER=false;
 const TUT_POS={helga:()=>[helga.x,1.7,helga.z],shine:()=>[2.9,2.1,.8],cook:()=>P.held?[3.5,1.6,2.4]:[2.9,2.1,.8],send:()=>[7.2,1.8,11.8],guest:()=>[6.2,1.3,9.9]};
 const TSTEP=DLG.tutorial.map(s=>({...s,pos:TUT_POS[s.id]||(()=>null),l:{helga:'헬가',shine:'부엌 선반',cook:'부엌',send:'게시판',guest:'계산대'}[s.id]}));
 const tutCur=()=>TUT_OVER?null:TSTEP.find(s=>!TDONE[s.id])||null;
-function tutEvent(id){if(TUT_OVER||TDONE[id])return;const cur=tutCur();const step=TSTEP.find(s=>s.id===id);TDONE[id]=1;if(id==='cook')TDONE.shine=1;if(id==='send')TDONE.cook=TDONE.shine=1;
+function tutEvent(id){if(TUT_OVER||TDONE[id])return;const cur=tutCur();const step=TSTEP.find(s=>s.id===id);TDONE[id]=1;if(id==='cook')TDONE.shine=1;if(id==='send'){TDONE.cook=TDONE.shine=1;G.tutSlow=false;}   // 보낸 뒤엔 손님까지 기다리는 시간이 길어 느린 시계를 푼다
   if(step&&step.say)sub('헬가',step.say,1);
   if(id==='helga'){helga.state='walk';walk(helga,[[4.4,8.2],[3.6,5.8],[3.6,4.3],[5.6,3.2]],m=>{m.state='idle';m.face=-2;});}
   if(cur&&cur.id===id)sfx('coin');if(!tutCur())tutEnd();}
 function tutEnd(){if(TUT_OVER)return;TUT_OVER=true;G.tutSlow=false;tip('tutdone',DLG.tips.tutdone);}
 // 지금 할 일 (안내가 끝난 뒤에는 단계와 급한 순서)
-function OBJ(){const c=tutCur();if(c)return{t:c.t,w:c.w,pos:c.pos(),tut:true,l:c.l};
+function OBJ(){const c=tutCur();if(c){if(c.id==='guest'&&!NPCS.some(n=>n.state==='atdesk'))return{t:c.wait||c.t,w:c.w,pos:c.pos(),tut:true,l:c.l};return{t:c.t,w:c.w,pos:c.pos(),tut:true,l:c.l};}
   const w=NPCS.find(n=>n.state==='atwin'),k3=G.cases.find(x=>x.kind==='knock3'&&x.state==='atwin'),desk=NPCS.find(n=>n.state==='atdesk');
   if(k3)return{t:'창구를 세 번 두드리는 소리',w:'수칙 4. 열지 마십시오',pos:[23.6,1.6,9.4],hot:1,l:'창구'};
   if(POT.state==='ready')return{t:`솥을 떠낸다 — ${ITN[POT.spore?'fail':POT.dish]}`,w:'부엌 가마솥. 오래 두면 넘친다',pos:[3.5,1.6,2.4],hot:1,l:'가마솥'};
