@@ -724,10 +724,55 @@ function rigBuild(spec){const outfit=RIG.parts[spec.outfit];if(!outfit)return nu
     skinned.forEach(o=>{const bl=o.skeleton.bones.map(b=>bones[b.name]||b);const sk=new THREE.Skeleton(bl,o.skeleton.boneInverses);const m=o.clone();m.bind(sk,o.bindMatrix);m.frustumCulled=false;m.castShadow=true;arm.add(m);});
     plain.forEach(o=>{const m=o.clone();o.updateWorldMatrix(true,false);m.matrix.copy(o.matrixWorld);m.matrix.decompose(m.position,m.quaternion,m.scale);root.add(m);root.updateMatrixWorld(true);(bones.Head||arm).attach(m);m.castShadow=true;});});
   root.scale.setScalar(spec.scale||1);const mixer=new THREE.AnimationMixer(root);const acts={};Object.entries(RIG.clips).forEach(([k,c])=>{acts[k]=mixer.clipAction(c);});
-  const skinMats=[];root.traverse(o=>{if(o.isMesh&&o.material&&/Regular|Superhero|SuperHero/i.test(o.material.name))skinMats.push(o.material);});
-  return {root,mixer,acts,cur:null,skinMats,arm};}
+  // 머리 재질은 인물마다 따로 (얼굴 텍스처를 입히므로)
+  let headMesh=null;root.traverse(o=>{if(o.isSkinnedMesh&&o.material&&/Superhero/i.test(o.material.name)&&!headMesh)headMesh=o;});if(headMesh){headMesh.material=headMesh.material.clone();headMesh.material.name='head';}
+  const skinMats=[];root.traverse(o=>{if(o.isMesh&&o.material&&/Regular|Superhero|SuperHero|^head$/i.test(o.material.name))skinMats.push(o.material);});
+  return {root,mixer,acts,cur:null,skinMats,arm,headMesh,bones,faceKey:null,props:[]};}
+// ───────── 얼굴: 기본 머리 텍스처에 피부색을 입히고 아스트라의 얼굴 오버레이(art/faces.js)를 겹친다 ─────────
+const FACE=window.FACE_ART||null,FACETEX={};
+function faceData(id){return (FACE&&FACE.DATA&&FACE.DATA[id])||(ARTL&&ARTL.DATA&&ARTL.DATA[id])||{};}
+function faceTex(baseImg,id,o,expr){const key=id+JSON.stringify(o||{})+expr;if(FACETEX[key])return FACETEX[key];const S=1024,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d');
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.flipY=false;t.anisotropy=4;FACETEX[key]=t;
+  const paint=()=>{x.clearRect(0,0,S,S);if(baseImg)x.drawImage(baseImg,0,0,S,S);const skin=faceData(id).skin;
+    // 피부색: 원본의 명암은 두고 색조만 인물 색으로, 원본이 어두운 편이라 살짝 밝힌다
+    if(skin){x.globalCompositeOperation='color';x.fillStyle=skin;x.fillRect(0,0,S,S);x.globalCompositeOperation='screen';x.globalAlpha=.28;x.fillStyle=skin;x.fillRect(0,0,S,S);x.globalCompositeOperation='saturation';x.globalAlpha=.35;x.fillStyle='#808080';x.fillRect(0,0,S,S);x.globalAlpha=1;x.globalCompositeOperation='source-over';}
+    t.needsUpdate=true;
+    if(FACE&&FACE.face){let inner='';try{inner=FACE.face(id,o||{},expr);}catch(e){console.warn('faces',e);}if(inner){const img=new Image();img.onload=()=>{x.drawImage(img,0,0,S,S);t.needsUpdate=true;};img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 1024 1024">${inner}</svg>`);}}};
+  if(baseImg&&baseImg.complete===false)baseImg.addEventListener('load',paint,{once:true});else paint();return t;}
+function rigFace(n,expr){const r=n.rig;if(!r||!r.headMesh)return;const key=n.look+JSON.stringify(n.o||{})+expr;if(r.faceKey===key)return;r.faceKey=key;const m=r.headMesh.material;if(!r.baseImg)r.baseImg=m.map&&m.map.image;
+  m.map=faceTex(r.baseImg,n.look,n.o,expr);m.needsUpdate=true;
+  // 눈알·눈썹은 별도 메시: 잘 때 눈알을 숨기고(텍스처 눈꺼풀이 덮는다), 눈 색·눈썹 색은 인물 데이터로
+  const D=faceData(n.look);r.root.traverse(o=>{if(!o.isSkinnedMesh)return;if(/eyes?$/i.test(o.name)){o.visible=expr!=='sleep';if(D.eye&&!o.userData.tinted){o.material=o.material.clone();o.material.map=eyeTex(o.material.map,D.eye);o.userData.tinted=true;}}
+    if(/eyebrow/i.test(o.name)&&D.hair&&!o.userData.tinted){o.material=o.material.clone();o.material.color.set(D.hair);o.userData.tinted=true;}});
+  rigProps(n);}
+// 눈 텍스처: 홍채(채도 있는 갈색 부분)만 인물 눈 색으로 바꾼다. 흰자·동공은 그대로
+const EYETEX={};
+function eyeTex(base,color){if(!base||!base.image)return base;const key=color;if(EYETEX[key])return EYETEX[key];const img=base.image,S=256,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d');
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.flipY=base.flipY;EYETEX[key]=t;const tc=new THREE.Color(color);
+  const paint=()=>{x.drawImage(img,0,0,S,S);const d=x.getImageData(0,0,S,S),p=d.data;for(let i=0;i<p.length;i+=4){const R=p[i]/255,G=p[i+1]/255,B=p[i+2]/255,mx=Math.max(R,G,B),mn=Math.min(R,G,B),sat=mx?(mx-mn)/mx:0;if(sat<.18||mx<.08)continue;const lum=.3*R+.59*G+.11*B;const k=lum/(.3*tc.r+.59*tc.g+.11*tc.b||1);p[i]=Math.min(255,tc.r*k*255);p[i+1]=Math.min(255,tc.g*k*255);p[i+2]=Math.min(255,tc.b*k*255);}x.putImageData(d,0,0);t.needsUpdate=true;};
+  if(img.complete===false)img.addEventListener('load',paint,{once:true});else paint();return t;}
+// 소품(귀걸이·안경·깃털…): faces.js DATA[id].props 를 단순 도형으로 만들어 Head 뼈에 붙인다. 가짜(n.o)가 side 를 바꾸면 자리를 옮긴다
+const PROPM={gold:new THREE.MeshStandardMaterial({color:0xc9a45a,metalness:.9,roughness:.35}),silver:new THREE.MeshStandardMaterial({color:0xd8d8e0,metalness:.9,roughness:.3}),dark:new THREE.MeshStandardMaterial({color:0x2a2420,roughness:.6})};
+function headAnchors(r){if(r.anch)return r.anch;const hm=r.headMesh,head=r.bones.Head;if(!hm||!head)return null;const inv=hm.skeleton.boneInverses[hm.skeleton.bones.indexOf(head)];const M=new THREE.Matrix4().copy(inv).multiply(hm.bindMatrix);
+  // 머리만 남긴 기하는 색인만 줄었으므로 색인에 쓰인 꼭짓점만 잰다
+  const g=hm.geometry,p=g.attributes.position,v=new THREE.Vector3(),bb=new THREE.Box3();const idx=g.index?g.index.array:null;const used=new Set(idx?Array.from(idx):[...Array(p.count).keys()]);used.forEach(i=>{v.fromBufferAttribute(p,i).applyMatrix4(M);bb.expandByPoint(v);});
+  let eyes=null;r.root.traverse(o=>{if(o.isSkinnedMesh&&/eye/i.test(o.name)&&!eyes)eyes=o;});const eb=new THREE.Box3();if(eyes){const q=eyes.geometry.attributes.position;for(let i=0;i<q.count;i++){v.fromBufferAttribute(q,i).applyMatrix4(M);eb.expandByPoint(v);}}
+  const ec=eyes?eb.getCenter(new THREE.Vector3()):bb.getCenter(new THREE.Vector3());const fz=Math.sign(ec.z-bb.getCenter(new THREE.Vector3()).z)||1;const cx=(bb.min.x+bb.max.x)/2,cz=(bb.min.z+bb.max.z)/2;
+  const L=1,R=-1;const ear=s=>new THREE.Vector3(cx+s*(bb.max.x-cx)*.98,ec.y-.01,cz);
+  return r.anch={earL:ear(L),earR:ear(R),brow:new THREE.Vector3(cx,ec.y+.03,ec.z+fz*.02),nose:new THREE.Vector3(cx,ec.y-.03,ec.z+fz*.03),head:new THREE.Vector3(cx,bb.max.y-.01,cz),neck:new THREE.Vector3(cx,bb.min.y+.03,cz),fz,eyeW:eyes?(eb.max.x-eb.min.x):.06};}
+function rigProps(n){const r=n.rig;const A=headAnchors(r);if(!A)return;r.props.forEach(m=>m.parent&&m.parent.remove(m));r.props=[];const D=faceData(n.look);const o=n.o||{};let list=[];
+  if(FACE&&FACE.props&&FACE.DATA&&FACE.DATA[n.look]){try{list=FACE.props(n.look,o);}catch(e){}}
+  else{list=(D.props||[]).map(p=>{const ov=o[p.feat||p.kind]||o[p.kind==='ring'?'earring':p.kind];if(ov&&ov.side)return {...p,where:(p.where||'').replace(/[LR]$/,ov.side)};return p;});}
+  list.forEach(p=>{let mesh=null;const mat=PROPM[p.mat||'gold']||PROPM.gold;const at=A[p.where]||A.head;
+    if(p.kind==='ring'){mesh=new THREE.Mesh(new THREE.TorusGeometry(p.r||.012,p.tube||.0025,6,16),mat);mesh.position.copy(at).add(new THREE.Vector3(0,-(p.r||.012),0));mesh.rotation.y=Math.PI/2;}
+    else if(p.kind==='circlet'){mesh=new THREE.Mesh(new THREE.TorusGeometry(A.eyeW*1.55,.004,6,32),PROPM[p.mat||'silver']);mesh.position.copy(A.brow).add(new THREE.Vector3(0,.035,-A.fz*.02));mesh.rotation.x=Math.PI/2;}
+    else if(p.kind==='glasses'){const g=new THREE.Group();[-1,1].forEach(s=>{const rim=new THREE.Mesh(new THREE.TorusGeometry(A.eyeW*.28,.0025,6,20),PROPM[p.mat||'dark']);rim.position.set(A.brow.x+s*A.eyeW*.52,A.brow.y-.03,A.brow.z+A.fz*.02);g.add(rim);});mesh=g;}
+    else if(p.kind==='feather'){mesh=new THREE.Mesh(new THREE.PlaneGeometry(.012,.06),new THREE.MeshStandardMaterial({color:p.color||0x6a8a4a,side:THREE.DoubleSide,roughness:.9}));mesh.position.copy(at).add(new THREE.Vector3(0,-.035,0));}
+    else if(p.kind==='plume'){mesh=new THREE.Mesh(new THREE.ConeGeometry(.02,.12,6),new THREE.MeshStandardMaterial({color:p.color||0xa83030,roughness:.9}));mesh.position.copy(A.head).add(new THREE.Vector3((p.where||'').endsWith('L')?.04:-.04,.05,0));}
+    else if(p.kind==='ribbon'){mesh=new THREE.Mesh(new THREE.BoxGeometry(.05,.02,.01),new THREE.MeshStandardMaterial({color:p.color||0xc03050,roughness:.8}));mesh.position.copy(at).add(new THREE.Vector3(0,.03,0));}
+    if(!mesh)return;mesh.traverse(q=>{if(q.isMesh)q.castShadow=true;});r.bones.Head.add(mesh);r.props.push(mesh);});}
 function rigPlay(r,name,fade=.22){if(r.cur===name||!r.acts[name])return;const a=r.acts[name];a.reset().setEffectiveWeight(1).fadeIn(fade).play();if(r.cur&&r.acts[r.cur])r.acts[r.cur].fadeOut(fade);r.cur=name;}
-function rigAttach(n){if(!RIG.ready||n.rig)return;const spec=rigSpec(n);if(!spec)return;const r=rigBuild(spec);if(!r)return;n.rig=r;n.g.add(r.root);n.doll.visible=false;rigPlay(r,'Idle_Loop',0);}
+function rigAttach(n){if(!RIG.ready||n.rig)return;const spec=rigSpec(n);if(!spec)return;const r=rigBuild(spec);if(!r)return;n.rig=r;n.g.add(r.root);n.doll.visible=false;rigPlay(r,'Idle_Loop',0);rigFace(n,'neutral');}
 // 매 프레임: 상태에 맞는 동작, 몸의 방향, 앉기·눕기 보정
 function rigTick(n,dt,walking,sitting,sleeping,rel){const r=n.rig;const voidLook=n.look==='void';r.root.visible=!voidLook&&n.visible;n.doll.visible=voidLook;if(!r.root.visible)return;
   const talking=(n.talkT||0)>0;let clip=walking?'Walk_Loop':sitting?(talking?'Sitting_Talking_Loop':'Sitting_Idle_Loop'):sleeping?'Idle_Loop':talking?'Idle_Talking_Loop':'Idle_Loop';
@@ -736,7 +781,15 @@ function rigTick(n,dt,walking,sitting,sleeping,rel){const r=n.rig;const voidLook
   let ty=0;if(!walking&&!sitting&&!sleeping&&Math.abs(rel)<1.4)ty=rel*.7;r.root.rotation.y+=(ty-r.root.rotation.y)*Math.min(1,dt*4);
   r.root.position.y=sitting?.42:sleeping?.62+.25:0;r.root.rotation.x=sleeping?-Math.PI/2:0;r.root.position.z=sleeping?-.3:0;
   const moss=n.o&&n.o.moss;r.skinMats.forEach(m=>{if(m.emissive)m.emissive.setHex(moss?0x1e4a18:0);});
-  r.mixer.update(dt);}
+  rigFace(n,sleeping?'sleep':talking?'talk':(n.surprise>0?'surprise':'neutral'));
+  r.mixer.update(dt);
+  // 고개: 가까이 있는 플레이어를 본다 (애니메이션 위에 덧씌움, 좌우 ±50°, 상하 ±35°)
+  if(!sleeping){const hb=r.bones.Head;if(hb){hb.updateWorldMatrix(true,false);const hp=new THREE.Vector3().setFromMatrixPosition(hb.matrixWorld);const cam=camera.position;const dx=cam.x-hp.x,dz=cam.z-hp.z,dh=Math.hypot(dx,dz);
+    let want=0,pitch=0;if(dh<3.5&&Math.abs(rel)<1.5){const fwd=n.face+r.root.rotation.y;let a=Math.atan2(dx,dz)-fwd;while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;want=Math.max(-.9,Math.min(.9,a));pitch=Math.max(-.6,Math.min(.6,Math.atan2(cam.y-hp.y-.05,dh)));}
+    const ly=r.lookY||0,lp=r.lookP||0,k=Math.min(1,dt*5);r.lookY=ly+(want-ly)*k;r.lookP=lp+(pitch-lp)*k;
+    // 세계 축 회전을 부모 뼈 공간으로 옮겨 곱한다 (rotateOnWorldAxis 는 부모 회전을 무시한다)
+    const pq=new THREE.Quaternion();hb.parent.getWorldQuaternion(pq);const inv=pq.clone().invert();const rot=(axis,ang)=>{const a=axis.clone().applyQuaternion(inv).normalize();hb.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(a,ang));};
+    rot(new THREE.Vector3(0,1,0),r.lookY);const ang=n.face+r.root.rotation.y+r.lookY;rot(new THREE.Vector3(Math.cos(ang),0,-Math.sin(ang)),-r.lookP);}}}
 
 // ───── 30_play.js ─────
 // ───────── 플레이어 ─────────
@@ -911,7 +964,7 @@ function drawDeskCard(n){const c=deskCardTex.image,x=c.getContext('2d'),C0=C[n.l
   x.fillStyle='#7a6b58';for(let i=0;i<5;i++)x.fillRect(20,260+i*14,160+((i*37)%60),5);deskCardTex.needsUpdate=true;}
 // 앉기와 일어나기
 function winSeat(n){if(SEAT){if(SEAT.done)closeSeat();else return;}const q=camera.quaternion.clone();SEAT={n,t:0,from:{x:camera.position.x,y:camera.position.y,z:camera.position.z,q},q:new THREE.Quaternion(),asked:{},keys:false};
-  WIN='seat';G.scale=.5;controls.unlock();document.body.classList.add('seat');DUST.visible=true;hiTex(n);n.doll.visible=false;n.bust.visible=true;drawDeskCard(n);if(!SHUT)shutterOpen(true);
+  WIN='seat';G.scale=.5;controls.unlock();document.body.classList.add('seat');DUST.visible=true;hiTex(n);n.doll.visible=false;n.bust.visible=!n.rig;drawDeskCard(n);if(!SHUT)shutterOpen(true);
   const sc=n.g.scale.x,top=n.y+1.6*sc;SEAT.pitch=Math.atan2(top-SEATPOS.y-.05,24.9-SEATPOS.x);
   renderSeat();tip('seat1','질문 칩은 <b>시간이 든다</b>. 카드와 다른 점, 말투, 부절을 맞춰 본다.');tip('seat2','<b>F</b>로 등불을 들고 얼굴 위로 마우스를 움직이면 돋보기(기름이 준다).');tip('seat3','판단이 서면 오른쪽 아래 <b>도장</b>. 수칙은 <b>Tab</b>.');}
 function closeSeat(){if(!SEAT)return;const n=SEAT.n;camera.quaternion.copy(SEAT.from.q);camera.fov=70;camera.updateProjectionMatrix();

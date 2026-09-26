@@ -6,7 +6,7 @@ SRG.regulars={
  bor:{name:'보르',race:'드워프 · 전 부길드장',no:'0102',rank:'B',eye:'#8a9099',eyeN:'회색',outfit:'#5a4636',small:1,
   role:'수호',apt:{B1:1,B2:0},shoes:'worn_boots',fakeShoes:'new_boots',fakeF:{earring:{side:'L'}},
   // 3D 몸(assets/models/quaternius_char): 옷 · 머리 파일 · 머리카락 조각. 없으면 종이 인형으로 선다
-  rig:{outfit:'Male_Peasant',head:'Superhero_Male_FullBody',hair:['Hair_SimpleParted','Hair_Beard'],scale:.9},
+  rig:{outfit:'Male_Peasant',head:'Superhero_Male_FullBody',hair:['Hair_SimpleParted'],scale:.9},   // 수염은 얼굴 텍스처(art/faces.js)에 그린다
   memo:['무뚝뚝. 장화 자랑.','"서류는 거짓말해도 장화는 안 해."'],
   lines:{hi:'"장화 봐라. 멀쩡하지."',ask:'"장화 닳도록 걸었지. 밑창 봐라."',voice:'쉰 목소리. 무뚝뚝하다.',knock:'"…누구냐. 장화 훔쳐 가면 가만 안 둔다."',listen:'쿨— 쿨—. 규칙적인 코골이.',wake:'"흠. 장화부터 신고."',eat:'천천히, 한 숟갈씩 씹어 먹는다.',witness:'"계단에서 잠깐 뒤처졌다. 그뿐이다."',bye:'"흠."'}},
  pipi:{name:'피피',race:'하플링 · 궁수',no:'0417',rank:'D',eye:'#7a4a2a',eyeN:'갈색',outfit:'#4f7a3a',small:1,

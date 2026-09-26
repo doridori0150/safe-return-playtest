@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>무사귀환 · 인물 대조실</title>
+<style>
+:root{color-scheme:dark;--bg:#202725;--panel:#29322e;--line:#4d584b;--ink:#eee5ce;--muted:#b0b8a4;--gold:#d7ba77;--paper:#d9c9a9}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,"Malgun Gothic",sans-serif}button,select{font:inherit}button,select,a{touch-action:manipulation}button,select{color:var(--ink);background:#354035;border:1px solid #6c795d;border-radius:5px;padding:7px 12px}button{cursor:pointer}button:hover{border-color:var(--gold)}:focus-visible{outline:3px solid var(--gold);outline-offset:3px}a{color:var(--gold);text-decoration:none}a:hover{text-decoration:underline}
+header{max-width:1320px;margin:auto;padding:48px 28px 24px}.eyebrow{font-size:12px;letter-spacing:3px;color:var(--gold)}h1{font-size:36px;margin:7px 0 10px;font-weight:650;letter-spacing:-1.5px}header p{color:var(--muted);max-width:900px;margin:6px 0}.badge{display:inline-block;border:1px solid var(--line);border-radius:3px;padding:2px 9px;margin:12px 8px 0 0;font-size:12px;color:var(--gold)}
+.toolbar{position:sticky;top:0;z-index:5;background:#202725f5;border-block:1px solid var(--line);backdrop-filter:blur(8px)}.controls{max-width:1320px;padding:12px 28px;margin:auto;display:flex;gap:14px;align-items:center;flex-wrap:wrap}.controls label{display:flex;gap:8px;align-items:center}.controls nav{margin-left:auto;display:flex;gap:18px;font-size:13px}#status{font-size:12px;color:var(--muted)}main{max-width:1320px;margin:auto;padding:8px 28px 60px}section{scroll-margin-top:120px;margin:32px 0 54px}h2{font-size:23px;font-weight:600;margin:0 0 4px}h3{font-size:18px;margin:0}.section-note{margin:0 0 22px;color:var(--muted);font-size:13px}.pair-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,570px),1fr));gap:20px}.pair{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}.pair-head{display:flex;justify-content:space-between;padding:15px 20px 12px;align-items:center}.pair-head small{color:var(--muted)}.pair-views{display:flex;justify-content:space-evenly;gap:2px;overflow:auto}.record{margin:0;padding:13px 20px 17px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}.record span+span:before{content:' / ';color:#747d68;margin:0 4px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(275px,1fr));gap:17px}.tile{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden;min-width:275px}.pair .tile{border:0;border-radius:0;background:transparent;flex:0 0 275px}.stage{height:330px;width:275px;position:relative;margin:0 auto;background:var(--paper);background-image:linear-gradient(#93816522 1px,transparent 1px),linear-gradient(90deg,#93816522 1px,transparent 1px);background-size:27.5px 27.5px;overflow:hidden}.stage:before{content:'';position:absolute;inset:13px;border:1px solid #95866d55;border-radius:120px 120px 0 0;pointer-events:none}.stage svg{display:block;position:relative;width:275px;height:330px}.art-button{border:0;border-radius:0;padding:0;display:block;background:none;width:275px;height:330px}.art-button:hover{box-shadow:inset 0 0 0 2px var(--gold)}figcaption{min-height:71px;padding:11px 15px;font-size:13px}figcaption b{display:block;color:var(--ink);font-weight:550}figcaption small{color:var(--muted);font-size:11px}.pair figcaption{min-height:50px;padding:8px 15px}.shadow .stage{background-color:#b6b29a}.silhouette,.silhouette *{stroke:#000!important}.silhouette [fill]:not([fill="none"]){fill:#000!important}.silhouette{fill:#000}.silhouette [stroke-width="0"]{stroke:none!important}.shadow-extra{fill:#000;stroke:#000;stroke-width:1}.view-light .stage{--paper:#eee3ce}.view-dark .stage{--paper:#525c57}.view-dark .stage:before{border-color:#9b9c8160}.view-dark .shadow .stage{background-color:#858b7c}
+.divider{border-top:1px solid var(--line);padding-top:30px}.tag{font-size:11px;color:var(--gold);border:1px solid #6a7156;border-radius:3px;padding:2px 6px;margin-left:8px;font-weight:400}footer{border-top:1px solid var(--line);padding:22px 28px;color:var(--muted);font-size:12px;max-width:1264px;margin:auto}.empty{display:none}[hidden]{display:none!important}
+dialog{background:#242e28;color:var(--ink);border:1px solid #8a946f;border-radius:8px;padding:22px;width:min(1100px,96vw);max-height:94vh}dialog::backdrop{background:#101714dd}.dialog-head{display:flex;align-items:start;gap:20px;justify-content:space-between}.dialog-head p{margin:3px 0 14px;color:var(--muted);font-size:13px}.zoom-scroll{overflow:auto;max-height:72vh}.zoom-pair{display:flex;gap:20px;width:max-content;margin:0 auto}.zoom-cell{width:495px}.zoom-cell p{margin:0 0 8px;color:var(--gold);font-size:13px}.zoom-art{width:495px;height:594px;background:var(--paper);overflow:hidden}.zoom-art svg{display:block;width:495px;height:594px}.zoom-art.shadow{background:#b6b29a}dialog code{font-size:12px;color:#c7d3b9;overflow-wrap:anywhere}
+@media(max-width:640px){header{padding:25px 16px 16px}h1{font-size:29px}main{padding-inline:12px}.controls{padding:9px 12px;gap:8px}.controls nav{width:100%;margin:0;gap:16px}.controls label{font-size:12px}.pair-grid{grid-template-columns:1fr}.pair-views{justify-content:start}.grid{grid-template-columns:1fr}.section-note{font-size:12px}dialog{padding:12px}.zoom-pair{margin:0}}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">등불 길드 / 귀환 검역 기록실</div>
+  <h1>무사귀환 · 인물 대조실</h1>
+  <p>평소의 얼굴을 기억하고, 돌아온 얼굴을 살핍니다. 작은 흉터와 귀고리부터 뒤통수의 얼굴까지, 기록과 다른 부분을 비교하세요.</p>
+  <span class="badge">13명 · 정면 / 뒷모습</span><span class="badge">흉상 높이 330px</span><span class="badge">그림을 누르면 1.8배 대조</span>
+</header>
+<div class="toolbar"><div class="controls">
+  <label>인물 <select id="person"><option value="all">모든 인물</option></select></label>
+  <label>바탕 <select id="background"><option value="paper">기록지</option><option value="light">밝은 창구</option><option value="dark">밤 창구</option></select></label>
+  <span id="status" role="status"></span>
+  <nav aria-label="검수 구역"><a href="#overview">기본 모습</a><a href="#variants">단골의 변형</a><a href="#legacy">기존 이상현상</a></nav>
+</div></div>
+<main>
+  <section id="overview"><h2>01. 길드 인물 기록</h2><p class="section-note">좌우 기록은 정면을 바라보는 사람 기준입니다. 뒤돌면 같은 귀고리와 소지품이 화면 반대편에 보입니다.</p><div class="pair-grid" id="portraits"></div></section>
+  <section id="variants" class="divider"><h2>02. 단골 대조 표본</h2><p class="section-note">각 가짜는 라벨에 적힌 항목만 변경합니다. 그림자 표본은 인물과 추가 경로를 함께 검정으로 채운 실루엣입니다.</p><div id="variant-sections"></div></section>
+  <section id="legacy" class="divider"><h2>03. 기존 이상현상 · 조합</h2><p class="section-note">앞에 보이는 변화, 뒤돌아야 보이는 변화, 부상과 오염의 중첩을 확인합니다.</p><div class="grid" id="legacy-grid"></div></section>
+</main>
+<footer>색면 + 단일 셀 음영 + 짙은 갈색 선. 외부 폰트·에셋·빌드 없이 동작합니다. 원본 게임의 데이터와 렌더러는 변경하지 않습니다.</footer>
+<dialog id="inspector" aria-labelledby="zoom-title">
+  <div class="dialog-head"><div><h2 id="zoom-title">확대 대조</h2><p>330px 원본의 정확히 1.8배 · 왼쪽 길드 기록 / 오른쪽 선택 표본</p></div><button id="close-zoom" type="button">닫기</button></div>
+  <div class="zoom-scroll"><div class="zoom-pair"><div class="zoom-cell"><p>길드 기록 · 기본값</p><div class="zoom-art" id="zoom-base"></div></div><div class="zoom-cell"><p id="zoom-label"></p><div class="zoom-art" id="zoom-sample"></div></div></div></div>
+  <p><code id="zoom-options"></code></p>
+</dialog>
+<script src="characters.js"></script>
+<script>
+'use strict';
+const {fig,shadowExtra,DATA}=window.CHAR_ART;
+const regular=['bor','pipi','helga','sere','mumy','ren','dudu','lulu'];
+const examples={
+  bor:[['세로 흉터가 오른눈에',{scarV:{side:'R'}}],['수염 매듭이 두 개',{beardKnots:2}],['금고리가 왼쪽 귀에',{earring:{side:'L'}}]],
+  pipi:[['깃털이 오른쪽 귀에',{earring:{side:'R'}}],['앞니가 모두 있음',{toothGap:false}],['주근깨가 양 볼 둘씩',{freckles:2}]],
+  helga:[['송곳니가 없음',{tusks:false}],['흉터가 오른눈썹에',{browScar:{side:'R'}}],['뼈 대신 금속 펜던트',{necklace:'metal'}]],
+  sere:[['머리를 오른쪽으로 늘어뜨림',{hairDrape:{side:'R'}}],['점이 왼눈 아래에',{mole:{side:'L'}}],['서클릿이 없음',{circlet:false}]],
+  mumy:[['투구 오른쪽 찌그러짐',{helmetDent:{side:'R'}}],['붉은 깃털이 왼쪽에',{plume:{side:'L'}}],['이마 금이 왼쪽에',{skullCrack:{side:'L'}}]],
+  ren:[['금이 오른쪽 안경알에',{glassesCrack:{side:'R'}}],['모자가 오른쪽으로 기움',{hatTilt:'R'}],['별 대신 네모 패치',{hatPatch:'square'}]],
+  dudu:[['파란 리본이 오른쪽에',{ribbon:{side:'R'}}],['리본만 분홍색',{ribbon:{color:'#e0609a'}}],['코 반창고가 없음',{bandaid:false}]],
+  lulu:[['분홍 리본이 왼쪽에',{ribbon:{side:'L'}}],['점이 오른뺨에',{mole:{side:'R'}}],['삐친 앞머리가 없음',{cowlick:false}]]
+};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const samples=[];
+function svg(id,o={},back=false,shadow=false){
+  const art=fig(id,o,back);
+  const inner=shadow?`<g class="silhouette">${art}</g><g class="shadow-extra">${shadowExtra(o)}</g>`:art;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" width="275" height="330" role="img" aria-label="${esc(DATA[id].name)} ${back?'뒷모습':'정면'}${shadow?' 그림자':''}">${inner}</svg>`;
+}
+function tile(id,label,o={},back=false,shadow=false){
+  const index=samples.push({id,label,o,back,shadow})-1;
+  const hint=Object.keys(o).length?JSON.stringify(o):back?'back = true':'기록과 같은 모습';
+  return `<figure class="tile${shadow?' shadow':''}" data-person="${id}"><div class="stage"><button class="art-button" type="button" data-sample="${index}" aria-label="${esc(DATA[id].name+' · '+label+' · 1.8배 확대')}">${svg(id,o,back,shadow)}</button></div><figcaption><b>${esc(label)}</b><small>${esc(hint)}</small></figcaption></figure>`;
+}
+document.getElementById('person').insertAdjacentHTML('beforeend',Object.entries(DATA).map(([id,c])=>`<option value="${id}">${esc(c.name)}</option>`).join(''));
+document.getElementById('portraits').innerHTML=Object.entries(DATA).map(([id,c])=>`<article class="pair" data-person="${id}"><div class="pair-head"><h3>${esc(c.name)}</h3><small>${esc(c.race)}</small></div><div class="pair-views">${tile(id,'정면 · 길드 기록')}${tile(id,'뒷모습 · 같은 인물',{},true)}</div><p class="record">${c.featText.map(t=>`<span>${esc(t)}</span>`).join('')}</p></article>`).join('');
+document.getElementById('variant-sections').innerHTML=regular.map(id=>{
+  let cards=tile(id,'기준 · 평소 모습')+tile(id,'전체 좌우 반전',{mirror:true});
+  cards+=examples[id].map(([label,f])=>tile(id,label,{f})).join('');
+  cards+=tile(id,'눈동자만 붉은색',{eye:'#c44b47'})+tile(id,'세로로 찢어진 동공',{pupil:'slit'})+tile(id,'목의 가는 바느질 자국',{stitch:true});
+  cards+=tile(id,'정상 그림자',{},false,true);
+  cards+=['horns','tail','arm'].map((shape,i)=>tile(id,['그림자 · 뿔 두 개','그림자 · 꼬리','그림자 · 세 번째 팔'][i],{shadowShape:shape},false,true)).join('');
+  return `<section data-person="${id}"><h3>${DATA[id].name}<span class="tag">기준 + 11개 대조 표본</span></h3><p class="section-note">${DATA[id].featText.join(' · ')}</p><div class="grid">${cards}</div></section>`;
+}).join('');
+const legacy=[
+  ['bor','버섯',{mushroom:true}],['pipi','이끼',{moss:true}],['helga','붕대',{bandage:true}],['sere','진흙',{mud:true}],
+  ['mumy','말하는 해골',{talk:true}],['ren','멍한 눈 · 일자 입',{blank:true}],['dudu','붉은 모래 눈',{sandEyes:true}],['lulu','뒤통수의 얼굴',{backFace:true},true],
+  ['bor','등의 버섯',{backMush:true},true],['pipi','등의 이끼',{backMoss:true},true],['helga','정면 버섯 · 이끼의 뒤쪽',{mushroom:true,moss:true},true],
+  ['sere','뒷모습 · 전체 반전',{mirror:true},true],['mumy','해골의 붉은 모래 눈',{sandEyes:true}],['ren','부상 · 오염 중첩',{mushroom:true,moss:true,bandage:true,mud:true}],
+  ['dudu','리본 색만 교체 · 뒷모습',{f:{ribbon:{color:'#e0609a'}}},true],['lulu','반전 + 귀환자의 흔적',{mirror:true,pupil:'slit',stitch:true}],
+  ['dora','상인 · 부상과 진흙',{bandage:true,mud:true}],['kane','감찰관 · 눈 색 변형',{eye:'#be703b'}],['enoch','학자 · 목덜미 반점',{},true],
+  ['void','세 번 노크 · 뒤의 얼굴',{backFace:true},true],['hood','두건 방문자 · 등의 이끼',{backMoss:true},true],
+  ['pipi','X자 흉터만 왼쪽에',{f:{scarX:{side:'L'}}}],['dudu','주근깨만 양 볼 셋씩',{f:{freckles:3}}],['mumy','깃털 색만 파란색',{f:{plume:{color:'#3f6fd8'}}}]
+];
+document.getElementById('legacy-grid').innerHTML=legacy.map(([id,label,o,back])=>tile(id,DATA[id].name+' · '+label,o,back)).join('');
+const inspector=document.getElementById('inspector');
+document.addEventListener('click',event=>{
+  const button=event.target.closest('[data-sample]');
+  if(!button)return;
+  const s=samples[Number(button.dataset.sample)];
+  document.getElementById('zoom-title').textContent=DATA[s.id].name+' · 1.8배 대조';
+  document.getElementById('zoom-label').textContent=s.label;
+  document.getElementById('zoom-base').innerHTML=svg(s.id,{},s.back,s.shadow);
+  document.getElementById('zoom-sample').innerHTML=svg(s.id,s.o,s.back,s.shadow);
+  document.getElementById('zoom-base').classList.toggle('shadow',s.shadow);
+  document.getElementById('zoom-sample').classList.toggle('shadow',s.shadow);
+  document.getElementById('zoom-options').textContent=`fig('${s.id}', ${JSON.stringify(s.o)}, ${s.back})`+(s.shadow?' + shadowExtra(options)':'');
+  inspector.showModal();
+});
+document.getElementById('close-zoom').addEventListener('click',()=>inspector.close());
+inspector.addEventListener('click',event=>{if(event.target===inspector){const box=inspector.getBoundingClientRect();if(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom)inspector.close();}});
+document.getElementById('person').addEventListener('change',event=>{
+  const selected=event.target.value;
+  document.querySelectorAll('[data-person]').forEach(el=>{el.hidden=selected!=='all'&&el.dataset.person!==selected;});
+  document.getElementById('variants').hidden=selected!=='all'&&!regular.includes(selected);
+  updateStatus();
+});
+document.getElementById('background').addEventListener('change',event=>{document.body.classList.remove('view-light','view-dark');if(event.target.value!=='paper')document.body.classList.add('view-'+event.target.value);});
+function updateStatus(){const n=[...document.querySelectorAll('.tile')].filter(el=>!el.closest('[hidden]')).length;document.getElementById('status').textContent=n+'개 표본';}
+updateStatus();
+</script>
+<!-- UI 원화 구역은 기존 인물 미리보기와 독립적으로 동작한다. -->
+<section id="ui-art" aria-labelledby="ui-art-title">
+  <h2 id="ui-art-title">03. UI 아이콘</h2>
+  <p class="section-note">갈색 윤곽선 · 기본색 + 그림자 한 톤 + 작은 하이라이트. 밝은 종이와 어두운 나무에서 실제 크기와 확대본을 대조합니다.</p>
+  <div id="ui-art-sheets"></div>
+</section>
+<style>
+#ui-art{max-width:1264px;margin:36px auto 64px;padding:30px 20px;border-top:1px solid var(--line)}
+#ui-art .ui-sheet{margin:24px 0 36px}#ui-art h3{margin:0 0 10px}#ui-art .ui-row{margin:0 0 12px;padding:16px;border-radius:6px;overflow-x:auto}
+#ui-art .ui-paper{background:#eadfc6;color:#382c2b}#ui-art .ui-wood{background:#3a291f;color:#eadfc6}
+#ui-art .ui-bg-label{margin:0 0 12px;font-size:12px;font-weight:600}#ui-art .ui-cards{display:grid;grid-template-columns:repeat(7,minmax(148px,1fr));gap:10px;min-width:1096px}
+#ui-art .ui-momo-cards{grid-template-columns:repeat(3,minmax(200px,1fr));min-width:660px}
+#ui-art .ui-card{margin:0;border:1px solid #89755366;border-radius:4px;padding:10px 6px;min-width:0}
+#ui-art .ui-views{display:flex;gap:10px;align-items:end;justify-content:center;min-height:125px}#ui-art .ui-view{display:flex;flex-direction:column;align-items:center;gap:7px}
+#ui-art .ui-view svg{display:block;flex-shrink:0}#ui-art .ui-size{font-size:10px;white-space:nowrap;opacity:.8}
+#ui-art figcaption{padding:10px 2px 0;min-height:44px;text-align:center;font-size:11px;line-height:1.5}#ui-art figcaption strong{display:block;font-weight:600}#ui-art figcaption code{font-size:10px;opacity:.8}
+#ui-art .ui-momo-cards .ui-views{min-height:150px}#ui-art .ui-tool-cards .ui-views,#ui-art .ui-hud-cards .ui-views{min-height:85px}
+@media(max-width:640px){#ui-art{padding-inline:12px}#ui-art .ui-row{padding:12px}}
+</style>
+<script src="ui_icons.js"></script>
+<script>
+(() => {
+  'use strict';
+  const U=window.UI_ART;
+  const names={
+    item:['이끼쥐 털 뭉치','정원 꿀 단지','정원 버섯','포자 버섯','빛나는 이끼','붉은 모래','거울 조각','반짝이는 금화','마른 나뭇잎','그림자 조각','전갈 껍질','전갈 고기','붉은 달맞이꽃','오래된 등불'],
+    tool:['암구호','근황','추궁','짝방울','짐 보기','뒤돌기','등불','모모의 코'],
+    hud:['밤','낮','시간','금화','오염','격리실','치료소','기름','경고 봉인'],
+    momo:['쇠약 · 시든 새싹','회복 · 분홍 꽃 하나','더 회복 · 꽃 둘과 밝은 등불']
+  };
+  const groups=[['item','물품 14종 · 창고 52px / 확대 96px',[52,96]],['momo','모모 3단계 · 전신 100×120 / 축소 30×36',[100,30]],['tool','창구 도구 8종 · 실제 22px / 3배 66px',[22,66]],['hud','상단 HUD 9종 · 실제 18px / 3배 54px',[18,54]]];
+  const sample=(type,key,w)=>type==='momo'?`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="${w}" height="${w*1.2}" aria-hidden="true">${U.momo(key)}</svg>`:U[type](key,w);
+  document.getElementById('ui-art-sheets').innerHTML=groups.map(([type,title,sizes])=>{
+    const keys=type==='momo'?[1,2,3]:U.KEYS[type];
+    return `<div class="ui-sheet"><h3>${title}</h3>${[['paper','밝은 종이 · #eadfc6'],['wood','어두운 나무 · #3a291f']].map(([bg,label])=>`<div class="ui-row ui-${bg}" tabindex="0" role="region" aria-label="${title} · ${label}"><p class="ui-bg-label">${label}</p><div class="ui-cards ui-${type}-cards">${keys.map((key,i)=>`<figure class="ui-card"><div class="ui-views">${sizes.map(w=>`<div class="ui-view">${sample(type,key,w)}<span class="ui-size">${type==='momo'?w+'×'+w*1.2:w+'×'+w}px</span></div>`).join('')}</div><figcaption><strong>${names[type][i]}</strong><code>${type==='momo'?'lv'+key:key}</code></figcaption></figure>`).join('')}</div></div>`).join('')}</div>`;
+  }).join('');
+})();
+</script>
+<!-- 여관 표본은 앞의 인물·아이콘 구역과 독립적으로 동작한다. -->
+<section id="inn-art" aria-labelledby="inn-art-title">
+  <h2 id="inn-art-title">04. 여관</h2>
+  <p class="section-note">불 꺼진 방문, 따뜻한 저녁 식탁, 아직 잠들지 않은 방. 그림을 누르면 원래 viewBox 크기로 확대합니다. 이름과 인물은 게임에서 합성합니다.</p>
+  <nav class="inn-nav" aria-label="여관 표본"><a href="#inn-doors">방문</a><a href="#inn-corridors">복도</a><a href="#inn-rooms">열쇠 구멍 너머</a><a href="#inn-tables">저녁 식당</a><a href="#inn-kitchen">가마솥·물품</a></nav>
+  <div id="inn-sheets"></div>
+</section>
+<dialog id="inn-inspector" aria-labelledby="inn-zoom-title">
+  <div class="dialog-head"><div><h2 id="inn-zoom-title">여관 그림</h2><p id="inn-zoom-note"></p></div><button id="inn-close" type="button">닫기</button></div>
+  <div id="inn-zoom-art"></div>
+</dialog>
+<style>
+#inn-art{max-width:1264px;margin:36px auto 64px;padding:30px 20px;border-top:1px solid var(--line)}
+#inn-art .inn-nav{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:26px;font-size:13px}
+#inn-art .inn-sheet{margin:32px 0;scroll-margin-top:120px}#inn-art h3{margin-bottom:10px}#inn-art .inn-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+#inn-art .inn-wide{grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr))}#inn-art .inn-card{margin:0;border:1px solid #5e5c51;border-radius:7px;background:#303433;overflow:hidden;min-width:0}
+#inn-art .inn-open{display:block;border:0;padding:0;border-radius:0;width:100%;background:#232831;cursor:zoom-in}#inn-art .inn-open:hover{outline:2px solid var(--gold);outline-offset:-2px}#inn-art .inn-open svg{display:block;width:100%;height:auto}
+#inn-art figcaption{min-height:76px;font-size:12px;padding:12px 14px}#inn-art figcaption strong{display:block;color:#ebd8b3;font-size:13px}#inn-art figcaption code{display:block;overflow-wrap:anywhere;color:#b9b9aa;font-size:10px;margin-top:5px}
+#inn-art .inn-door-grid{grid-template-columns:repeat(auto-fit,minmax(205px,1fr))}#inn-art .inn-icon-grid{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}#inn-art .inn-icon-views{display:flex;align-items:end;justify-content:center;gap:16px;padding:20px 12px 12px;background:#eadfc6;color:#382c2b}#inn-art .inn-icon-views>span{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10px}#inn-art .inn-icon-views svg{display:block}
+#inn-art details{margin:20px 0;border:1px solid #606150;padding:14px;border-radius:5px}#inn-art summary{cursor:pointer;color:var(--gold);margin-bottom:12px}#inn-art .inn-note{color:var(--muted);font-size:12px;margin:6px 0 15px}
+#inn-zoom-art{overflow:auto;max-height:73vh;background:#232831}#inn-zoom-art svg{display:block;margin:auto;width:auto;max-width:100%;height:auto;max-height:70vh}#inn-zoom-note{font-size:11px;overflow-wrap:anywhere}
+@media(max-width:640px){#inn-art{padding-inline:12px}#inn-art .inn-door-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#inn-art figcaption{padding:9px;font-size:11px}#inn-art figcaption strong{font-size:12px}}
+</style>
+<script src="inn_art.js"></script>
+<script>
+(() => {
+  'use strict';
+  const I=window.INN_ART,C=window.CHAR_ART,records=[];
+  const safe=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const svg=(inner,w,h,label)=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="${safe(label)}">${inner}</svg>`;
+  const card=(label,options,inner,w,h)=>{
+    const image=svg(inner,w,h,label),id=records.push({label,options,image})-1;
+    return `<figure class="inn-card"><button type="button" class="inn-open" data-inn="${id}" aria-label="${safe(label)} · 확대">${image}</button><figcaption><strong>${safe(label)}</strong><code>${safe(options)}</code></figcaption></figure>`;
+  };
+  const sheet=(id,title,note,cards,cls='')=>`<div class="inn-sheet" id="${id}"><h3>${title}</h3><p class="inn-note">${note}</p><div class="inn-grid ${cls}">${cards}</div></div>`;
+  const shoeNames=['보르 · 닳고 기운 장화','보르? · 매끈한 새 장화','세레나데 · 길고 가는 부츠','피피 · 작은 신','두두·루루 · 파랑 / 분홍 두 켤레','무명 · 쇠 정강이 받이','렌 · 뾰족한 천 신','순례자 · 샌들','행상인 · 가죽 신','신발 없음'];
+  const doorOptions=I.KEYS.shoes.map((shoes,i)=>({no:201+i,shoes,light:i<2?'on':['on','off','flicker'][i%3],feet:i<2?1:i%3,shoeMark:i===0?'mud':i===1?'none':['none','wet','redsand','mud'][i%4],lock:i===5,lamp:i===7,stain:i===9,scratch:i===8?2:0,scratchSide:'R'}));
+  let html=sheet('inn-doors','문 앞의 기록 · 신발 10종','첫 두 문은 같은 불빛·발 그림자입니다. 가죽 덧댐, 해진 앞코와 흙을 새 장화의 광택과 대조하세요.',doorOptions.map((o,i)=>card(shoeNames[i],JSON.stringify(o),I.door(o),360,560)).join(''),'inn-door-grid');
+  const clues=[['불 꺼짐 · 한밤',{light:'off'}],['불빛 · 발 두 쌍',{light:'on',feet:2}],['깜빡임 · 젖은 신발',{light:'flicker',feet:1,shoes:'sandals',shoeMark:'wet'}],['왼벽 · 가는 긁힘',{scratch:1,scratchSide:'L'}],['오른벽 · 심한 긁힘 / 잿빛 얼룩',{scratch:2,scratchSide:'R',stain:true}],['빗장과 걸어 둔 등불',{lock:true,lamp:true,light:'on'}],['등불 없이 걷기 · 어둠 0.6',{dark:.6,light:'on',shoes:'worn_boots'}],['등불을 완전히 내림 · 어둠 1',{dark:1,light:'on',lamp:true}]];
+  html+=sheet('inn-clues','순찰 단서 · 불빛과 조치','발 그림자는 문틈의 빛을 가립니다. 불 꺼진 방에서는 발 수를 읽을 수 없습니다.',clues.map(([label,o])=>card(label,JSON.stringify(o),I.door(o),360,560)).join(''),'inn-door-grid');
+  const spotMarkup=Object.entries(I.DOOR_SPOTS).map(([name,a])=>`<g fill="#ecce7933" stroke="#e8ce82" stroke-width="1.5">${a.r?`<circle cx="${a.x}" cy="${a.y}" r="${a.r}"/>`:`<rect x="${a.x}" y="${a.y}" width="${a.w}" height="${a.h}"/>`}<text x="${a.x}" y="${a.y-5}" fill="#fff2c8" stroke="none" font-size="10">${name}</text></g>`).join('');
+  html+=`<details><summary>상호작용 좌표 · DOOR_SPOTS</summary><p class="inn-note">plate는 HTML 이름을 얹을 빈 종이 명패입니다. keyhole은 원형, 나머지는 직사각형 영역입니다.</p><div class="inn-grid inn-door-grid">${card('상호작용 영역',JSON.stringify(I.DOOR_SPOTS),I.door({light:'on',shoes:'worn_boots'})+spotMarkup,360,560)}</div></details>`;
+  let corridors='';
+  for(const dawn of [0,.5,1]) for(const lampOn of [true,false]) {
+    const o={dawn,lampOn,leftNo:202,rightNo:204};corridors+=card(`${['한밤','새벽 직전','첫 새벽빛'][dawn*2]} · ${lampOn?'등불을 듦':'등불 없음'}`,JSON.stringify(o),I.corridor(o),1200,700);
+  }
+  corridors+=card('203호 앞 · 문 합성','corridor + translate(420 80) door',I.corridor({dawn:.5,leftNo:202,rightNo:204})+`<g transform="translate(420 80)">${I.door({no:203,shoes:'worn_boots',light:'on',feet:1})}</g>`,1200,700);
+  corridors+=card('이웃 문 없는 복도','{}',I.corridor(),1200,700);
+  html+=sheet('inn-corridors','2층 복도 · 새벽 시계','가운데 x=420~780은 문을 얹기 위한 벽입니다. 창의 밝기와 들고 있는 등불을 각각 비교합니다.',corridors,'inn-wide');
+  const roomCases=[['이불 속 한 사람 · 채집 목록',{bed:'lump',desk:'list',mirror:'normal'}],['둘이 잠든 방 · 먹다 남은 빵',{bed:'two',desk:'food',mirror:'normal'}],['빈 침대 · 거울 속에만 있는 형체',{bed:'empty',desk:'empty',mirror:'wrong'}],['앉을 자리 · 거울 없음',{bed:'sitting',desk:'list',mirror:'none'}],['이끼 기름 · 벽의 잿빛 곰팡이',{bed:'lump',desk:'list',mirror:'wrong',tint:'moss',grayStain:true}],['붉은 기름 · 꺼진 촛불',{bed:'empty',desk:'food',mirror:'normal',tint:'red',candle:false}]];
+  html+=sheet('inn-rooms','열쇠 구멍 너머 · 방 안','원형으로 자르기 전의 전체 그림입니다. 거울 속 형체는 wrong 옵션에만 나타납니다.',roomCases.map(([label,o])=>card(label,JSON.stringify(o),I.room(o),400,300)).join(''));
+  const beds=['lump','empty','two','sitting'],desks=['list','empty','food'],mirrors=['normal','wrong','none'],tints=['none','moss','red'];
+  html+=`<details><summary>방 안 전체 조합 108개 · bed × desk × mirror × tint</summary>`;
+  for(const bed of beds) {let cards='';for(const desk of desks)for(const mirror of mirrors)for(const tint of tints){const o={bed,desk,mirror,tint};cards+=card(`${bed} / ${desk} / ${mirror} / ${tint}`,JSON.stringify(o),I.room(o),400,300);}html+=`<h3>bed: ${bed} · 27개</h3><div class="inn-grid">${cards}</div>`;}
+  html+='</details>';
+  html+=sheet('inn-room-fig','인물 자리 · ROOM_FIG','x·y는 흉상의 왼쪽 위, scale은 200×240 기준입니다. 뒷모습 흉상을 각 좌표에 합성한 예입니다.',Object.entries(I.ROOM_FIG).map(([name,a])=>card(name,JSON.stringify(a),I.room({bed:'sitting',desk:'list'})+`<g transform="translate(${a.x} ${a.y}) scale(${a.scale})">${C.fig('ren',{},true)}</g>`,400,300)).join(''));
+  html+=sheet('inn-eyes','바로 반대편의 눈','움직임 없이 가까운 눈 하나만 보입니다. 원형 시야와 전환 타이밍은 게임에서 처리합니다.',['#a99b66','#729799','#a56755'].map(color=>card('눈동자 '+color,color,I.eye(color),400,300)).join(''));
+  let tables='';const guests=['bor','pipi','sere','mumy','ren','lulu'];
+  for(const seats of [3,6])for(const dish of ['none','soup','stew','bread']) {
+    const eaten=Array.from({length:seats},(_,i)=>i%2===1),o={seats,dish,eaten};
+    const people=I.SEATS(seats).map((a,i)=>`<g transform="translate(${a.x} ${a.y}) scale(${a.scale})">${C.fig(guests[i])}</g>`).join('');
+    tables+=card(`${seats}인 식탁 · ${dish} · 짝수 자리 식사 완료`,JSON.stringify(o),I.tableBack(o)+people+I.tableFront(o),1200,520);
+  }
+  tables+=card('식탁 배경 레이어','tableBack()',I.tableBack(),1200,520)+card('식탁 앞 레이어','tableFront({ seats: 6, dish: "stew" })',I.tableFront({seats:6,dish:'stew'}),1200,520)+card('인물 없는 완성 식탁','table({ seats: 3, dish: "bread" })',I.table({seats:3,dish:'bread'}),1200,520);
+  html+=sheet('inn-tables','저녁 식당 · 먹은 사람과 먹지 않은 사람','배경 → SEATS 좌표의 기존 흉상 → 식탁 앞면 순서입니다. eaten=true인 접시만 비워집니다.',tables,'inn-wide');
+  const pots=[['이끼 버섯 수프 · 보글보글',{color:'#869950',bubbling:true}],['던전 스튜 · 뜸 들이기',{color:'#b37349',bubbling:false}],['실패한 배합 · 검은 연기',{color:'#4a4850',bubbling:true,fail:true}]];
+  html+=sheet('inn-kitchen','부엌 화덕 · 가마솥','불꽃, 쇠솥, 벽돌과 돌, 김을 단단한 색면으로 그렸습니다.',pots.map(([label,o])=>card(label,JSON.stringify(o),I.cauldron(o),300,300)).join(''));
+  const itemNames=['둥근 빵','평범한 기름','이끼 버섯 수프','던전 스튜','천으로 싼 도시락','치료약','귀환 물약 · 등불 문양','이끼 기름','붉은 기름','실패작','감정한 포자 버섯'];
+  html+=sheet('inn-items','새 물품 11종 · 52px / 96px','기존 UI 아이콘과 같은 60×60 viewBox, 짙은 갈색 선, 단일 셀 음영입니다.',I.KEYS.item.map((k,i)=>`<figure class="inn-card"><div class="inn-icon-views"><span>${I.item(k,52)}52px</span><span>${I.item(k,96)}96px</span></div><figcaption><strong>${itemNames[i]}</strong><code>${k}</code></figcaption></figure>`).join(''),'inn-icon-grid');
+  document.getElementById('inn-sheets').innerHTML=html;
+  const dialog=document.getElementById('inn-inspector');
+  document.getElementById('inn-sheets').addEventListener('click',event=>{const button=event.target.closest('[data-inn]');if(!button)return;const record=records[Number(button.dataset.inn)];document.getElementById('inn-zoom-title').textContent=record.label;document.getElementById('inn-zoom-note').textContent=record.options;document.getElementById('inn-zoom-art').innerHTML=record.image;dialog.showModal();});
+  document.getElementById('inn-close').addEventListener('click',()=>dialog.close());
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)document.querySelectorAll('#inn-art svg').forEach(el=>el.pauseAnimations());
+})();
+</script>
+</body>
+</html>
