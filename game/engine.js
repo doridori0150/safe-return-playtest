@@ -1192,7 +1192,7 @@ function wrapA(a){while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;ret
 // 자리 옮기기: 짧게 어두워졌다 밝아진다. 인접이 아니면 hop 수만큼 시간이 든다
 function goSpot(id,opt={}){const s=spotOf(id);if(!s||!SPOTS.on)return false;const from=SPOTS.cur;if(from===id&&!opt.instant)return false;
   const hops=from?spotHops(from,id):0;const place=()=>{SPOTS.cur=id;P.x=s.x;P.z=s.z;P.y=s.y;camera.position.set(P.x,P.y+P.eye,P.z);
-    const keepYaw=opt.keepYaw&&from;if(!keepYaw)camera.rotation.set(s.pitch||0,s.yaw,0,'YXZ');SPOTS.viewFloor=s.floor;SPOTS.mapHtml='';if(hops>0)spend(SPD.HOP_MIN*hops);sfx('step');if(typeof AR!=='undefined'){AR.cool=Math.max(AR.cool,3);AR.acc=AR.n=AR.t=0;}   // 옮긴 직후 프레임 튐으로 해상도가 내려가지 않게};
+    const keepYaw=opt.keepYaw&&from;if(!keepYaw)camera.rotation.set(s.pitch||0,s.yaw,0,'YXZ');SPOTS.viewFloor=s.floor;SPOTS.mapHtml='';if(hops>0)spend(SPD.HOP_MIN*hops);sfx('step');if(typeof AR!=='undefined'){AR.cool=Math.max(AR.cool,3);AR.acc=AR.n=AR.t=0;}};   /* 옮긴 직후 프레임 튐으로 해상도가 내려가지 않게 */
   if(opt.instant){place();return true;}
   if(SPOTS.travel)return false;SPOTS.travel=true;const b=$('black');b.style.transition='opacity .22s';b.classList.add('on');
   setTimeout(()=>{place();setTimeout(()=>{b.classList.remove('on');setTimeout(()=>{b.style.transition='';SPOTS.travel=false;},260);},60);},230);return true;}
