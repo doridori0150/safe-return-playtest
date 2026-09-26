@@ -1,0 +1,181 @@
+{
+ "kaykit": {
+  "kaykit_dungeon_remastered": [
+   "banner_green.gltf.glb",
+   "banner_patternA_green.gltf.glb",
+   "barrel_large.gltf.glb",
+   "bed_frame.gltf.glb",
+   "bottle_A_green.gltf.glb",
+   "bottle_B_brown.gltf.glb",
+   "box_large.gltf.glb",
+   "candle.gltf.glb",
+   "candle_lit.gltf.glb",
+   "candle_triple.gltf.glb",
+   "chair.gltf.glb",
+   "chest.glb",
+   "crates_stacked.gltf.glb",
+   "keg.gltf.glb",
+   "plate_food_A.gltf.glb",
+   "shelf_small.gltf.glb",
+   "shelf_small_candles.gltf.glb",
+   "stool.gltf.glb",
+   "table_long.gltf.glb",
+   "torch_mounted.gltf.glb",
+   "trunk_medium_A.gltf.glb"
+  ],
+  "kaykit_furniture_bits": [
+   "bed_single_A.bin",
+   "bed_single_A.gltf",
+   "chair_A_wood.bin",
+   "chair_A_wood.gltf",
+   "chair_stool_wood.bin",
+   "chair_stool_wood.gltf",
+   "furniturebits_texture.png"
+  ],
+  "kaykit_restaurant_bits": [
+   "crate.bin",
+   "crate.gltf",
+   "jar_A_medium.bin",
+   "jar_A_medium.gltf",
+   "jar_B_medium.bin",
+   "jar_B_medium.gltf",
+   "kitchentable_A.bin",
+   "kitchentable_A.gltf",
+   "restaurantbits_texture.png",
+   "stew_bowl.bin",
+   "stew_bowl.gltf",
+   "stew_pot.bin",
+   "stew_pot.gltf",
+   "stove_single.bin",
+   "stove_single.gltf",
+   "table_round_A_small.bin",
+   "table_round_A_small.gltf"
+  ]
+ },
+ "kenney": [
+  "barrel.glb",
+  "bowl-soup.glb",
+  "bread.glb",
+  "cheese.glb",
+  "fish.glb",
+  "loaf.glb",
+  "meat-raw.glb",
+  "mug.glb",
+  "mushroom.glb",
+  "plate.glb",
+  "pumpkin.glb",
+  "sausage.glb",
+  "turkey.glb",
+  "whole-ham.glb"
+ ],
+ "polypizza": [
+  "cauldron.glb",
+  "chandelier.glb"
+ ],
+ "tex": {
+  "cobble": {
+   "maps": [
+    "Color",
+    "NormalGL",
+    "Roughness"
+   ]
+  },
+  "floor": {
+   "maps": [
+    "Color",
+    "NormalGL",
+    "Roughness"
+   ]
+  },
+  "metal": {
+   "maps": [
+    "Color",
+    "NormalGL",
+    "Roughness"
+   ]
+  },
+  "planks": {
+   "maps": [
+    "Color",
+    "NormalGL",
+    "Roughness"
+   ]
+  },
+  "plaster": {
+   "maps": [
+    "Color",
+    "NormalGL",
+    "Roughness"
+   ]
+  },
+  "roof": {
+   "maps": [
+    "Color",
+    "NormalGL",
+    "Roughness"
+   ]
+  },
+  "rug": {
+   "maps": [
+    "Color",
+    "NormalGL",
+    "Roughness"
+   ]
+  }
+ },
+ "sfx": [
+  "bookFlip1.ogg",
+  "bookFlip2.ogg",
+  "bookFlip3.ogg",
+  "chop.ogg",
+  "creak1.ogg",
+  "creak2.ogg",
+  "creak3.ogg",
+  "doorClose_1.ogg",
+  "doorClose_2.ogg",
+  "doorClose_3.ogg",
+  "doorClose_4.ogg",
+  "doorOpen_1.ogg",
+  "doorOpen_2.ogg",
+  "drawKnife1.ogg",
+  "drawKnife2.ogg",
+  "drawKnife3.ogg",
+  "footstep00.ogg",
+  "footstep01.ogg",
+  "footstep02.ogg",
+  "footstep03.ogg",
+  "footstep04.ogg",
+  "footstep05.ogg",
+  "footstep06.ogg",
+  "footstep07.ogg",
+  "footstep08.ogg",
+  "footstep09.ogg",
+  "footstep_wood_000.ogg",
+  "footstep_wood_001.ogg",
+  "footstep_wood_002.ogg",
+  "footstep_wood_003.ogg",
+  "footstep_wood_004.ogg",
+  "handleCoins.ogg",
+  "handleCoins2.ogg",
+  "impactGlass_light_000.ogg",
+  "impactGlass_light_001.ogg",
+  "impactGlass_light_002.ogg",
+  "impactGlass_light_003.ogg",
+  "impactGlass_light_004.ogg",
+  "impactPlate_light_000.ogg",
+  "impactPlate_light_001.ogg",
+  "impactPlate_light_002.ogg",
+  "impactPlate_light_003.ogg",
+  "impactPlate_light_004.ogg",
+  "impactWood_medium_000.ogg",
+  "impactWood_medium_001.ogg",
+  "impactWood_medium_002.ogg",
+  "impactWood_medium_003.ogg",
+  "impactWood_medium_004.ogg",
+  "knifeSlice.ogg",
+  "knifeSlice2.ogg",
+  "metalPot1.ogg",
+  "metalPot2.ogg",
+  "metalPot3.ogg"
+ ]
+}
