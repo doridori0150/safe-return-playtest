@@ -539,7 +539,7 @@ const endHit=box(.1,3.2,5.2,1.2,6,6.8,new THREE.MeshBasicMaterial({visible:false
 rug(.4,5.4,15.6,6.6,3.006,'runner');{const g=grp(.45,5.45);rbox(-.2,3,-.15,.2,3.75,.15,WOOD,.02,P2(g));}candle(.45,3.75,5.45,'cor');portrait(5.3,4.5,6.88,Math.PI);
 // 창고 궤짝, 선반 판, 수칙집
 {const g=grp(.9,6.3);anchor('chest',.9,0,6.3,0,g);rbox(-.5,0,-.35,.5,.6,.35,WOOD,.02,P2(g));rbox(-.52,.6,-.37,.52,.7,.37,WOODR,.02,P2(g));[-.3,.3].forEach(a=>box(a-.03,.05,-.36,a+.03,.66,-.34,IRONM,P2(g)));const hb=box(.35,0,5.9,1.45,.75,6.7,new THREE.MeshBasicMaterial({visible:false}),{shadow:false});hb.userData.it='chest';INTER.push(hb);}
-{const hb=box(.6,1.28,.1,6.4,2.14,.3,new THREE.MeshBasicMaterial({visible:false}),{shadow:false});hb.userData.it='shelfboard';INTER.push(hb);}
+{const hb=box(.6,1.28,.1,6.4,2.4,.3,new THREE.MeshBasicMaterial({visible:false}),{shadow:false});hb.userData.it='shelfboard';INTER.push(hb);}
 {const c=cnv(128,160),x=c.getContext('2d');x.fillStyle='#eadfc6';x.fillRect(0,0,128,160);x.strokeStyle='#382c2b';x.lineWidth=4;x.strokeRect(2,2,124,156);x.fillStyle='#6e2a1c';for(let i=0;i<8;i++)x.fillRect(14,20+i*17,60+((i*29)%40),4);x.fillStyle='#a8322a';x.fillRect(14,88,90,4);const p=new THREE.Mesh(new THREE.PlaneGeometry(.5,.62),new THREE.MeshStandardMaterial({map:toTex(c),roughness:.9}));p.position.set(4.5,1.9,11.83);p.rotation.y=Math.PI;scene.add(p);p.userData.it='rulewall';INTER.push(p);}
 bake(DP);DP=null;
 
@@ -671,14 +671,17 @@ function setLook(n,look,o={}){n.look=look;n.o=o;const b=!!n.back;const P_=n.part
 function setShoes(n,shoes){n.shoes=shoes;n.parts.legL.material.map=legTex(n.look,shoes,'L');n.parts.legR.material.map=legTex(n.look,shoes,'R');}
 function dollGlow(n,k){[n.parts.torso,n.parts.item,n.parts.head].forEach(p=>{const m=p.material;if(m.emissiveMap!==m.map){m.emissiveMap=m.map;m.needsUpdate=true;}m.emissive.setScalar(k);});}
 function placeNPC(n,x,z,y){n.x=x;n.z=z;n.y=y!==undefined?y:floorY(x,z,n.y||0);n.g.position.set(n.x,n.y,n.z);}
-function walk(n,pts,done){n.path=pts.map(p=>({x:p[0],z:p[1]}));n.onDone=done||null;n.state='walk';}
+function walk(n,pts,done){n.path=pts.map(p=>({x:p[0],z:p[1]}));n.onDone=done||null;n.state='walk';
+  if(SPOTS.on&&n.path.length){let L=0,px=n.x,pz=n.z;n.path.forEach(q=>{L+=Math.hypot(q.x-px,q.z-pz);px=q.x;pz=q.z;});const last=n.path[n.path.length-1],prev=n.path.length>1?n.path[n.path.length-2]:{x:n.x,z:n.z};
+    n.transit={t:Math.max(.4,L/n.speed),x:last.x,z:last.z,face:Math.atan2(last.x-prev.x,last.z-prev.z)};n.path=[];}}
 function updateNPCs(dt){const cam=camera.position;
   NPCS.forEach(n=>{if(!n.visible){n.g.visible=false;return;}n.g.visible=true;n.anim+=dt;
+    if(n.transit){n.g.visible=false;n.transit.t-=dt;if(n.transit.t<=0){const T=n.transit;n.transit=null;n.x=T.x;n.z=T.z;n.face=T.face;n.y=floorY(n.x,n.z,n.y);n.state='idle';n.g.visible=true;if(spotSees(n))sfx('step');const cb=n.onDone;n.onDone=null;if(cb)cb(n);}return;}
     if(n.state==='walk'&&n.path.length){const t=n.path[0],dx=t.x-n.x,dz=t.z-n.z,d=Math.hypot(dx,dz),s=n.speed*dt;
       if(d<=s){n.x=t.x;n.z=t.z;n.path.shift();if(!n.path.length){n.state='idle';const cb=n.onDone;n.onDone=null;if(cb)cb(n);}}
       else{n.x+=dx/d*s;n.z+=dz/d*s;n.face=Math.atan2(dx,dz);}
       n.y=floorY(n.x,n.z,n.y);n.bob=(n.bob||0)+dt*9;}
-    for(const k in DOORS){const d=DOORS[k];if(Math.abs(n.y-d.y0)>1.2)continue;const near=Math.hypot(n.x-d.x,n.z-d.z)<1.5&&n.state==='walk';if(near&&!d.locked){d.target=1;d.npcHold=1.2;}}
+    if(!SPOTS.on)for(const k in DOORS){const d=DOORS[k];if(Math.abs(n.y-d.y0)>1.2)continue;const near=Math.hypot(n.x-d.x,n.z-d.z)<1.5&&n.state==='walk';if(near&&!d.locked){d.target=1;d.npcHold=1.2;}}
     const walking=n.state==='walk'&&n.path.length,sitting=n.state==='sit',sleeping=n.state==='sleep';
     const sit=sitting?-.42:sleeping?-.62:0;
     n.g.position.set(n.x,n.y+sit+(walking?Math.abs(Math.sin(n.bob))*.04:0),n.z);n.g.rotation.y=n.face;
@@ -1142,7 +1145,7 @@ function boardBind(el){el.querySelectorAll('[data-cure]').forEach(b=>b.onclick=(
   el.querySelectorAll('[data-recall]').forEach(b=>b.onchange=()=>{SEND.parties[+b.dataset.recall].recall=b.checked;renderStation();});
   const go=el.querySelector('[data-go]');if(go)go.onclick=()=>{const ps=SEND.parties.filter(p=>p.on&&p.mem.length);dispatch(ps);sfx('wood');tutEvent('send');
     const names=ps.flatMap(p=>p.mem.map(id=>REG[id].name));sub('게시판',`${names.join(', ')}에게 부절 반쪽을 주고 보냈다. 저녁에 돌아온다.`,1);note('보내기',ps.map(p=>`${p.req.fl} ${p.mem.map(id=>REG[id].name).join('·')} (${omen(partyRisk(p.req,p.mem,p))[0]})`).join(' / '));
-    ps.forEach(p=>p.mem.forEach(id=>{const n=ACTOR[id];n.visible=true;placeNPC(n,5.8,11.2);n.state='walk';walk(n,[[4.2,11.6],[4,14],[4,17]],m=>{m.visible=false;m.state='gone';});}));
+    ps.forEach(p=>p.mem.forEach(id=>{const n=ACTOR[id];if(SPOTS.on){n.visible=false;n.state='gone';return;}n.visible=true;placeNPC(n,5.8,11.2);n.state='walk';walk(n,[[4.2,11.6],[4,14],[4,17]],m=>{m.visible=false;m.state='gone';});}));
     SEND.parties=[];renderStation();};}
 // 계산대
 let DESKTAB='trade';
@@ -1184,6 +1187,11 @@ const SPOTS={on:!!SPD&&!QF.has('walk'),cur:null,by:{},travel:false,viewFloor:1,n
 if(SPD)SPD.list.forEach(s=>{SPOTS.by[s.id]=s;});
 const spotOf=id=>SPOTS.by[id]||null;
 function spotCur(){return SPOTS.cur?SPOTS.by[SPOTS.cur]:null;}
+// 인물 자리: 이름 → [x,z,face,y]. 걷기 목적지 대신 이 자리에 나타난다
+function slotPos(name){const s=SPD&&SPD.slots&&SPD.slots[name];return s?{x:s[0],z:s[1],face:s[2]||0,y:s[3]||0}:null;}
+function toSlot(n,name,state){const s=slotPos(name);if(!s)return false;placeNPC(n,s.x,s.z,s.y);n.face=s.face;n.transit=null;n.path=[];if(state)n.state=state;return true;}
+// 인물이 현재 장면에서 보이는 거리인가 (소리·등장 연출용)
+function spotSees(n){const s=spotCur();if(!s)return true;return Math.abs((n.y||0)-s.y)<1.5&&Math.hypot(n.x-s.x,n.z-s.z)<7;}
 // 인접 그래프에서 hop 수 (BFS)
 const linkId=l=>typeof l==='string'?l:l.id;
 function spotHops(a,b){if(a===b)return 0;const seen={[a]:0};const q=[a];while(q.length){const c=q.shift();for(const n of (spotOf(c).links||[]).map(linkId)){if(seen[n]!==undefined)continue;seen[n]=seen[c]+1;if(n===b)return seen[n];q.push(n);}}return 99;}
@@ -1387,7 +1395,7 @@ const TSTEP=DLG.tutorial.map(s=>({...s,pos:TUT_POS[s.id]||(()=>null),l:{helga:'�
 const tutCur=()=>TUT_OVER?null:TSTEP.find(s=>!TDONE[s.id])||null;
 function tutEvent(id){if(TUT_OVER||TDONE[id])return;const cur=tutCur();const step=TSTEP.find(s=>s.id===id);TDONE[id]=1;if(id==='cook')TDONE.shine=1;if(id==='send'){TDONE.cook=TDONE.shine=1;G.tutSlow=false;}   // 보낸 뒤엔 손님까지 기다리는 시간이 길어 느린 시계를 푼다
   if(step&&step.say)sub('헬가',step.say,1);
-  if(id==='helga'){helga.state='walk';walk(helga,[[4.4,8.2],[3.6,5.8],[3.6,4.3],[5.6,3.2]],m=>{m.state='idle';m.face=-2;});}
+  if(id==='helga'){if(SPOTS.on){helga.visible=false;setTimeout(()=>{helga.visible=true;toSlot(helga,'helga_kitchen','idle');},2500);}else{helga.state='walk';walk(helga,[[4.4,8.2],[3.6,5.8],[3.6,4.3],[5.6,3.2]],m=>{m.state='idle';m.face=-2;});}}
   if(cur&&cur.id===id)sfx('coin');if(!tutCur())tutEnd();}
 function tutEnd(){if(TUT_OVER)return;TUT_OVER=true;G.tutSlow=false;tip('tutdone',DLG.tips.tutdone);}
 // 지금 할 일 (안내가 끝난 뒤에는 단계와 급한 순서)
@@ -1515,11 +1523,14 @@ function heal(n){if(!P.heal)return;if(n.fake){P.heal--;sub(n.name,'치료약을 
   P.heal--;n.cured=true;if(n.regId&&G.regs[n.regId])G.regs[n.regId].hurt=null;setLook(n,n.look,n.o0||{});sub(n.name,'치료약을 먹였다. 초록 가루가 가라앉는다.',1);renderBelt();}
 // ───────── 그것과 전투 ─────────
 let HUNT=null;const fakeOut=()=>NPCS.find(x=>x.fake&&x.out&&x.visible&&x.state!=='gone');
-function startHunt(n){if(n.state==='gone')return;HUNT=n;n.state='hunt';n.out=true;const H=fakeFam(n).hunt||{};n.hp=n.hp||H.hp||3;n.cd=0;sfx('eerie');}
+function startHunt(n){if(n.state==='gone')return;HUNT=n;n.state='hunt';n.out=true;n.huntSpot=null;n.huntT=undefined;n.transit=null;const H=fakeFam(n).hunt||{};n.hp=n.hp||H.hp||3;n.cd=0;sfx('eerie');}
 function killFake(n,msg){n.state='gone';n.visible=false;G.log.killed.push(n.name);HUNT=null;ash(n.x,n.y+1,n.z);sub('그것',msg||'재가 되어 흩어졌다.',1);G.danger=0;if(n.room&&OCC[n.room]===n)OCC[n.room]=null;thread(CAMP.thread.killed,'그것을 처치');}
 function clubSwing(){if(!HUNT)return false;VM.swing=1;const n=HUNT,dx=n.x-P.x,dz=n.z-P.z,d=Math.hypot(dx,dz);const f=new THREE.Vector3();camera.getWorldDirection(f);const dot=(f.x*dx+f.z*dz)/(d*Math.hypot(f.x,f.z)+1e-6);
   sfx('swing');if(d<2.4&&dot>.75){n.hp--;sfx('hit');G.flick=.8;n.x+=dx/d*1.2;n.z+=dz/d*1.2;if(n.hp<=0)killFake(n,'몽둥이에 그것이 무너져 재가 되었다.');else sub('그것',`퍽! (${n.hp})`);}return true;}
-function huntTick(dt){const n=HUNT;if(!n)return;const H=fakeFam(n).hunt||{};const dx=P.x-n.x,dz=P.z-n.z,d=Math.hypot(dx,dz);G.danger=Math.max(0,1-d/9);n.face=Math.atan2(dx,dz);
+function huntTick(dt){const n=HUNT;if(!n)return;const H=fakeFam(n).hunt||{};
+  if(SPOTS.on){const s=spotCur();if(s&&(n.huntSpot!==s.id)){n.huntSpot=s.id;n.huntT=(n.huntT===undefined?.6:2.5);n.visible=false;}
+    if(n.huntT!==undefined){n.huntT-=dt;if(n.huntT<=0){n.huntT=undefined;const f=new THREE.Vector3();camera.getWorldDirection(f);const L=Math.hypot(f.x,f.z)||1;placeNPC(n,P.x+f.x/L*1.7,P.z+f.z/L*1.7,P.y);n.visible=true;sfx('eerie');}else{G.danger=.6;return;}}}
+  const dx=P.x-n.x,dz=P.z-n.z,d=Math.hypot(dx,dz);G.danger=Math.max(0,1-d/9);n.face=Math.atan2(dx,dz);
   const f=new THREE.Vector3();camera.getWorldDirection(f);const dot=-(f.x*dx+f.z*dz)/(d*Math.hypot(f.x,f.z)+1e-6);
   if(P.lamp&&P.oil>0&&d<6&&dot>.8&&H.lampWeak!==false){n.x-=dx/d*1.3*dt;n.z-=dz/d*1.3*dt;n.hp-=.45*dt;P.oil=Math.max(0,P.oil-dt*3);if(n.hp<=0)killFake(n,'등불 빛에 밀려나다 그것은 재가 되었다.');}
   else if(d>1.2){const sp=H.speed||1.7;n.x+=dx/d*sp*dt;n.z+=dz/d*sp*dt;}
@@ -1567,7 +1578,7 @@ function queueTick(){const waiting=RETN.filter(n=>n.state==='queue'||n.state==='
   RETN.filter(n=>n.state==='queue').forEach(n=>{const idx=waiting.indexOf(n);const slot=atwin&&atwin!==n?Math.min(3,idx):0;if(n.qTarget!==slot){n.qTarget=slot;walk(n,[QSPOT[slot]],m=>{m.state=m.qTarget===0?'atwin':'queue';if(m.qTarget===0){m.face=-Math.PI/2;sfx('bell');sub('창구','딸랑— 누군가 창구 앞에 섰다.');m.waitFrom=G.t;}});n.state='walk';}});}
 function arrive(c){c.state='queue';if(c.kind==='knock3'){c.state='atwin';sfx('knock');setTimeout(()=>sfx('knock'),450);setTimeout(()=>sfx('knock'),900);sub('창구','똑. 똑. 똑. — 창구를 세 번 두드리는 소리.',1);setTimeout(()=>{if(c.state==='atwin'){c.state='gone';sub('창구','…발소리가 멀어졌다.');}},40000);return;}
   const n=caseNPC(c);n.visible=true;
-  if(c.kind==='guest'){placeNPC(n,4,14);walk(n,[[4,11],[6.2,9.9]],m=>{m.state='atdesk';m.face=Math.PI;sfx('bell');sub('계산대','딸랑— 손님이 계산대에서 기다린다.');m.waitFrom=G.t;});n.state='walk';return;}
+  if(c.kind==='guest'){placeNPC(n,4,14);const gs=(SPOTS.on&&slotPos('guest'))||{x:6.2,z:9.9};walk(n,[[4,11],[gs.x,gs.z]],m=>{m.state='atdesk';m.face=SPOTS.on?0:Math.PI;sfx('bell');sub('계산대','딸랑— 손님이 계산대에서 기다린다.');m.waitFrom=G.t;});n.state='walk';return;}
   placeNPC(n,33,9.4,0);n.state='queue';n.qTarget=undefined;queueTick();}
 function admitRet(n,r){const c=n.case;OCC[r]=n;n.room=r;shutterOpen(false);sfx('stamp');note('창구',`${n.name}에게 ${r}호 열쇠를 건넸다.`);G.log.admit.push(n.uid);if(c)c.state='admitted';
   if(n.guest){tutEvent('guest');const fee=GUEST[n.guest].fee||6;money(fee,'숙박비');n.state='walk';walk(n,[[7.5,10],[23.2,8.4],[23.2,6.1],[15.5,6],RM[r].front,RM[r].inside],m=>{m.state='idle';m.face=RM[r].north?Math.PI:0;});sub(n.name,`"고맙소." 계단으로 올라간다. (숙박비 ${fee}G)`);return;}
@@ -1591,15 +1602,15 @@ function goBed(n){if(!n.room||n.state==='gone')return;const r=n.room;const pre=n
 // ───────── 하루 단계 ─────────
 const PH={};
 PH.dawn=()=>{G.morning=true;G.night=false;G.checkout=false;G.lightsOut=false;G.dinner=false;G.served=null;G.phase='dawn';
-  helga.visible=true;placeNPC(helga,5.6,3.2);helga.state='idle';helga.face=-2;
+  helga.visible=true;if(SPOTS.on)toSlot(helga,'helga_kitchen','idle');else{placeNPC(helga,5.6,3.2);helga.state='idle';helga.face=-2;}
   // 밤의 결과 정리 → 창고 변화 → 새 수칙 → 저장 → 아침 장면
   nightResolve();storageMorning();const plan=todayPlan();(plan.newRules||[]).forEach(id=>{if(!G.rulesKnown.includes(id))G.rulesKnown.push(id);});if((plan.newRules||[]).length)tip('rules');
   G.limits={...CAMP.LIMITS};P.bars=CAMP.LIMITS.bars;G.dinnerObs=0;clearMoss();
   sfx('bell');sub('여관',`${G.day}일째 아침 6시. 점호 — 방마다 "빨리 일어나!"`,1);tip('roll');
   if(G.day>CAMP.DAYS){finale();return;}
   snapshot('morning');morningPanel();};
-PH.market=()=>{G.phase='market';dora.visible=true;placeNPC(dora,4,14);walk(dora,[[4,11],[5.4,10.2]],m=>{m.state='shop';m.face=Math.PI;});
-  if(G.day>=2){enoch.visible=true;placeNPC(enoch,4,14.5);walk(enoch,[[4.5,11.2],[7.2,10.3]],m=>{m.state='shop';m.face=Math.PI;});}
+PH.market=()=>{G.phase='market';dora.visible=true;if(SPOTS.on)toSlot(dora,'dora','shop');else{placeNPC(dora,4,14);walk(dora,[[4,11],[5.4,10.2]],m=>{m.state='shop';m.face=Math.PI;});}
+  if(G.day>=2){enoch.visible=true;if(SPOTS.on)toSlot(enoch,'enoch','shop');else{placeNPC(enoch,4,14.5);walk(enoch,[[4.5,11.2],[7.2,10.3]],m=>{m.state='shop';m.face=Math.PI;});}}
   if(todayPlan().rent){if(G.money>=CAMP.RENT){money(-CAMP.RENT,'운영비');sub('경계청',`주말 운영비 ${CAMP.RENT}G를 냈다.`,1);}else{sub('경계청',`운영비 ${CAMP.RENT}G를 낼 돈이 없다. 오늘 안에 벌지 못하면 폐업이다.`,1);G.rentDue=true;}}
   sub('여관','7시. 아침 장사 — 계산대에 도라가 왔다.'+(G.day>=2?' 학자 에녹도.':''),1);};
 PH.send=()=>{G.phase='send';G.checkout=true;tip('checkout');
@@ -1695,7 +1706,7 @@ function restoreFrom(snap){try{if(!snap||!snap.G)return false;
   G.cases.forEach(c=>{if(c.kind==='knock3')return;const n=caseNPC(c);const ent=Object.entries(snap.occ||{}).find(([r,o])=>o.uid===n.uid);
     if(ent){const r=+ent[0];OCC[r]=n;n.room=r;n.visible=true;const st=ent[1].state;if(st==='sleep'){placeNPC(n,RM[r].bed[0],RM[r].bed[1],3);n.state='sleep';n.face=0;}else{placeNPC(n,RM[r].inside[0],RM[r].inside[1],3);n.state='idle';}}
     else if(c.state==='due'||c.state==='queue'){c.state='due';}});
-  helga.visible=!G.night;placeNPC(helga,5.6,3.2);helga.state='idle';helga.face=-2;
+  helga.visible=!G.night;if(SPOTS.on)toSlot(helga,'helga_kitchen','idle');else{placeNPC(helga,5.6,3.2);helga.state='idle';helga.face=-2;}
   if(snap.tag==='morning')setTimeout(morningPanel,300);
   refreshShelf();renderBelt();return true;}catch(e){console.error('restore',e);return false;}}
 
@@ -1842,7 +1853,7 @@ window.__g={G,P,NPCS,RETN,OCC,DOORS,POT,ACTOR,STATIONS,SEND,REG,ITEM,setTime:m=>
   doit:(it,k,uid)=>{const n=uid?NPCS.find(x=>x.uid===uid):null;const i=ACT(it,n);const a=i&&i.verbs.find(v=>v.k===k);if(a){if(a.need==='lamp'&&!P.lamp)return 'need-lamp';a.fn();return a.t;}return null;},
   verbs:(it,uid)=>{const n=uid?NPCS.find(x=>x.uid===uid):null;const i=ACT(it,n);return i?i.verbs.map(v=>v.k):null;},lamp:on=>setLamp(on),tut:()=>({cur:(tutCur()||{}).id||null,over:TUT_OVER}),endTut:()=>tutEnd(),obj:()=>OBJ().t,shelf:()=>G.shelf,reveal:()=>{if(AIM)lampReveal(AIM);},
   restore:snap=>restoreFrom(snap),snapshot:tag=>snapshot(tag),
-  spot:()=>SPOTS.cur,go:(id,inst)=>goSpot(id,{instant:!!inst}),dirs:()=>spotDirs(),SPOTS:SPD?SPD.list:[],
+  spot:()=>SPOTS.cur,go:(id,inst)=>goSpot(id,{instant:!!inst}),dirs:()=>spotDirs(),SPOTS:SPD?SPD.list:[],slots:SPD?SPD.slots:{},walkTo:(n,pts,cb)=>walk(n,pts,cb),
   helga:()=>helga,close:()=>closeWin(),leave:()=>closeSeat(),win:()=>WIN,stn:()=>STN,open:id=>openStation(id),closeStn:()=>closeStation(),yaw:()=>+new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ').y.toFixed(3),
   act:(it,k)=>{const i=ACT(it,null);const a=i&&i.verbs.find(v=>v.k===k);if(a){a.fn();return a.t;}return null;},click:()=>doVerb(),drops:()=>DROPS.filter(Boolean).map(d=>d.k),vm:()=>VM.key,vlist:()=>VLIST.map(v=>v.k),aim:()=>AIM,
   send:(plan)=>{const qs=todayQuests();const ps=plan.map(([qi,mem,opt])=>({req:qs[qi],mem,lunch:!!(opt&&opt.lunch),recall:!!(opt&&opt.recall),on:true}));dispatch(ps);tutEvent('send');return G.cases.map(c=>({cid:c.cid,kind:c.kind,id:c.regId||c.guest||c.kind,fake:c.fake&&c.fake.fam,at:c.at,hurt:c.hurt,loot:c.loot.map(x=>x.k)}));},
