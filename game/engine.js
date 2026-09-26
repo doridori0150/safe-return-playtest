@@ -700,7 +700,15 @@ function updateNPCs(dt){const cam=camera.position;
 // 인물 데이터의 rig:{outfit,head,hair[],scale} 가 있으면 종이 인형 대신 3D 몸을 세운다. 창구의 큰 그림(bust)은 그대로 종이다.
 // ?norig 로 끈다. ?rig=all 은 rig 가 없는 인물도 기본 몸으로 세운다 (비교용).
 import {clone as skelClone} from 'three/addons/utils/SkeletonUtils.js';
-const RIG={on:!QF.has('norig'),all:QF.get('rig')==='all',ready:false,parts:{},clips:{},heads:{}};
+const RIG={on:!QF.has('norig'),all:QF.get('rig')==='all',ready:false,parts:{},clips:{},heads:{},toon:!QF.has('notoon'),headScale:+(QF.get('head')||1.42),bodyScale:+(QF.get('body')||.84)};
+// 툰 셰이딩: 3단 명암 그라데이션 + 뒤집은 껍질 윤곽선
+const TOONGRAD=(()=>{const d=new Uint8Array([170,170,170,255,218,218,218,255,255,255,255,255]);const t=new THREE.DataTexture(d,3,1,THREE.RGBAFormat);t.minFilter=t.magFilter=THREE.NearestFilter;t.needsUpdate=true;return t;})();
+function toonify(root){if(!RIG.toon)return;const hulls=[];root.traverse(o=>{if(!o.isMesh||!o.material)return;const src=o.material;if(/eye/i.test(o.name)){return;}
+  // 툰 재질은 환경광을 못 받아 어두워지므로 색을 조금 올리고, 그림자면 색을 살짝 따뜻하게
+  const m=new THREE.MeshToonMaterial({map:src.map||null,color:(src.color?src.color.clone():new THREE.Color(0xffffff)),gradientMap:TOONGRAD,transparent:src.transparent,alphaTest:src.alphaTest||0,side:src.side,emissiveMap:src.map||null,emissive:0xffffff,emissiveIntensity:.2});m.name=src.name;m.userData.baseEmissive=0xffffff;o.material=m;
+  const hm=new THREE.MeshBasicMaterial({color:0x33261f,side:THREE.BackSide});hm.onBeforeCompile=s=>{s.vertexShader=s.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\ntransformed+=normalize(normal)*0.0045;');};
+  const h=o.clone();h.material=hm;h.castShadow=false;h.receiveShadow=false;h.userData.hull=true;h.frustumCulled=false;hulls.push([o,h]);});
+  hulls.forEach(([o,h])=>o.parent.add(h));}
 const RIG_DEFAULT={outfit:'Male_Peasant',head:'Superhero_Male_FullBody',hair:['Hair_SimpleParted'],scale:.95};
 const RIG_DEFAULT_F={outfit:'Female_Peasant',head:'Superhero_Female_FullBody',hair:['Hair_Long'],scale:.95};
 function rigSpec(n){const c=C[n.look];if(c&&c.rig)return c.rig;if(RIG.all)return (c&&/여|엘프|하플링/.test(c.race||'')&&c.id!=='pipi')?RIG_DEFAULT_F:RIG_DEFAULT;return null;}
@@ -723,26 +731,33 @@ function rigBuild(spec){const outfit=RIG.parts[spec.outfit];if(!outfit)return nu
   [spec.head,...(spec.hair||[])].forEach(name=>{const src=RIG.parts[name];if(!src)return;const c=skelClone(src);const skinned=[],plain=[];c.traverse(o=>{if(o.isSkinnedMesh)skinned.push(o);else if(o.isMesh)plain.push(o);});
     skinned.forEach(o=>{const bl=o.skeleton.bones.map(b=>bones[b.name]||b);const sk=new THREE.Skeleton(bl,o.skeleton.boneInverses);const m=o.clone();m.bind(sk,o.bindMatrix);m.frustumCulled=false;m.castShadow=true;arm.add(m);});
     plain.forEach(o=>{const m=o.clone();o.updateWorldMatrix(true,false);m.matrix.copy(o.matrixWorld);m.matrix.decompose(m.position,m.quaternion,m.scale);root.add(m);root.updateMatrixWorld(true);(bones.Head||arm).attach(m);m.castShadow=true;});});
-  root.scale.setScalar(spec.scale||1);const mixer=new THREE.AnimationMixer(root);const acts={};Object.entries(RIG.clips).forEach(([k,c])=>{acts[k]=mixer.clipAction(c);});
+  root.scale.setScalar((spec.scale||1)*RIG.bodyScale);const mixer=new THREE.AnimationMixer(root);const acts={};Object.entries(RIG.clips).forEach(([k,c])=>{acts[k]=mixer.clipAction(c);});
   // 머리 재질은 인물마다 따로 (얼굴 텍스처를 입히므로)
   let headMesh=null;root.traverse(o=>{if(o.isSkinnedMesh&&o.material&&/Superhero/i.test(o.material.name)&&!headMesh)headMesh=o;});if(headMesh){headMesh.material=headMesh.material.clone();headMesh.material.name='head';}
-  const skinMats=[];root.traverse(o=>{if(o.isMesh&&o.material&&/Regular|Superhero|SuperHero|^head$/i.test(o.material.name))skinMats.push(o.material);});
+  toonify(root);
+  const skinMats=[];root.traverse(o=>{if(o.isMesh&&!o.userData.hull&&o.material&&/Regular|Superhero|SuperHero|^head$/i.test(o.material.name))skinMats.push(o.material);});
   return {root,mixer,acts,cur:null,skinMats,arm,headMesh,bones,faceKey:null,props:[]};}
 // ───────── 얼굴: 기본 머리 텍스처에 피부색을 입히고 아스트라의 얼굴 오버레이(art/faces.js)를 겹친다 ─────────
-const FACE=window.FACE_ART||null,FACETEX={};
+const FACE=window.FACE_ART||null,FACETEX={},SKIN_LIFT=+(QF.get('skinlift')||.38);
 function faceData(id){return (FACE&&FACE.DATA&&FACE.DATA[id])||(ARTL&&ARTL.DATA&&ARTL.DATA[id])||{};}
 function faceTex(baseImg,id,o,expr){const key=id+JSON.stringify(o||{})+expr;if(FACETEX[key])return FACETEX[key];const S=1024,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d');
   const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.flipY=false;t.anisotropy=4;FACETEX[key]=t;
-  const paint=()=>{x.clearRect(0,0,S,S);if(baseImg)x.drawImage(baseImg,0,0,S,S);const skin=faceData(id).skin;
+  const paint=()=>{x.clearRect(0,0,S,S);if(baseImg)x.drawImage(baseImg,0,0,S,S);let skin=faceData(id).skin;
+    // 3D 는 따뜻한 조명·툰 명암으로 그림보다 붉고 어둡게 보이므로 피부색을 흰색 쪽으로 당긴다 (SKIN_LIFT, ?skinlift= 로 시험)
+    if(skin){const c=new THREE.Color(skin);c.lerp(new THREE.Color(0xffffff),SKIN_LIFT);skin='#'+c.getHexString();}
     // 피부색: 원본의 명암은 두고 색조만 인물 색으로, 원본이 어두운 편이라 살짝 밝힌다
-    if(skin){x.globalCompositeOperation='color';x.fillStyle=skin;x.fillRect(0,0,S,S);x.globalCompositeOperation='screen';x.globalAlpha=.28;x.fillStyle=skin;x.fillRect(0,0,S,S);x.globalCompositeOperation='saturation';x.globalAlpha=.35;x.fillStyle='#808080';x.fillRect(0,0,S,S);x.globalAlpha=1;x.globalCompositeOperation='source-over';}
+    // 원본을 명암만 남기고(탈색) 인물 피부색을 곱한 뒤 살짝 밝힌다 → 색은 데이터의 skin, 굴곡은 원본
+    if(skin){x.globalCompositeOperation='color';x.fillStyle=skin;x.fillRect(0,0,S,S);x.globalCompositeOperation='screen';x.globalAlpha=.3;x.fillStyle=skin;x.fillRect(0,0,S,S);x.globalAlpha=1;x.globalCompositeOperation='source-over';}
     t.needsUpdate=true;
     if(FACE&&FACE.face){let inner='';try{inner=FACE.face(id,o||{},expr);}catch(e){console.warn('faces',e);}if(inner){const img=new Image();img.onload=()=>{x.drawImage(img,0,0,S,S);t.needsUpdate=true;};img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 1024 1024">${inner}</svg>`);}}};
   if(baseImg&&baseImg.complete===false)baseImg.addEventListener('load',paint,{once:true});else paint();return t;}
-function rigFace(n,expr){const r=n.rig;if(!r||!r.headMesh)return;const key=n.look+JSON.stringify(n.o||{})+expr;if(r.faceKey===key)return;r.faceKey=key;const m=r.headMesh.material;if(!r.baseImg)r.baseImg=m.map&&m.map.image;
-  m.map=faceTex(r.baseImg,n.look,n.o,expr);m.needsUpdate=true;
+const LIGHTBASE={};
+function lightBase(sex){const f='T_Superhero_'+(sex==='female'?'Female':'Male')+'_Light.jpg';if(!hasFile('quaternius_char/'+f))return null;if(LIGHTBASE[f])return LIGHTBASE[f];const img=new Image();img.src=ASSET_BASE+'models/quaternius_char/'+f;return LIGHTBASE[f]=img;}
+function rigFace(n,expr){const r=n.rig;if(!r||!r.headMesh)return;const key=n.look+JSON.stringify(n.o||{})+expr;if(r.faceKey===key)return;r.faceKey=key;const m=r.headMesh.material;
+  if(!r.baseImg){const sex=/female/i.test((rigSpec(n)||{}).head||'')?'female':'male';r.baseImg=lightBase(sex)||(m.map&&m.map.image);}
+  m.map=faceTex(r.baseImg,n.look,n.o,expr);if(m.emissiveMap)m.emissiveMap=m.map;m.needsUpdate=true;
   // 눈알·눈썹은 별도 메시: 잘 때 눈알을 숨기고(텍스처 눈꺼풀이 덮는다), 눈 색·눈썹 색은 인물 데이터로
-  const D=faceData(n.look);r.root.traverse(o=>{if(!o.isSkinnedMesh)return;if(/eyes?$/i.test(o.name)){o.visible=expr!=='sleep';if(D.eye&&!o.userData.tinted){o.material=o.material.clone();o.material.map=eyeTex(o.material.map,D.eye);o.userData.tinted=true;}}
+  const D=faceData(n.look);r.root.traverse(o=>{if(!o.isSkinnedMesh||o.userData.hull)return;if(/eyes?$/i.test(o.name)){o.visible=expr!=='sleep';if(D.eye&&!o.userData.tinted){o.material=o.material.clone();o.material.map=eyeTex(o.material.map,D.eye);o.userData.tinted=true;}}
     if(/eyebrow/i.test(o.name)&&D.hair&&!o.userData.tinted){o.material=o.material.clone();o.material.color.set(D.hair);o.userData.tinted=true;}});
   rigProps(n);}
 // 눈 텍스처: 홍채(채도 있는 갈색 부분)만 인물 눈 색으로 바꾼다. 흰자·동공은 그대로
@@ -780,9 +795,11 @@ function rigTick(n,dt,walking,sitting,sleeping,rel){const r=n.rig;const voidLook
   // 종이 인형은 카메라를 보지만 몸은 걷는 방향·의자 방향을 본다. 서 있을 때 가까이 오면 고개 대신 몸을 살짝 돌린다
   let ty=0;if(!walking&&!sitting&&!sleeping&&Math.abs(rel)<1.4)ty=rel*.7;r.root.rotation.y+=(ty-r.root.rotation.y)*Math.min(1,dt*4);
   r.root.position.y=sitting?.42:sleeping?.62+.25:0;r.root.rotation.x=sleeping?-Math.PI/2:0;r.root.position.z=sleeping?-.3:0;
-  const moss=n.o&&n.o.moss;r.skinMats.forEach(m=>{if(m.emissive)m.emissive.setHex(moss?0x1e4a18:0);});
+  const moss=n.o&&n.o.moss;r.skinMats.forEach(m=>{if(m.emissive)m.emissive.setHex(moss?0x3a7a2a:(m.userData.baseEmissive||0));});
   rigFace(n,sleeping?'sleep':talking?'talk':(n.surprise>0?'surprise':'neutral'));
   r.mixer.update(dt);
+  // 등신: 머리 뼈를 키운다 (클립에 scale 트랙이 있어 매 프레임 덧씌운다)
+  if(r.bones.Head)r.bones.Head.scale.setScalar(RIG.headScale);
   // 고개: 가까이 있는 플레이어를 본다 (애니메이션 위에 덧씌움, 좌우 ±50°, 상하 ±35°)
   if(!sleeping){const hb=r.bones.Head;if(hb){hb.updateWorldMatrix(true,false);const hp=new THREE.Vector3().setFromMatrixPosition(hb.matrixWorld);const cam=camera.position;const dx=cam.x-hp.x,dz=cam.z-hp.z,dh=Math.hypot(dx,dz);
     let want=0,pitch=0;if(dh<3.5&&Math.abs(rel)<1.5){const fwd=n.face+r.root.rotation.y;let a=Math.atan2(dx,dz)-fwd;while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;want=Math.max(-.9,Math.min(.9,a));pitch=Math.max(-.6,Math.min(.6,Math.atan2(cam.y-hp.y-.05,dh)));}

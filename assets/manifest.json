@@ -326,6 +326,8 @@
    "Male_Ranger.gltf",
    "Superhero_Female_FullBody.gltf",
    "Superhero_Male_FullBody.gltf",
+   "T_Superhero_Female_Light.jpg",
+   "T_Superhero_Male_Light.jpg",
    "UAL_clips.glb"
   ],
   "quaternius_char:tex": [
@@ -348,9 +350,11 @@
    "T_Regular_Male_Normal.jpg",
    "T_Regular_Male_Roughness.jpg",
    "T_Superhero_Female_Dark_BaseColor.jpg",
+   "T_Superhero_Female_Light.jpg",
    "T_Superhero_Female_Normal.jpg",
    "T_Superhero_Female_Roughness.jpg",
    "T_Superhero_Male_Dark.jpg",
+   "T_Superhero_Male_Light.jpg",
    "T_Superhero_Male_Normal.jpg",
    "T_Superhero_Male_Roughness.jpg"
   ],
