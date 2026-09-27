@@ -2,7 +2,7 @@
 // ───────── 데이터 연결 ─────────
 // 게임 데이터는 game/data/*.js가 window.SRG에 올려 둔다. 엔진은 여기서만 읽는다.
 const D=window.SRG||{};
-['regulars','staff','guests','floors','items','recipes','quests','rules','anomalies','campaign','dialogue','requests','story'].forEach(k=>{if(!D[k])console.error('데이터 없음: game/data/'+k+'.js');});
+['regulars','staff','guests','floors','items','recipes','quests','rules','anomalies','campaign','dialogue','requests','story','clues'].forEach(k=>{if(!D[k])console.error('데이터 없음: game/data/'+k+'.js');});
 const REG=D.regulars,STAFF=D.staff,GUEST=D.guests,FLOOR=D.floors,ITEM=D.items,RECIPES=D.recipes,QUESTS=D.quests,QRULE=D.questRule||{perDay:3,enochFrom:5},RULES=D.rules,ANOM=D.anomalies,CAMP=D.campaign,DLG=D.dialogue,OILS=D.oils,REQ=D.requests||{kinds:{},base:{},deviant:{real:{},fake:{}}},STORY=D.story||{episodes:{},chars:{},fam:{}};
 const REG_IDS=Object.keys(REG);[REG,STAFF,GUEST].forEach(T=>Object.keys(T).forEach(k=>{T[k].id=k;}));
 // 이름 조회: 단골·요리사·손님을 한 표처럼 본다 (옛 코드의 C[id] 호환)
@@ -386,7 +386,7 @@ function buildHouses(){if(QF.has('novillage')||!HOUSES.length)return;const files
       put('chimney',(x1+x2)/2+(alongX?len*.28:span*.1),top+rise*.35,(z1+z2)/2+(alongX?span*.1:len*.28),0);
       g.userData.noReceive=true;bake(g);});
     renderer.shadowMap.needsUpdate=true;window.__vill=true;console.log('village houses',HOUSES.length);}).catch(e=>console.warn('village',e));}
-function placeAnchors(key){const proto=ASSETS.models[key];if(!proto)return;ASSETS.anchors.filter(a=>a.key===key&&!a.placed).forEach(a=>{a.placed=true;a.meshes.forEach(m=>m.visible=false);const inst=proto.clone();inst.position.set(a.x,a.y,a.z);inst.rotation.y=a.ry;if(a.opt.s)inst.scale.multiplyScalar(a.opt.s);scene.add(inst);a.inst=inst;});}
+function placeAnchors(key){const proto=ASSETS.models[key];if(!proto)return;ASSETS.anchors.filter(a=>a.key===key&&!a.placed).forEach(a=>{a.placed=true;a.meshes.forEach(m=>{if(m.userData&&m.userData.it){m.material=new THREE.MeshBasicMaterial({visible:false});m.castShadow=m.receiveShadow=false;}else m.visible=false;});   /* 조준 대상(솥 등)은 보이지 않는 히트박스로 남긴다 */const inst=proto.clone();inst.position.set(a.x,a.y,a.z);inst.rotation.y=a.ry;if(a.opt.s)inst.scale.multiplyScalar(a.opt.s);scene.add(inst);a.inst=inst;});}
 function modelFor(key){const m=ASSETS.models[key];return m?m.clone():null;}
 // 소리: 파일이 있으면 합성음 대신 튼다
 const SFXMAP={step:['footstep00.ogg','footstep01.ogg','footstep02.ogg','footstep03.ogg','footstep04.ogg','footstep05.ogg'],door:['doorOpen_1.ogg','doorOpen_2.ogg'],doorClose:['doorClose_1.ogg','doorClose_2.ogg'],creak:['creak1.ogg','creak2.ogg','creak3.ogg'],knock:['impactWood_medium_000.ogg','impactWood_medium_001.ogg','impactWood_medium_002.ogg'],coin:['handleCoins.ogg','handleCoins2.ogg'],flip:['bookFlip1.ogg','bookFlip2.ogg','bookFlip3.ogg'],wood:['impactWood_heavy_000.ogg','impactWood_heavy_001.ogg'],hit:['impactWood_heavy_002.ogg','impactWood_heavy_003.ogg'],plate:['impactPlate_light_000.ogg','impactPlate_light_001.ogg'],glass:['impactGlass_light_000.ogg'],pot:['metalPot1.ogg','metalPot2.ogg','metalPot3.ogg'],chop:['chop.ogg','knifeSlice.ogg']};
@@ -625,11 +625,13 @@ function vmTick(dt,moving){VM.t+=dt*(moving?9:2);const bob=moving?Math.sin(VM.t)
 
 // ───────── 내려놓기와 다시 집기 ─────────
 const DROPS=[];const RAY2=new THREE.Raycaster();RAY2.far=2.6;const _nv=new THREE.Vector3();
-function dropHeld(){const k=P.held;if(!k)return;RAY2.setFromCamera({x:0,y:0},camera);
+function dropHeld(){const k=P.held;if(!k)return;if(typeof SCENE==='function'&&SCENE()&&spotCur()&&spotCur().drop){const d=spotCur().drop;const n=DROPS.filter(x=>x&&Math.abs(x.m.position.y-d[1])<.2&&Math.hypot(x.m.position.x-d[0],x.m.position.z-d[2])<1.5).length;return dropAt(k,d[0]+(n%4)*.3-.45,d[1],d[2]+Math.floor(n/4)*.3);}   /* 구역 모드: 탁자 위 정해진 자리에 */
+  RAY2.setFromCamera({x:0,y:0},camera);
   const hit=RAY2.intersectObjects(scene.children,true).find(h=>h.object.isMesh&&h.object.visible&&h.object.material&&h.object.material.visible!==false&&!h.object.material.transparent&&!h.object.userData.npc&&!isVMObj(h.object)&&h.face&&(_nv.copy(h.face.normal).transformDirection(h.object.matrixWorld).y>.7));
   let x,y,z;if(hit){({x,y,z}=hit.point);}else{const f=new THREE.Vector3();camera.getWorldDirection(f);f.y=0;f.normalize();x=P.x+f.x*.7;z=P.z+f.z*.7;y=floorY(x,z,P.y);}
-  const id=DROPS.length,m=itemModel(k==='mush_s'?'mush':k);m.position.set(x,y+.002,z);m.rotation.y=Math.random()*6;scene.add(m);
-  const hb=new THREE.Mesh(new THREE.BoxGeometry(.24,.2,.24),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(x,y+.08,z);hb.userData.it='drop:'+id;scene.add(hb);INTER.push(hb);
+  dropAt(k,x,y,z);}
+function dropAt(k,x,y,z){const id=DROPS.length,m=itemModel(k==='mush_s'?'mush':k);m.position.set(x,y+.002,z);m.rotation.y=Math.random()*6;scene.add(m);
+  const big=typeof SCENE==='function'&&SCENE();const hb=new THREE.Mesh(new THREE.BoxGeometry(big?.4:.24,big?.32:.2,big?.4:.24),new THREE.MeshBasicMaterial({visible:false}));hb.position.set(x,y+(big?.14:.08),z);hb.userData.it='drop:'+id;scene.add(hb);INTER.push(hb);
   DROPS.push({k,m,hb});P.held=null;renderBelt();sfx('flip');sub('손',`${ITN[k]||'들고 있던 것'}을(를) 내려놓았다.`);}
 function pickDrop(id){const d=DROPS[id];if(!d)return;if(P.held){sub('손','이미 무언가를 들고 있다. 먼저 내려놓는다.');return;}
   P.held=d.k;scene.remove(d.m);scene.remove(d.hb);INTER.splice(INTER.indexOf(d.hb),1);DROPS[id]=null;renderBelt();sfx('flip');}
@@ -908,7 +910,8 @@ function verbsFor(){
   if(HUNT&&HUNT.visible&&Math.hypot(HUNT.x-P.x,HUNT.z-P.z)<3.4)return{name:'그것',key:'hunt',verbs:[{k:'club',ic:'club',t:'몽둥이를 휘두른다',fn:clubSwing}]};
   const info=AIM?ACT(AIM.it,AIM.npc):null,ok=info&&info.verbs&&info.verbs.length;
   const hv=P.held?{k:'drop',ic:'hand',t:`${ITN[P.held]||'들고 있는 것'}을(를) 내려놓는다`,fn:dropHeld}:null;
-  if(ok)return{...info,key:AIM.it,verbs:hv?[...info.verbs,hv]:info.verbs};return hv?{name:'손에 든 것',key:'held:'+P.held,verbs:[hv]}:null;}
+  const st=P.held&&SCENE()?(ITEM[P.held]&&ITEM[P.held].kind==='ing'?{k:'stow',ic:'hand',t:`${ITN[P.held]}을(를) 선반에 올린다`,fn:()=>{putBack();}}:{k:'stow',ic:'hand',t:`${ITN[P.held]}을(를) 궤짝에 넣는다`,fn:()=>{const k=P.held;if(k==='burnt'||k==='fail'){sub('손','이건 못 넣는다. 내려놓자.');return;}addInv(k,1);P.held=null;renderBelt();sfx('flip');sub('창고',`${ITN[k]}을(를) 궤짝에 넣었다.`);}}):null;
+  const extra=[st,hv].filter(Boolean);if(ok)return{...info,key:AIM.it,verbs:[...info.verbs,...extra]};return extra.length?{name:'손에 든 것',key:'held:'+P.held,verbs:extra}:null;}
 let AIMOBJ=null;const _hb=new THREE.Box3(),_hc=new THREE.Vector3();
 function aim(){const sc=SCENE();
   if(!(sc&&MOUSE.over&&AIMOBJ)){ray.setFromCamera(sc?{x:MOUSE.x,y:MOUSE.y}:{x:0,y:0},camera);const hits=sc&&(MOUSE.px<0||MOUSE.hud)?[]:ray.intersectObjects(INTER.filter(m=>m.visible&&(!m.userData.npc||m.userData.npc.visible)),false);
@@ -949,14 +952,21 @@ function onKey(e){
   if(e.code==='Escape'&&G.soft&&!WIN&&G.started){G.soft=false;$('lockHint').hidden=true;$('pause').hidden=false;return;}
   if(e.code==='Escape'&&SCENE()&&!WIN&&G.started&&!G.over){G.paused=!G.paused;$('pause').hidden=!G.paused;return;}   /* 1층: ESC = 일시정지 토글 */
   if(!LIVE())return;
-  if(e.code==='KeyE')doVerb();
+  if(e.code==='KeyE'){if(VLIST.length)doVerb();else if(typeof actFirst==='function')actFirst();}
   if(e.code==='KeyQ')nextVerb(1);
   if(e.code==='KeyH')hint();}
 
 // ───────── 자막·메모·알림 ─────────
 let SUBT=0;
-function sub(who,t,log){$('sub').innerHTML=`<b>${who}</b> ${josa(t).replace(/</g,'&lt;')}`;$('sub').classList.add('show');SUBT=5;if(log)note(who,t);}
-function note(w,t){P.notes.unshift({w,t:josa(t),at:hhmm(G.t)});}
+// 자막: 사람의 말은 큰 대화창(초상 포함), 시스템 문장은 작은 자막
+const SYSWHO=/^(여관|치트|힌트|화면|안내|출발|보내기|창고|요구|빗장|방|게시판|계산대|선반|가마솥|식탁|등불|손|저녁|식당|부엌|경계청|수칙|복도|복도 끝|창구|그것|아리)$/;
+function subFig(who){const w=String(who).replace(/\s*\(.*\)$/,'');const n=NPCS.find(x=>x.name===w);const id=n?(n.regId||n.look||n.uid):(REG_IDS.find(i=>REG[i].name===w)||(STAFF.helga.name===w?'helga':null));
+  if(!id||!ART)return '';try{return `<svg viewBox="0 0 200 240" width="64" height="77">${fig(id,n?n.o:{})}</svg>`;}catch(e){return '';}}
+function sub(who,t,log){const el=$('sub');const sys=SYSWHO.test(String(who))||/^\d{3}호$/.test(String(who));const txt=josa(t).replace(/</g,'&lt;');
+  el.className=sys?'hud sys':'hud';el.innerHTML=sys?`<b>${who}</b> ${txt}`:`<div class="ph">${subFig(who)}</div><div class="tx"><b>${who}</b><span>${txt}</span></div>`;el.classList.add('show');
+  SUBT=sys?5:Math.max(4,Math.min(9,2+txt.length/12));if(log)note(who,t);}
+$('sub').addEventListener('mousedown',e=>{e.stopPropagation();});$('sub').addEventListener('click',()=>{$('sub').classList.remove('show');SUBT=0;});
+function note(w,t){P.notes.unshift({w,t:josa(t),at:hhmm(G.t)});if(typeof clueScan==='function')clueScan(w,t);}
 const hhmm=m=>{m=((Math.floor(m)%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');};
 const JO={'이(가)':['이','가'],'을(를)':['을','를'],'은(는)':['은','는'],'과(와)':['과','와']};
 const josa=t=>String(t).replace(/([가-힣])(이\(가\)|을\(를\)|은\(는\)|과\(와\))/g,(m,ch,j)=>ch+JO[j][(ch.charCodeAt(0)-0xAC00)%28?0:1]);
@@ -984,15 +994,16 @@ try{const sv=localStorage.getItem('srg_sens');if(sv){$('setSens').value=sv;contr
 // 장부 (Tab)
 let PAGE='rule';
 function toggleBook(){if(WIN==='book'){closeWin();relock();return;}if(WIN&&WIN!=='seat')return;renderBookWin();}
-function renderBookWin(){const pg=[['rule','수칙'],['reg','단골'],['room','숙박부'],['quest','의뢰'],['store','창고'],['memo','메모']];
+function renderBookWin(){const pg=[['rule','수칙'],['clue','단서'],['reg','단골'],['room','숙박부'],['quest','의뢰'],['store','창고'],['memo','메모']];
   let h=`<div class="bookTabs">${pg.map(([k,n])=>`<button data-pg="${k}" class="${PAGE===k?'on':''}">${n}</button>`).join('')}<span class="nobuy">Tab으로 닫기 · 펴 있는 동안 시간이 느리게 흐른다</span></div><div class="bookPage">`;
   if(PAGE==='rule'){const pw=todayPW();h+=`<h2>여관 수칙</h2><div class="by">— 마그다 · 오늘의 암구호: <b>${pw.q} → ${pw.a}</b></div><ol class="rl">${RULES.filter(r=>G.rulesKnown.includes(r.id)).map(r=>`<li class="${r.red?'red':''} ${G.struck.includes(r.id)?'struck':''} ${r.ink==='fake'?'wet-'+(r.hint||'wet'):''}"><span class="n">${r.n}.</span><span class="ink-${r.ink==='fake'?'m':r.ink}">${r.t}</span>${r.day&&r.day===G.day?'<em class="newTag">새 줄</em>':''}<button class="mini strike" data-strike="${r.id}">${G.struck.includes(r.id)?'되살린다':'줄 긋기'}</button></li>`).join('')}</ol><p class="nobuy">가짜 줄의 흔적: 젖은 잉크, 겹친 번호, "손님" 말투, 기존 수칙과 모순.</p>`;}
   if(PAGE==='reg'){const act=ACTIVE(),rest=REG_IDS.filter(id=>!act.includes(id));h+=`<h2>단골 카드</h2><div class="regGrid">${act.map(id=>{const s=G.regs[id],rq=(G.requests||[]).find(r=>r.id===id),bio=(STORY.chars[id]||{}).bio||'';return `<div class="rcard ${s.gone?'gone':''}"><div class="ph"><svg viewBox="0 0 200 240" width="64" height="77">${fig(id)}</svg></div><div><b>${REG[id].name}</b> <small>${REG[id].race} · ${REG[id].role}</small><div class="ft">${featText(id).slice(0,3).join(' · ')}</div><div class="mm">${REG[id].memo.join(' ')}${bio?' '+bio:''}</div><div class="st">${s.gone?(s.gone==='left'?'길드를 떠남':'사라짐'):s.stay?`오늘 남음 (${stayLabel[s.stay]||s.stay})`:s.hurt?'앓는 중':'멀쩡'}${s.grudge?` · 원망 ${s.grudge}`:''} · 신발: ${SRG.shoes[REG[id].shoes]||REG[id].shoes}${rq&&rq.k!=='none'?` · 오늘 청한 것: ${KIND(rq.k).n}${rq.ans?` (${{give:'줌',deny:'거절',alt:'대신'}[rq.ans]||''})`:''}`:''}</div></div></div>`;}).join('')}</div>${rest.length?`<p class="nobuy">아직 오지 않은 단골 ${rest.length}명.</p>`:''}`;}
   if(PAGE==='room')h+=`<h2>숙박부</h2>${ROOMS.map(r=>{const n=occOf(r);return `<div class="rrow"><b>${r}호</b><span>${n?n.name:'— 빈방 —'}</span><i>${DOORS[r].locked?'빗장 ':''}${DOORS[r].lampHung?'등불 ':''}${ROOMST[r].stain?'얼룩':''}</i></div>`;}).join('')}`;
   if(PAGE==='quest')h+=`<h2>의뢰</h2>${G.sent.length?`<h3>오늘 나간 파티</h3>${G.sent.map(p=>`<div class="rrow"><b>${p.req.fl}</b><span>${p.req.by} — ${p.mem.map(id=>REG[id].name).join(', ')}</span><i>예감 ${omen(p.risk)[0]}</i></div>`).join('')}`:'<p class="nobuy">오늘 나간 파티가 없다.</p>'}<h3>납품할 의뢰</h3>${G.pending.filter(q=>q.req.need&&!q.done).map(q=>`<div class="rrow"><b>${q.req.by}</b><span>${ITN[q.req.need]} ×${q.req.qty}</span><i>${q.req.reward}G</i></div>`).join('')||'<p class="nobuy">없다.</p>'}`;
   if(PAGE==='store'){const m=invAll();h+=`<h2>창고</h2><div class="regGrid">${Object.entries(m).map(([k,n])=>`<div class="rcard"><div class="ph">${itemIcon(k,56)}</div><div><b>${ITN[k]}</b> ×${n}<div class="mm">${ITEM[k]?(ITEM[k].kind==='ing'?'재료 (선반)':ITEM[k].kind==='dish'?'요리':ITEM[k].kind==='pot'?'물약':ITEM[k].kind==='oil'?'기름':''):''}</div></div></div>`).join('')||'<p class="nobuy">비었다.</p>'}</div>`;}
+  if(PAGE==='clue')h+=cluesPage();
   if(PAGE==='memo')h+=`<h2>메모</h2><div class="by">— 아리의 수첩</div><ol class="notes">${P.notes.map(n=>`<li><small>${n.at}</small> <b>${n.w}</b> ${n.t}</li>`).join('')||'<li class="nobuy">알아낸 것이 여기 쌓인다.</li>'}</ol>`;
-  openWin('book',h+'</div>',.25);$('win').querySelectorAll('[data-pg]').forEach(b=>b.onclick=()=>{PAGE=b.dataset.pg;renderBookWin();});
+  openWin('book',h+'</div>',.25);$('win').querySelectorAll('[data-pg]').forEach(b=>b.onclick=()=>{PAGE=b.dataset.pg;renderBookWin();});$('win').querySelectorAll('[data-ox]').forEach(b=>b.onclick=()=>{markClue(+b.dataset.i,b.dataset.ox);renderBookWin();});
   $('win').querySelectorAll('[data-strike]').forEach(b=>b.onclick=()=>{const id=b.dataset.strike;if(G.struck.includes(id))G.struck=G.struck.filter(x=>x!==id);else{G.struck.push(id);note('수칙',`${id} 줄을 그었다.`);}sfx('flip');renderBookWin();});}
 // 방 고르기 (창구 들이기·계산대 손님·식탁에서 방 바꾸기)
 function roomPick(n,swap=false){const free=r=>!occOf(r)&&!ROOMST[r].stain;
@@ -1120,9 +1131,13 @@ const STATIONS={
    const st=S.state==='empty'?'비어 있다':S.state==='fill'?'재료를 하나 더 넣는다':S.state==='cook'?`끓는 중 — ${ITN[S.dish]||'?'}`:S.state==='ready'?(S.spore?'포자가 번졌다':`${ITN[S.dish]} 완성`):'넘쳤다';
    return `<div class="potGrid"><section><h2>솥 안</h2><div class="ingRow">${[0,1].map(i=>S.ing[i]?`<span class="ing">${stIcon(S.ing[i],34)}${ITN[S.ing[i]]}</span>`:'<span class="ing empty">—</span>').join('')}</div>
      <div class="stState ${S.state}">${st}</div>${S.state==='cook'||S.state==='ready'?`<div class="bar ${S.state}"><i style="width:${Math.round(pr*100)}%"></i></div><small>${S.state==='cook'?'끓을 때까지':'넘치기까지'} ${Math.max(0,Math.round(S.state==='cook'?((S.recipe?S.recipe.cook:20)-S.t):((S.recipe?S.recipe.hold:30)-S.t)))}초</small>`:''}
-     <div class="strow">${P.held&&ITEM[P.held]&&(ITEM[P.held].kind==='ing'||ITEM[P.held].kind==='oil')&&(S.state==='empty'||S.state==='fill')?`<button data-put>${ITN[P.held]} 넣기</button>`:''}${(S.state==='ready'||S.state==='burnt')&&!P.held?`<button data-ladle>떠내기</button>`:''}${S.state!=='empty'?`<button data-empty class="warn">비우기</button>`:''}</div></section>
-    <section><h2>레시피북</h2><div class="rcps">${RECIPES.map(r=>{const ok=k=>(have[k]||0)>0;const out=ITEM[r.out];return `<div class="rcp"><span class="ing ${ok(r.a)?'':'no'}">${stIcon(r.a,26)}${ITN[r.a]}</span> + <span class="ing ${ok(r.b)?'':'no'}">${stIcon(r.b,26)}${ITN[r.b]}</span> → <b>${stIcon(r.out,26)}${out.n}</b><small>${r.note}</small></div>`;}).join('')}</div><p class="nobuy">없는 조합은 실패작. 포자 버섯이 들어가면 무엇이든 망친다.</p></section></div>`;},
-  bind:el=>{const q=s=>el.querySelector(s);if(q('[data-put]'))q('[data-put]').onclick=()=>{potHand();renderStation();};if(q('[data-ladle]'))q('[data-ladle]').onclick=()=>{potHand();renderStation();};if(q('[data-empty]'))q('[data-empty]').onclick=()=>{potEmpty();renderStation();};},
+     <div class="strow">${P.held&&ITEM[P.held]&&(ITEM[P.held].kind==='ing'||ITEM[P.held].kind==='oil')&&(S.state==='empty'||S.state==='fill')?`<button data-put>${ITN[P.held]} 넣기</button>`:''}${(S.state==='ready'||S.state==='burnt')&&!P.held?`<button data-ladle class="primary">떠내서 궤짝에</button><button data-ladlehand>떠내서 손에</button>`:''}${S.state!=='empty'?`<button data-empty class="warn">비우기</button>`:''}</div>
+     ${(S.state==='empty'||S.state==='fill')?`<h3>재고에서 바로 넣기</h3><div class="strow">${Object.entries(have).filter(([k,n])=>n>0&&k!==P.held&&ITEM[k]&&(ITEM[k].kind==='ing'||ITEM[k].kind==='oil')).map(([k,n])=>`<button data-add="${k}">${stIcon(k,20)}${ITN[k]} <small>×${n}</small></button>`).join('')||'<span class="nobuy">넣을 재료가 없다.</span>'}</div>`:''}</section>
+    <section><h2>레시피북</h2><div class="rcps">${RECIPES.map(r=>{const ok=k=>(have[k]||0)>0;const both=S.state==='empty'&&ok(r.a)&&ok(r.b)&&(r.a!==r.b||(have[r.a]||0)>1);const out=ITEM[r.out];return `<div class="rcp"><span class="ing ${ok(r.a)?'':'no'}">${stIcon(r.a,26)}${ITN[r.a]}</span> + <span class="ing ${ok(r.b)?'':'no'}">${stIcon(r.b,26)}${ITN[r.b]}</span> → <b>${stIcon(r.out,26)}${out.n}</b><button data-cook="${r.a}|${r.b}" ${both?'':'disabled'}>끓인다</button><small>${r.note}</small></div>`;}).join('')}</div><p class="nobuy">없는 조합은 실패작. 포자 버섯이 들어가면 무엇이든 망친다(등불로 비춘 것은 안 들어간다).</p></section></div>`;},
+  bind:el=>{const q=s=>el.querySelector(s);if(q('[data-put]'))q('[data-put]').onclick=()=>{potHand();renderStation();};if(q('[data-ladle]'))q('[data-ladle]').onclick=()=>{potHand();const k=P.held;if(k&&ITEM[k]&&ITEM[k].kind!=='junk'){addInv(k,1);P.held=null;renderBelt();sub('가마솥',`${ITN[k]}을(를) 궤짝에 넣었다.`);}renderStation();};
+   if(q('[data-ladlehand]'))q('[data-ladlehand]').onclick=()=>{potHand();renderStation();};if(q('[data-empty]'))q('[data-empty]').onclick=()=>{potEmpty();renderStation();};
+   el.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{potPut(b.dataset.add);renderStation();});
+   el.querySelectorAll('[data-cook]').forEach(b=>b.onclick=()=>{const [a,c]=b.dataset.cook.split('|');if(potPut(a))potPut(c);renderStation();});},
   live:true},
  board:{name:'의뢰 게시판',pos:[7.2,1.8,11.8],r:2.8,
   card:()=>G.sent.length?`파티 ${G.sent.length} 미궁에 · 저녁에 돌아온다`:G.phase==='market'?`출발 줄 ${(G.requests||[]).filter(r=>!r.ans).length}명 — 9시에 나간다`:'내일 아침 7시에 출발 줄이 선다',
@@ -1130,6 +1145,11 @@ const STATIONS={
  desk:{name:'계산대',pos:[6.2,1.1,9.9],r:2.6,
   card:()=>{const w=NPCS.find(n=>n.state==='atdesk');if(w)return `${w.name}이(가) 기다린다`;if(marketOpen())return `장사 — 도라${G.day>=2?'·에녹':''}`;if(G.phase==='noon'||(G.phase==='send'&&G.sent.length))return '오후까지 쉴 수 있다';return `${G.money}G`;},
   panel:()=>deskPanel(),bind:el=>deskBind(el)},
+ table:{name:'식탁',pos:[11.5,1.1,2.5],r:4.8,
+  card:()=>G.dinner?(G.served?`${ITN[G.served]}을(를) 냈다`:'요리를 낼 시간'):'저녁 7시에 모인다',
+  panel:()=>{const dishes=Object.entries(G.inv).filter(([k,n])=>ITEM[k]&&ITEM[k].kind==='dish'&&n>0);return `<h2>식탁</h2><p class="nobuy">${G.dinner?(G.served?`오늘 저녁은 ${ITN[G.served]}. 관찰 ${G.dinnerObs||0}번 남음.`:'앉은 사람이 기다린다. 창고의 요리 하나를 낸다.'):'저녁 7시에 다들 모인다. 그때 요리를 낸다.'}</p>
+    <div class="slots">${dishes.map(([k,n])=>`<button class="slot" data-serve="${k}" ${G.dinner&&!G.served?'':'disabled'}>${stIcon(k,40)}<b>${ITN[k]}</b><small>×${n} · 낸다</small></button>`).join('')||'<span class="nobuy">창고에 요리가 없다. 부엌에서 끓인다.</span>'}</div>`;},
+  bind:el=>{el.querySelectorAll('[data-serve]').forEach(b=>b.onclick=()=>{serve(b.dataset.serve);closeStation();});}},
  chest:{name:'창고 궤짝',pos:[.9,.6,6.3],r:2.2,
   card:()=>{const e=Object.entries(G.inv);return e.length?e.map(([k,n])=>`${ITN[k]} ${n}`).join(' · '):'비었다';},
   panel:()=>{const e=Object.entries(G.inv);return `<h2>창고 궤짝</h2><p class="nobuy">요리·물약·기름·전리품. 재료는 부엌 선반에.</p><div class="slots">${e.length?e.map(([k,n])=>`<button class="slot" data-take="${k}" ${P.held?'disabled':''}>${stIcon(k,40)}<b>${ITN[k]}</b><small>×${n} · 꺼낸다</small></button>`).join(''):'<span class="nobuy">비었다</span>'}</div>
@@ -1253,6 +1273,18 @@ function stripTick(){const hide=!!WIN||!!SEAT||!!STN||!$('pause').hidden;const a
   const el=$('strip');if(hide){el.hidden=true;return;}el.hidden=false;
   el.innerHTML=SPD.list.map(s=>`<div class="tile${s.id===SPOTS.cur?' cur':''}${al[s.id]?' hot':''}" data-go="${s.id}" title="${s.name} (${s.key})">${SPOTS.thumbUrl[s.id]?`<img src="${SPOTS.thumbUrl[s.id]}" alt="">`:'<i></i>'}<b>${s.key}</b><span>${s.name}</span>${al[s.id]?`<em>${al[s.id]}</em>`:''}</div>`).join('');
   el.querySelectorAll('[data-go]').forEach(t=>{t.onmousedown=e=>e.stopPropagation();t.onclick=e=>{e.stopPropagation();goSpot(t.dataset.go);};});}
+// 장면 대표 버튼: 구역의 주요 작업대를 큰 버튼으로 (조준 없이). E 는 첫 버튼
+const ACTDEF={shelf:{n:'선반',ic:()=>itemIcon('mush',30),st:'shelf'},pot:{n:'가마솥',ic:()=>itemIcon('stew',30),st:'pot'},chest:{n:'궤짝',ic:()=>itemIcon('lunch',30),st:'chest'},desk:{n:'계산대',ic:()=>ticon('hand',30),st:'desk'},board:{n:'게시판',ic:()=>ticon('eye',30),st:'board'},
+ rules:{n:'수칙집',ic:()=>ticon('eye',30),fn:()=>{PAGE='rule';renderBookWin();},card:()=>'오늘의 암구호'},table:{n:'요리 내기',ic:()=>itemIcon('stew',30),st:'table'},keys:{n:'열쇠판',ic:()=>ticon('bar',30),st:'keys'},
+ seat:{n:'창구 앉기',ic:()=>ticon('eye',30),fn:()=>{const n=NPCS.find(x=>x.state==='atwin');if(n)winSeat(n);},card:()=>{const n=NPCS.find(x=>x.state==='atwin');return n?`${n.name}이(가) 서 있다`:'아무도 없다';},when:()=>NPCS.some(x=>x.state==='atwin')}};
+let ACTKEY='';
+function actsTick(){const el=$('acts');const s=spotCur();const hide=!G.started||G.over||!SCENE()||!!WIN||!!SEAT||!!STN||!$('pause').hidden||SPOTS.travel||!s||!s.acts;
+  if(hide){if(ACTKEY){ACTKEY='';el.hidden=true;}return;}
+  const items=s.acts.map(k=>ACTDEF[k]).filter(a=>a&&(!a.when||a.when()));const key=s.id+'|'+items.map(a=>a.n+':'+(a.card?a.card():(STATIONS[a.st]?josa(STATIONS[a.st].card()):''))).join('|');
+  if(key===ACTKEY)return;ACTKEY=key;el.hidden=false;
+  el.innerHTML=items.map((a,i)=>`<button data-act="${a.st||a.n}">${a.ic()}<b>${a.n}</b><small>${a.card?a.card():(STATIONS[a.st]?josa(STATIONS[a.st].card()):'')}</small>${i===0?'<kbd>E</kbd>':''}</button>`).join('');
+  el.querySelectorAll('[data-act]').forEach((b,i)=>{b.onmousedown=e=>e.stopPropagation();b.onclick=e=>{e.stopPropagation();const a=items[i];if(a.fn)a.fn();else openStation(a.st);};});}
+function actFirst(){const s=spotCur();if(!SCENE()||!s||!s.acts)return false;const a=s.acts.map(k=>ACTDEF[k]).find(a=>a&&(!a.when||a.when()));if(!a)return false;if(a.fn)a.fn();else openStation(a.st);return true;}
 
 // ───── 40_state.js ─────
 // ───────── 게임 상태 (여러 날) ─────────
@@ -1262,7 +1294,7 @@ const OCC={};const ROOMST={};ROOMS.forEach(r=>ROOMST[r]={stain:false,moss:0});  
 const G={t:0,day:1,speed:60/CAMP.HOUR_SEC,scale:1,started:false,over:false,fired:{},phase:'',shake:0,mouse:false,danger:0,
   dinner:false,served:null,lightsOut:false,night:false,morning:false,free:false,tutSlow:false,
   money:CAMP.MONEY0,thread:CAMP.THREAD0,inv:{},shelf:[],regs:{},stained:[],struck:[],rulesKnown:[],oilPick:'oil',
-  sent:[],pending:[],cases:[],guestsToday:[],knock3:false,limits:{},requests:[],promises:{},epQueue:[],
+  sent:[],pending:[],cases:[],guestsToday:[],knock3:false,limits:{},requests:[],promises:{},epQueue:[],clues:[],clueV:0,
   log:{},days:[]};
 function dm(){return ((G.t-DAY0)%1440+1440)%1440;}          // 그날 06:00부터 흐른 분
 const atMin=h=>((h*60-DAY0)%1440+1440)%1440;               // 시각(시) → dm
@@ -1274,7 +1306,7 @@ function freshState(){if(SPOTS.on)goSpot(SPD.START,{instant:true});G.t=(CAMP.STA
   G.shelf=CAMP.SHELF0.map(k=>({k,seen:false})).concat(G.shelf);
   G.regs={};REG_IDS.forEach(id=>G.regs[id]={grudge:0,hurt:null,gone:null,cured:false,joined:false,stay:null,promise:null,talked:0});
   G.stained=[];G.struck=[];G.rulesKnown=RULES.filter(r=>!r.day||r.day<=1).map(r=>r.id);G.oilPick='oil';G.sent=[];G.pending=[];G.cases=[];G.log=newLog();G.days=[];G.limits={...CAMP.LIMITS};
-  G.requests=[];G.promises={};G.epQueue=[];refreshShelf();   /* 첫날 선반에 재료가 보이게 */
+  G.requests=[];G.promises={};G.epQueue=[];G.clues=[];G.clueV=0;refreshShelf();   /* 첫날 선반에 재료가 보이게 */
   // 첫날은 점호(dawn) 없이 아침 준비에서 시작한다. 로스터 첫 묶음이 합류하고 첫 에피소드가 뜬다
   CAMP.timeline.forEach(ph=>{if(phAt(ph)<CAMP.START.min-DAY0)G.fired[G.day+':'+ph.id]=1;});
   rosterTick();}
@@ -1509,6 +1541,10 @@ function potHand(){const S=POT;
   P.held=null;const key=k==='mush_s'?'spore':k;S.ing.push(key==='spore'?'mush':key);if(key==='spore')S.spore=true;S.state='fill';sfx('bubble');
   if(S.ing.length>=2){const r=findRecipe(S.ing[0],S.ing[1]);S.recipe=r;S.dish=r?r.out:'fail';S.state='cook';S.t=0;tutEvent('cook');
     sub('가마솥',r?`${ITN[r.out]}이(가) 될 조합이다. 끓을 때까지 기다리자.`+(ITEM[r.out].kind==='dish'?' (너무 오래 두면 넘친다)':''):'레시피북에 없는 조합이다. 무언가 이상한 것이 되고 있다.',1);}renderBelt();}
+// 재고(선반·창고)에서 바로 넣기: 손을 거치지 않는다
+function potPut(k){const S=POT;if(S.state!=='empty'&&S.state!=='fill'){sub('가마솥','이미 끓고 있다.');return false;}const ing=ITEM[k]&&ITEM[k].kind==='ing';const have=ing?shelfCount(k):inv(k);if(have<1)return false;
+  if(ing){let j=G.shelf.findIndex(u=>u.k===k);if(j<0&&k==='mush')j=G.shelf.findIndex(u=>u.k==='spore'&&!u.seen);if(j<0)return false;const u=G.shelf[j];G.shelf.splice(j,1);refreshShelf();const was=P.held;P.held=u.k==='spore'?(u.seen?'spore':'mush_s'):u.k;potHand();if(P.held&&P.held!==was){G.shelf.unshift(u);refreshShelf();P.held=was;return false;}P.held=was;}
+  else{addInv(k,-1);const was=P.held;P.held=k;potHand();if(P.held===k){addInv(k,1);P.held=was;return false;}P.held=was;}renderBelt();return true;}
 function potEmpty(){const S=POT;if(S.state==='empty'){sub('가마솥','비어 있다.');return;}Object.assign(S,{state:'empty',ing:[],t:0,spore:false,dish:null,recipe:null});sfx('hiss');sub('가마솥','솥을 비웠다.');}
 function potTick(dt){const S=POT;const r=S.recipe;const cookT=r?r.cook:20,holdT=r?r.hold:30;
   if(S.state==='cook'){S.t+=dt;if(S.t>cookT){S.state='ready';S.t=0;sfx('bubble');}}
@@ -1516,8 +1552,8 @@ function potTick(dt){const S=POT;const r=S.recipe;const cookT=r?r.cook:20,holdT=
   potTop.material.color.set(S.state==='empty'?0x3a3a3a:S.state==='burnt'?0x1a1a1a:S.spore?0x7a9a3a:S.dish&&ITEM[S.dish]&&ITEM[S.dish].kind==='oil'?0xc89a3a:S.state==='ready'?0xb0703a:0x8a6a3a);}
 const potProgress=()=>{const S=POT,r=S.recipe;if(S.state==='cook')return Math.min(1,S.t/(r?r.cook:20));if(S.state==='ready')return Math.max(0,1-S.t/(r?r.hold:30));return 0;};
 // 식탁에 내기: 낼 수 있는 요리 전부
-function serve(){const k=P.held;if(!k||!ITEM[k]||ITEM[k].kind!=='dish'){sub('식탁',k==='burnt'||k==='fail'?'이건 못 낸다.':'낼 요리가 없다.');return;}if(!G.dinner){sub('식탁','아직 식사 시간이 아니다. 저녁 7시에 다들 모인다.');return;}
-  P.held=null;G.served=k;G.log.served=k;const eaters=NPCS.filter(n=>n.state==='sit'&&n.room);const fee=(ITEM[k].fee||3)*eaters.length;money(fee,'식사비');
+function serve(kk){const k=kk||P.held;if(!k||!ITEM[k]||ITEM[k].kind!=='dish'){sub('식탁',k==='burnt'||k==='fail'?'이건 못 낸다.':'낼 요리가 없다.');return;}if(!G.dinner){sub('식탁','아직 식사 시간이 아니다. 저녁 7시에 다들 모인다.');return;}
+  if(kk){if(inv(kk)<1)return;addInv(kk,-1);}else P.held=null;G.served=k;G.log.served=k;const eaters=NPCS.filter(n=>n.state==='sit'&&n.room);const fee=(ITEM[k].fee||3)*eaters.length;money(fee,'식사비');
   sub('식당',`${ITN[k]}을(를) 냈다. 다들 허겁지겁 먹는다. (식사비 ${fee}G)`,1);G.dinnerObs=(G.limits.obs||4)+(ITEM[k].talk||0);renderBelt();
   CHAIRS.forEach(c=>box(c[0]-.15,.82,2.2,c[0]+.15,.9,2.45,M('#9a5a3a')));
   eaters.forEach(n=>{if(n.hurt==='moss'&&!n.cured&&ITEM[k].reveal==='moss'){n.mossShown=true;setLook(n,n.look,{...(n.o||{}),moss:1});}});}
@@ -1847,7 +1883,7 @@ function answerRequest(i,ans,silent){const r=(G.requests||[])[i];if(!r||r.ans)re
     if(r.give==='calm')s.calm=true;if(r.give==='appease')grudge(r.id,-1);if(r.give==='twinSulk'&&REG[r.id].twin)grudge(REG[r.id].twin,1);}
   else if(ans==='alt'){const A=K.alt&&KIND(K.alt);if(!A)return false;if(!payKind(A,1))return false;if(A.promise)s.promise=A.promise;if(r.fake&&A.cost)G.log.gifts.push({id:r.id,k:A.n});}
   else{ans='deny';if(!r.fake&&r.k!=='none'){if(r.deny==='worse')s.worse=true;if(r.deny!=='none')grudge(r.id,1);}}
-  r.ans=ans;if(!silent){spend(5);sfx(ans==='deny'?'wood':'coin');}return true;}
+  r.ans=ans;if(r.src!=='base'&&r.k!=='none')addClue(r.name,'평소와 다른 요구: '+r.t,'요구');if(!silent){spend(5);sfx(ans==='deny'?'wood':'coin');}return true;}
 // 게시판 패널의 출발 줄
 function requestsHTML(){if(G.phase!=='market')return '';const rs=G.requests||[];if(!rs.length)return '';
   const ansT={give:'주었다',deny:'거절했다',alt:'대신 주었다',none:'청하는 것이 없다'};
@@ -1882,6 +1918,31 @@ function chatCtx(n){const id=n.regId,s=id&&G.regs[id];const morning=G.phase==='m
   if(s&&s.joinDay===G.day&&!(n.chatI&&n.chatI.intro)&&STORY.chars[id]&&STORY.chars[id].chat&&STORY.chars[id].chat.intro)return 'intro';
   if(n.fake&&n.stayer)return 'stay';   /* 잠복한 것은 계열의 말투가 샌다 */
   if(s&&s.grudge>=1)return 'grudge';if(n.hurt&&!n.cured)return 'hurt';if(n.stayer)return 'stay';return morning?'morning':'evening';}
+
+// ───── 47_clues.js ─────
+// ───────── 단서란: 키워드가 잡힌 문장이 사람별로 쌓인다. 판단(o/x)은 플레이어 ─────────
+const CLUES=D.clues||{max:80,rules:[],skip:/^$/};
+function clueWho(w){const m=/^(\d{3})호$/.exec(w);if(m){const n=occOf(+m[1]);return n?`${n.name} (${m[1]}호)`:w;}return w;}
+// 문장 하나만 잘라 낸다: 키워드가 든 문장, 60자 안
+function clueCut(t,re){const s=String(t).replace(/<[^>]+>/g,'');const parts=s.split(/(?<=[.!?…"”])\s+/);let hit=parts.find(x=>re.test(x))||s;hit=hit.trim();if(hit.length>60)hit=hit.slice(0,58)+'…';return hit;}
+function clueScan(w,t){if(!G.started||!w||CLUES.skip.test(w))return;const txt=String(t);for(const r of CLUES.rules){if(r.re.test(txt)){addClue(clueWho(w),clueCut(txt,r.re),r.tag);return;}}}
+function addClue(who,text,tag){G.clues=G.clues||[];if(G.clues.some(c=>c.day===G.day&&c.who===who&&c.text===text))return false;
+  G.clues.unshift({day:G.day,at:hhmm(G.t),who,text:josa(text),tag,mark:null});if(G.clues.length>(CLUES.max||80))G.clues.length=CLUES.max||80;G.clueV=(G.clueV||0)+1;sfx('flip');return true;}
+function markClue(i,v){const c=(G.clues||[])[i];if(!c)return;c.mark=c.mark===v?null:v;G.clueV=(G.clueV||0)+1;}
+let CLUEKEY='',CLUEWHO=null;
+function cluesTick(){const el=$('clues');const hide=!G.started||G.over||!!SEAT||!!STN||(WIN&&WIN!=='book')||SPOTS.up;const list=G.clues||[];
+  const key=(hide?'h':'s')+'|'+(G.clueV||0)+'|'+CLUEWHO+'|'+$('todo').offsetHeight;if(key===CLUEKEY)return;CLUEKEY=key;
+  if(hide||!list.length){el.hidden=true;return;}el.hidden=false;el.style.top=(14+$('todo').offsetHeight+10)+'px';
+  const vis=list.filter(c=>!CLUEWHO||c.who===CLUEWHO);const shown=vis.filter(c=>c.mark!=='x').slice(0,8);const more=vis.length-shown.length;
+  el.innerHTML=`<div class="clHead"><b>단서</b><span>${CLUEWHO?CLUEWHO+' <button data-all>전체</button>':'o 눈여겨봄 · x 아님 · Tab 장부'}</span></div>`+
+    shown.map(c=>{const i=list.indexOf(c);return `<div class="cl ${c.mark||''}"><div class="ox"><button data-ox="o" data-i="${i}" class="${c.mark==='o'?'on':''}">o</button><button data-ox="x" data-i="${i}">x</button></div><div class="ct"><b data-who="${c.who}">${c.who}</b> <em>${c.tag}</em> <small>${c.day}일 ${c.at}</small><div>${c.text}</div></div></div>`;}).join('')+
+    (more>0?`<div class="clMore">…${more}개 더 (x 표시·이전 것은 Tab 장부 → 단서)</div>`:'');
+  el.querySelectorAll('[data-ox]').forEach(b=>{b.onmousedown=e=>e.stopPropagation();b.onclick=e=>{e.stopPropagation();markClue(+b.dataset.i,b.dataset.ox);};});
+  el.querySelectorAll('[data-who]').forEach(b=>{b.onclick=e=>{e.stopPropagation();CLUEWHO=CLUEWHO===b.dataset.who?null:b.dataset.who;G.clueV++;};});
+  const all=el.querySelector('[data-all]');if(all)all.onclick=e=>{e.stopPropagation();CLUEWHO=null;G.clueV++;};}
+// 장부의 단서 탭
+function cluesPage(){const list=G.clues||[];const by={};list.forEach((c,i)=>{(by[c.who]=by[c.who]||[]).push([c,i]);});
+  return `<h2>단서</h2><p class="nobuy">대화·소리·관찰에서 잡힌 말. o = 눈여겨봄, x = 아님. 정답은 아무도 알려 주지 않는다.</p>${Object.entries(by).map(([w,arr])=>`<h3>${w} <small>(${arr.length})</small></h3><div class="clList">${arr.map(([c,i])=>`<div class="cl ${c.mark||''}"><div class="ox"><button data-ox="o" data-i="${i}" class="${c.mark==='o'?'on':''}">o</button><button data-ox="x" data-i="${i}" class="${c.mark==='x'?'on':''}">x</button></div><div class="ct"><em>${c.tag}</em> <small>${c.day}일 ${c.at}</small><div>${c.text}</div></div></div>`).join('')}</div>`).join('')||'<p class="nobuy">아직 없다.</p>'}`;}
 
 // ───── 50_mood.js ─────
 // ───────── 시간대 분위기 ─────────
@@ -1962,7 +2023,7 @@ function ambience(dt){if(!AC||!AMB)return;const {night,dusk}=tod();const out=P.x
 // ───────── HUD ─────────
 let HT=0;
 function hudTick(dt){HT-=dt;SUBT-=dt;if(SUBT<=0)$('sub').classList.remove('show');tipTick(dt);stationLive(dt);
-  if(HT>0)return;HT=.15;const {h}=tod();
+  if(HT>0)return;HT=.15;const {h}=tod();cluesTick();actsTick();
   const ph=CAMP.timeline.slice().reverse().find(p=>G.fired[G.day+':'+p.id]);
   const spd=G.speed/(60/CAMP.HOUR_SEC);$('clock').innerHTML=`<small>${G.day}일째</small><b>${hhmm(G.t)}</b><span>${ph?ph.label:''}${Math.abs(spd-1)>.01?` <em>×${spd.toFixed(0)}</em>`:''}</span>`;
   const tf=G.threadFlash||0;if(tf)G.threadFlash=0;
@@ -2025,7 +2086,7 @@ $('startBtn').onclick=()=>beginGame(false);$('contBtn').onclick=()=>beginGame(tr
 if(hasSave()){const sv=loadSave();$('contBtn').hidden=false;$('contBtn').textContent=`이어하기 — ${sv.G.day}일째 ${({morning:'아침',evening:'저녁',night:'밤'})[sv.tag]||''}`;}
 window.__g={G,P,NPCS,RETN,OCC,DOORS,POT,ACTOR,STATIONS,SEND,REG,ITEM,PH,setTime:m=>{G.t=m;},setDM:m=>{G.t=dayStart()+m;},dm,tp:(x,z,y=0)=>{P.x=x;P.z=z;P.y=y;},look:(yaw,pitch=0)=>{camera.rotation.set(pitch,yaw,0,'YXZ');},
   start:(cont)=>{$('start').hidden=true;const snap=cont?loadSave():null;if(snap&&restoreFrom(snap)){G.started=true;setTimeout(()=>{atmosphere(0);thumbAll();},900);return;}freshState();G.started=true;G.tutSlow=true;joinedArrive(ACTIVE());setTimeout(()=>{atmosphere(0);thumbAll();},900);if(G.epQueue.length)runEpisodes();},
-  requests:()=>G.requests,answer:(i,a)=>answerRequest(i,a),active:()=>ACTIVE(),stayers:()=>stayers().map(n=>n.uid),talk:uid=>{const n=NPCS.find(x=>x.uid===uid);talk(n);return $('sub').innerText;},expel:uid=>{const n=NPCS.find(x=>x.uid===uid);expel(n);},
+  requests:()=>G.requests,answer:(i,a)=>answerRequest(i,a),clues:()=>G.clues,mark:(i,v)=>markClue(i,v),acts:()=>[...document.querySelectorAll('#acts button')].map(b=>b.dataset.act),act2:k=>{const b=document.querySelector(`#acts [data-act="${k}"]`);if(b)b.click();return !!b;},active:()=>ACTIVE(),stayers:()=>stayers().map(n=>n.uid),talk:uid=>{const n=NPCS.find(x=>x.uid===uid);talk(n);return $('sub').innerText;},expel:uid=>{const n=NPCS.find(x=>x.uid===uid);expel(n);},
   parties:()=>SEND.parties.map(p=>({q:p.req.id,mem:p.mem.slice(),lunch:p.lunch,recall:p.recall})),setParty:(pi,mem,opt)=>{const p=SEND.parties[pi];if(!p)return false;p.mem=mem;if(opt){p.lunch=!!opt.lunch;p.recall=!!opt.recall;}return true;},quests:()=>todayQuests().map(q=>q.id),episodes:()=>G.epQueue.slice(),
   admit:(uid,r)=>{const n=NPCS.find(x=>x.uid===uid);admitRet(n,r);},refuse:uid=>{const n=NPCS.find(x=>x.uid===uid);refuseRet(n);},
   doit:(it,k,uid)=>{const n=uid?NPCS.find(x=>x.uid===uid):null;const i=ACT(it,n);const a=i&&i.verbs.find(v=>v.k===k);if(a){if(a.need==='lamp'&&!P.lamp)return 'need-lamp';a.fn();return a.t;}return null;},
@@ -2033,7 +2094,7 @@ window.__g={G,P,NPCS,RETN,OCC,DOORS,POT,ACTOR,STATIONS,SEND,REG,ITEM,PH,setTime:
   restore:snap=>restoreFrom(snap),snapshot:tag=>snapshot(tag),
   spot:()=>SPOTS.cur,go:(id,inst)=>goSpot(id,{instant:!!inst}),SPOTS:SPD?SPD.list:[],slots:SPD?SPD.slots:{},walkTo:(n,pts,cb)=>walk(n,pts,cb),isScene:()=>SCENE(),up:()=>SPOTS.up,thumbs:()=>Object.keys(SPOTS.thumbUrl),proj:(x,y,z)=>{const v=new THREE.Vector3(x,y,z).project(camera);return [(v.x+1)/2*innerWidth,(1-v.y)/2*innerHeight,v.z];},mouse:()=>({...MOUSE}),paused:()=>!!G.paused,
   helga:()=>helga,close:()=>closeWin(),leave:()=>closeSeat(),win:()=>WIN,stn:()=>STN,open:id=>openStation(id),closeStn:()=>closeStation(),yaw:()=>+new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ').y.toFixed(3),
-  act:(it,k)=>{const i=ACT(it,null);const a=i&&i.verbs.find(v=>v.k===k);if(a){a.fn();return a.t;}return null;},click:()=>doVerb(),drops:()=>DROPS.filter(Boolean).map(d=>d.k),vm:()=>VM.key,vlist:()=>VLIST.map(v=>v.k),aim:()=>AIM,
+  act:(it,k)=>{const i=ACT(it,null);const a=i&&i.verbs.find(v=>v.k===k);if(a){a.fn();return a.t;}return null;},click:()=>doVerb(),verbK:k=>{const i=VLIST.findIndex(v=>v.k===k);if(i<0)return false;VSEL=i;doVerb();return true;},drops:()=>DROPS.filter(Boolean).map(d=>d.k),vm:()=>VM.key,vlist:()=>VLIST.map(v=>v.k),aim:()=>AIM,
   send:(plan)=>{const qs=todayQuests();const ps=plan.map(([qi,mem,opt])=>({req:qs[qi],mem,lunch:!!(opt&&opt.lunch),recall:!!(opt&&opt.recall),on:true}));dispatch(ps);tutEvent('send');return G.cases.map(c=>({cid:c.cid,kind:c.kind,id:c.regId||c.guest||c.kind,fake:c.fake&&c.fake.fam,at:c.at,hurt:c.hurt,loot:c.loot.map(x=>x.k)}));},
   cases:()=>G.cases.map(c=>({cid:c.cid,kind:c.kind,id:c.regId||c.guest||c.kind,name:c.name,fake:c.fake&&c.fake.fam,plan:c.fake&&c.fake.plan,at:c.at,state:c.state,npc:c.npc&&c.npc.uid,lootN:c.loot?c.loot.length:0,hurt:c.hurt})),
   startHunt:()=>{const f=NPCS.find(x=>x.fake&&x.state!=='gone');if(f)startHunt(f);},club:clubSwing,mood:mood.uniforms,renderer,scene,camera,snapshot,loadSave,clearSave,MC,ASSETS,inv:()=>({...G.inv}),phase:()=>G.phase};
