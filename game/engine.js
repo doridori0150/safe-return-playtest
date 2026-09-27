@@ -2,8 +2,8 @@
 // ───────── 데이터 연결 ─────────
 // 게임 데이터는 game/data/*.js가 window.SRG에 올려 둔다. 엔진은 여기서만 읽는다.
 const D=window.SRG||{};
-['regulars','staff','guests','floors','items','recipes','quests','rules','anomalies','campaign','dialogue'].forEach(k=>{if(!D[k])console.error('데이터 없음: game/data/'+k+'.js');});
-const REG=D.regulars,STAFF=D.staff,GUEST=D.guests,FLOOR=D.floors,ITEM=D.items,RECIPES=D.recipes,QUESTS=D.quests,RULES=D.rules,ANOM=D.anomalies,CAMP=D.campaign,DLG=D.dialogue,OILS=D.oils;
+['regulars','staff','guests','floors','items','recipes','quests','rules','anomalies','campaign','dialogue','requests','story'].forEach(k=>{if(!D[k])console.error('데이터 없음: game/data/'+k+'.js');});
+const REG=D.regulars,STAFF=D.staff,GUEST=D.guests,FLOOR=D.floors,ITEM=D.items,RECIPES=D.recipes,QUESTS=D.quests,QRULE=D.questRule||{perDay:3,enochFrom:5},RULES=D.rules,ANOM=D.anomalies,CAMP=D.campaign,DLG=D.dialogue,OILS=D.oils,REQ=D.requests||{kinds:{},base:{},deviant:{real:{},fake:{}}},STORY=D.story||{episodes:{},chars:{},fam:{}};
 const REG_IDS=Object.keys(REG);[REG,STAFF,GUEST].forEach(T=>Object.keys(T).forEach(k=>{T[k].id=k;}));
 // 이름 조회: 단골·요리사·손님을 한 표처럼 본다 (옛 코드의 C[id] 호환)
 const C=new Proxy({},{get:(_,id)=>REG[id]||STAFF[id]||GUEST[id]||null,has:(_,id)=>!!(REG[id]||STAFF[id]||GUEST[id])});
@@ -970,7 +970,7 @@ function toggleBook(){if(WIN==='book'){closeWin();relock();return;}if(WIN&&WIN!=
 function renderBookWin(){const pg=[['rule','수칙'],['reg','단골'],['room','숙박부'],['quest','의뢰'],['store','창고'],['memo','메모']];
   let h=`<div class="bookTabs">${pg.map(([k,n])=>`<button data-pg="${k}" class="${PAGE===k?'on':''}">${n}</button>`).join('')}<span class="nobuy">Tab으로 닫기 · 펴 있는 동안 시간이 느리게 흐른다</span></div><div class="bookPage">`;
   if(PAGE==='rule'){const pw=todayPW();h+=`<h2>여관 수칙</h2><div class="by">— 마그다 · 오늘의 암구호: <b>${pw.q} → ${pw.a}</b></div><ol class="rl">${RULES.filter(r=>G.rulesKnown.includes(r.id)).map(r=>`<li class="${r.red?'red':''} ${G.struck.includes(r.id)?'struck':''} ${r.ink==='fake'?'wet-'+(r.hint||'wet'):''}"><span class="n">${r.n}.</span><span class="ink-${r.ink==='fake'?'m':r.ink}">${r.t}</span>${r.day&&r.day===G.day?'<em class="newTag">새 줄</em>':''}<button class="mini strike" data-strike="${r.id}">${G.struck.includes(r.id)?'되살린다':'줄 긋기'}</button></li>`).join('')}</ol><p class="nobuy">가짜 줄의 흔적: 젖은 잉크, 겹친 번호, "손님" 말투, 기존 수칙과 모순.</p>`;}
-  if(PAGE==='reg')h+=`<h2>단골 카드</h2><div class="regGrid">${REG_IDS.map(id=>{const s=G.regs[id];return `<div class="rcard ${s.gone?'gone':''}"><div class="ph"><svg viewBox="0 0 200 240" width="64" height="77">${fig(id)}</svg></div><div><b>${REG[id].name}</b> <small>${REG[id].race} · ${REG[id].role}</small><div class="ft">${featText(id).slice(0,3).join(' · ')}</div><div class="mm">${REG[id].memo.join(' ')}</div><div class="st">${s.gone?'사라짐':s.hurt?'앓는 중':'멀쩡'}${s.grudge?` · 원망 ${s.grudge}`:''} · 신발: ${SRG.shoes[REG[id].shoes]||REG[id].shoes}</div></div></div>`;}).join('')}</div>`;
+  if(PAGE==='reg'){const act=ACTIVE(),rest=REG_IDS.filter(id=>!act.includes(id));h+=`<h2>단골 카드</h2><div class="regGrid">${act.map(id=>{const s=G.regs[id],rq=(G.requests||[]).find(r=>r.id===id),bio=(STORY.chars[id]||{}).bio||'';return `<div class="rcard ${s.gone?'gone':''}"><div class="ph"><svg viewBox="0 0 200 240" width="64" height="77">${fig(id)}</svg></div><div><b>${REG[id].name}</b> <small>${REG[id].race} · ${REG[id].role}</small><div class="ft">${featText(id).slice(0,3).join(' · ')}</div><div class="mm">${REG[id].memo.join(' ')}${bio?' '+bio:''}</div><div class="st">${s.gone?(s.gone==='left'?'길드를 떠남':'사라짐'):s.stay?`오늘 남음 (${stayLabel[s.stay]||s.stay})`:s.hurt?'앓는 중':'멀쩡'}${s.grudge?` · 원망 ${s.grudge}`:''} · 신발: ${SRG.shoes[REG[id].shoes]||REG[id].shoes}${rq&&rq.k!=='none'?` · 오늘 청한 것: ${KIND(rq.k).n}${rq.ans?` (${{give:'줌',deny:'거절',alt:'대신'}[rq.ans]||''})`:''}`:''}</div></div></div>`;}).join('')}</div>${rest.length?`<p class="nobuy">아직 오지 않은 단골 ${rest.length}명.</p>`:''}`;}
   if(PAGE==='room')h+=`<h2>숙박부</h2>${ROOMS.map(r=>{const n=occOf(r);return `<div class="rrow"><b>${r}호</b><span>${n?n.name:'— 빈방 —'}</span><i>${DOORS[r].locked?'빗장 ':''}${DOORS[r].lampHung?'등불 ':''}${ROOMST[r].stain?'얼룩':''}</i></div>`;}).join('')}`;
   if(PAGE==='quest')h+=`<h2>의뢰</h2>${G.sent.length?`<h3>오늘 나간 파티</h3>${G.sent.map(p=>`<div class="rrow"><b>${p.req.fl}</b><span>${p.req.by} — ${p.mem.map(id=>REG[id].name).join(', ')}</span><i>예감 ${omen(p.risk)[0]}</i></div>`).join('')}`:'<p class="nobuy">오늘 나간 파티가 없다.</p>'}<h3>납품할 의뢰</h3>${G.pending.filter(q=>q.req.need&&!q.done).map(q=>`<div class="rrow"><b>${q.req.by}</b><span>${ITN[q.req.need]} ×${q.req.qty}</span><i>${q.req.reward}G</i></div>`).join('')||'<p class="nobuy">없다.</p>'}`;
   if(PAGE==='store'){const m=invAll();h+=`<h2>창고</h2><div class="regGrid">${Object.entries(m).map(([k,n])=>`<div class="rcard"><div class="ph">${itemIcon(k,56)}</div><div><b>${ITN[k]}</b> ×${n}<div class="mm">${ITEM[k]?(ITEM[k].kind==='ing'?'재료 (선반)':ITEM[k].kind==='dish'?'요리':ITEM[k].kind==='pot'?'물약':ITEM[k].kind==='oil'?'기름':''):''}</div></div></div>`).join('')||'<p class="nobuy">비었다.</p>'}</div>`;}
@@ -1108,7 +1108,7 @@ const STATIONS={
   bind:el=>{const q=s=>el.querySelector(s);if(q('[data-put]'))q('[data-put]').onclick=()=>{potHand();renderStation();};if(q('[data-ladle]'))q('[data-ladle]').onclick=()=>{potHand();renderStation();};if(q('[data-empty]'))q('[data-empty]').onclick=()=>{potEmpty();renderStation();};},
   live:true},
  board:{name:'의뢰 게시판',pos:[7.2,1.8,11.8],r:2.8,
-  card:()=>G.sent.length?`파티 ${G.sent.length} 미궁에 · 저녁에 돌아온다`:(G.phase==='send'||G.phase==='market')?'오늘 의뢰 3장 — 11시까지':'내일 아침 9시에 보낸다',
+  card:()=>G.sent.length?`파티 ${G.sent.length} 미궁에 · 저녁에 돌아온다`:G.phase==='market'?`출발 줄 ${(G.requests||[]).filter(r=>!r.ans).length}명 — 9시에 나간다`:'내일 아침 7시에 출발 줄이 선다',
   panel:()=>boardPanel(),bind:el=>boardBind(el)},
  desk:{name:'계산대',pos:[6.2,1.1,9.9],r:2.6,
   card:()=>{const w=NPCS.find(n=>n.state==='atdesk');if(w)return `${w.name}이(가) 기다린다`;if(marketOpen())return `장사 — 도라${G.day>=2?'·에녹':''}`;if(G.phase==='noon'||(G.phase==='send'&&G.sent.length))return '오후까지 쉴 수 있다';return `${G.money}G`;},
@@ -1126,27 +1126,26 @@ const STATIONS={
   bind:()=>{}},
 };
 // 게시판
-const SEND={parties:[],ready:false};
-function boardPanel(){const qs=todayQuests(),open=SRG.openFloors?SRG.openFloors[Math.min(G.day-1,SRG.openFloors.length-1)]:null;const can=(G.phase==='send'||G.phase==='market')&&!G.sent.length;
-  if(!SEND.parties.length)SEND.parties=qs.map(q=>({req:q,mem:[],lunch:false,recall:false,on:false}));
+// 게시판: 7시에 자동 편성된 파티가 걸려 있다. 사람을 바꾸고 도시락·물약을 붙인다. 9시에 무조건 나간다
+const SEND={parties:[],day:0};
+const stayLabel={sick:'앓음',grudge:'원망',shock:'충격',latent:'앓음'};
+function boardPanel(){const open=openFloorsToday();const can=G.phase==='market'&&!G.sent.length;
+  if(can&&(!SEND.parties.length||SEND.day!==G.day)){SEND.parties=autoParties();SEND.day=G.day;}
   const used=SEND.parties.flatMap(p=>p.mem);
-  const roster=REG_IDS.map(id=>{const r=REG[id],s=G.regs[id];const st=s.gone?'사라짐':s.hurt?`앓음 (파견 불가)${inv('heal')?` <button data-cure="${id}">치료약</button>`:''}`:used.includes(id)?'배정됨':'대기';return `<div class="rost ${s.gone||s.hurt?'off':''}"><svg viewBox="0 0 200 240" width="34" height="41">${fig(id)}</svg><div><b>${r.name}</b> <small>${r.role}</small><br><small>B1 ${'●'.repeat(Math.max(0,r.apt.B1+1))}${'○'.repeat(2-Math.max(0,r.apt.B1+1))} B2 ${'●'.repeat(Math.max(0,r.apt.B2+1))}${'○'.repeat(2-Math.max(0,r.apt.B2+1))} · ${st}${s.grudge?` · 원망 ${s.grudge}`:''}</small></div></div>`;}).join('');
-  if(G.sent.length)return `<h2>의뢰 게시판 — ${G.day}일째</h2><p class="nobuy">오늘 보낸 파티. 저녁 창구로 돌아온다. 부절 반쪽이 곧 명단이다.</p>${G.sent.map(p=>`<div class="qcard sent"><div class="qh"><span class="fl ${p.req.fl}">${p.req.fl}</span> <b>${p.req.by}</b> 의뢰 — ${p.req.t}</div><div>${p.mem.map(id=>REG[id].name).join(', ')} · 귀환 예감 <b class="om ${p.omen}">${omen(p.risk)[0]}</b>${p.lunch?' · 도시락':''}${p.recall?' · 귀환 물약':''}</div></div>`).join('')}<h3>단골</h3><div class="roster">${roster}</div>`;
-  return `<h2>의뢰 게시판 — ${G.day}일째</h2><p class="nobuy">${can?'의뢰를 켜고 사람을 붙인다. 층마다 파티 하나, 한두 명. 11시 전에 보낸다.':G.phase==='noon'||G.phase==='evening'||G.phase==='dinner'||G.night?'보내는 시간이 지났다. 내일 아침 9시.':'아침 9시부터 11시 사이에 보낸다.'}</p>
+  const roster=ACTIVE().map(id=>{const r=REG[id],s=G.regs[id];const st=s.gone?(s.gone==='left'?'떠남':'사라짐'):s.stay?`남는다 (${stayLabel[s.stay]||s.stay})${s.stay==='sick'&&inv('heal')&&!latentOf(id)?` <button data-cure="${id}">치료약</button>`:''}`:used.includes(id)?'배정됨':G.sent.length?'미궁에':'대기';
+    return `<div class="rost ${s.gone||s.stay?'off':''}"><svg viewBox="0 0 200 240" width="34" height="41">${fig(id)}</svg><div><b>${r.name}</b> <small>${r.role}</small><br><small>B1 ${'●'.repeat(Math.max(0,r.apt.B1+1))}${'○'.repeat(2-Math.max(0,r.apt.B1+1))} B2 ${'●'.repeat(Math.max(0,r.apt.B2+1))}${'○'.repeat(2-Math.max(0,r.apt.B2+1))} · ${st}${s.grudge?` · 원망 ${s.grudge}`:''}</small></div></div>`;}).join('');
+  if(G.sent.length)return `<h2>의뢰 게시판 — ${G.day}일째</h2><p class="nobuy">오늘 나간 파티. 저녁 창구로 돌아온다. 부절 반쪽이 곧 명단이다.</p>${G.sent.map(p=>`<div class="qcard sent"><div class="qh"><span class="fl ${p.req.fl}">${p.req.fl}</span> <b>${p.req.by}</b> 의뢰 — ${p.req.t}</div><div>${p.mem.map(id=>REG[id].name).join(', ')} · 귀환 예감 <b class="om ${p.omen}">${omen(p.risk)[0]}</b>${p.lunch?' · 도시락':''}${p.recall?' · 귀환 물약':''}</div></div>`).join('')}<h3>단골</h3><div class="roster">${roster}</div>`;
+  if(!can)return `<h2>의뢰 게시판 — ${G.day}일째</h2><p class="nobuy">내일 아침 7시에 출발 줄이 선다. 9시에 나간다.</p><h3>단골</h3><div class="roster">${roster}</div>`;
+  return `<h2>의뢰 게시판 — ${G.day}일째</h2>${requestsHTML()}<h3>오늘의 파티 — 9시에 나간다</h3><p class="nobuy">저마다 갈 곳을 정해 두었다. 사람을 바꾸거나 도시락·귀환 물약을 붙일 수 있다. 위험 의뢰에 적성 낮은 사람이 가면 그것이 노린다.</p>
    <div class="qlist">${SEND.parties.map((p,pi)=>{const q=p.req,closed=open&&!open.includes(q.fl);const r=partyRisk(q,p.mem,p),[ol,oc]=omen(r);
-    const slot=si=>{const cur=p.mem[si]||'';return `<select data-p="${pi}" data-s="${si}" ${!p.on||!can?'disabled':''}><option value="">— 비움 —</option>${REG_IDS.filter(id=>canSend(id)&&(id===cur||!used.includes(id))).map(id=>`<option value="${id}" ${id===cur?'selected':''}>${REG[id].name} (${REG[id].role}, ${q.fl} ${['×','△','○'][REG[id].apt[q.fl]+1]})</option>`).join('')}</select>`;};
-    return `<div class="qcard ${p.on?'on':''} ${closed?'closed':''}"><label class="qh"><input type="checkbox" data-on="${pi}" ${p.on?'checked':''} ${!can||closed?'disabled':''}><span class="fl ${q.fl}">${q.fl}</span> <b>${q.by}</b> — ${q.t}<small>${q.need?`${ITN[q.need]} ×${q.qty} 납품 → `:'조사 → '}${q.reward}G${q.risky?' · <em>위험</em>':''}${q.enoch?' · <em>실 −2</em>':''}${closed?' · 아직 닫힌 층':''}</small></label>
-      ${p.on?`<div class="pty">${slot(0)}${slot(1)}<label><input type="checkbox" data-lunch="${pi}" ${p.lunch?'checked':''} ${inv('lunch')-SEND.parties.filter((x,i)=>x.lunch&&i!==pi).length<=0&&!p.lunch||!can?'disabled':''}> 도시락 <small>(${inv('lunch')})</small></label><label><input type="checkbox" data-recall="${pi}" ${p.recall?'checked':''} ${inv('recall')-SEND.parties.filter((x,i)=>x.recall&&i!==pi).length<=0&&!p.recall||!can?'disabled':''}> 귀환 물약 <small>(${inv('recall')})</small></label><div class="omen ${oc}">귀환 예감: <b>${ol}</b></div></div>`:''}</div>`;}).join('')}</div>
-   <div class="strow"><button class="primary" data-go ${!can||!SEND.parties.some(p=>p.on&&p.mem.length)?'disabled':''}>부절을 쪼개 주고 보낸다</button></div>
+    const slot=si=>{const cur=p.mem[si]||'';return `<select data-p="${pi}" data-s="${si}"><option value="">— 비움 —</option>${ACTIVE().filter(id=>canSend(id)&&(id===cur||!used.includes(id))).map(id=>`<option value="${id}" ${id===cur?'selected':''}>${REG[id].name} (${REG[id].role}, ${q.fl} ${['×','△','○'][REG[id].apt[q.fl]+1]})</option>`).join('')}</select>`;};
+    return `<div class="qcard on ${closed?'closed':''}"><div class="qh"><span class="fl ${q.fl}">${q.fl}</span> <b>${q.by}</b> — ${q.t}<small>${q.need?`${ITN[q.need]} ×${q.qty} 납품 → `:'조사 → '}${q.reward}G${q.risky?' · <em>위험</em>':''}${q.enoch?' · <em>실 −2</em>':''}</small></div>
+      <div class="pty">${slot(0)}${slot(1)}<label><input type="checkbox" data-lunch="${pi}" ${p.lunch?'checked':''} ${inv('lunch')-SEND.parties.filter((x,i)=>x.lunch&&i!==pi).length<=0&&!p.lunch?'disabled':''}> 도시락 <small>(${inv('lunch')})</small></label><label><input type="checkbox" data-recall="${pi}" ${p.recall?'checked':''} ${inv('recall')-SEND.parties.filter((x,i)=>x.recall&&i!==pi).length<=0&&!p.recall?'disabled':''}> 귀환 물약 <small>(${inv('recall')})</small></label><div class="omen ${oc}">귀환 예감: <b>${p.mem.length?ol:'아무도 안 감'}</b></div></div></div>`;}).join('')}</div>
    <h3>단골</h3><div class="roster">${roster}</div>`;}
-function boardBind(el){el.querySelectorAll('[data-cure]').forEach(b=>b.onclick=()=>{const id=b.dataset.cure;if(!inv('heal'))return;addInv('heal',-1);G.regs[id].hurt=null;sub('게시판',`${REG[id].name}에게 치료약을 보냈다. 내일부터 다시 보낼 수 있다.`,1);renderStation();});el.querySelectorAll('[data-on]').forEach(b=>b.onchange=()=>{const p=SEND.parties[+b.dataset.on];p.on=b.checked;if(!p.on)p.mem=[];renderStation();});
+function boardBind(el){requestsBind(el);el.querySelectorAll('[data-cure]').forEach(b=>b.onclick=()=>{const id=b.dataset.cure;if(!inv('heal'))return;addInv('heal',-1);G.regs[id].hurt=null;const n=ACTOR[id];if(n){n.cured=true;n.hurt=null;}sub('게시판',`${REG[id].name}에게 치료약을 먹였다. 내일부터 다시 나간다.`,1);renderStation();});
   el.querySelectorAll('select[data-p]').forEach(s=>s.onchange=()=>{const p=SEND.parties[+s.dataset.p],si=+s.dataset.s;p.mem[si]=s.value||undefined;p.mem=p.mem.filter(Boolean);renderStation();});
   el.querySelectorAll('[data-lunch]').forEach(b=>b.onchange=()=>{SEND.parties[+b.dataset.lunch].lunch=b.checked;renderStation();});
-  el.querySelectorAll('[data-recall]').forEach(b=>b.onchange=()=>{SEND.parties[+b.dataset.recall].recall=b.checked;renderStation();});
-  const go=el.querySelector('[data-go]');if(go)go.onclick=()=>{const ps=SEND.parties.filter(p=>p.on&&p.mem.length);dispatch(ps);sfx('wood');tutEvent('send');
-    const names=ps.flatMap(p=>p.mem.map(id=>REG[id].name));sub('게시판',`${names.join(', ')}에게 부절 반쪽을 주고 보냈다. 저녁에 돌아온다.`,1);note('보내기',ps.map(p=>`${p.req.fl} ${p.mem.map(id=>REG[id].name).join('·')} (${omen(partyRisk(p.req,p.mem,p))[0]})`).join(' / '));
-    ps.forEach(p=>p.mem.forEach(id=>{const n=ACTOR[id];if(SPOTS.on){n.visible=false;n.state='gone';return;}n.visible=true;placeNPC(n,5.8,11.2);n.state='walk';walk(n,[[4.2,11.6],[4,14],[4,17]],m=>{m.visible=false;m.state='gone';});}));
-    SEND.parties=[];renderStation();};}
+  el.querySelectorAll('[data-recall]').forEach(b=>b.onchange=()=>{SEND.parties[+b.dataset.recall].recall=b.checked;renderStation();});}
 // 계산대
 let DESKTAB='trade';
 function deskPanel(){const tabs=[['trade','장사'],['book','숙박부'],['time','시간']].map(([k,n])=>`<button class="tab ${DESKTAB===k?'on':''}" data-tab="${k}">${n}</button>`).join('');let body='';
@@ -1157,7 +1156,7 @@ function deskPanel(){const tabs=[['trade','장사'],['book','숙박부'],['time'
     <h3>의뢰 납품</h3>${pend||'<p class="nobuy">납품할 의뢰가 없다.</p>'}
     <h3>수선</h3>${G.stained.length?G.stained.map(r=>`<div class="trow"><b>${r}호 얼룩</b><button data-repair="${r}" ${G.money>=CAMP.fees.repair?'':'disabled'}>${CAMP.fees.repair}G</button></div>`).join(''):'<p class="nobuy">얼룩진 방이 없다.</p>'}`;}
   if(DESKTAB==='book')body=STATIONS.keys.panel();
-  if(DESKTAB==='time'){const canSkip=(G.phase==='noon'||((G.phase==='send'||G.phase==='market')&&G.sent.length))&&!NPCS.some(n=>n.state==='atdesk');body=`<p>${G.day}일째 ${hhmm(G.t)}</p><p class="nobuy">${canSkip?'할 일이 없으면 오후까지 쉰다. 4시 반에 창구를 연다.':G.phase==='send'&&!G.sent.length?'먼저 게시판에서 파티를 보낸다.':'지금은 건너뛸 수 없다.'}</p><div class="strow"><button class="primary" data-skip ${canSkip?'':'disabled'}>오후까지 쉰다</button></div>`;}
+  if(DESKTAB==='time'){const canSkip=(G.phase==='noon'||G.phase==='send')&&G.sent.length>0&&!NPCS.some(n=>n.state==='atdesk');body=`<p>${G.day}일째 ${hhmm(G.t)}</p><p class="nobuy">${canSkip?'할 일이 없으면 오후까지 쉰다. 4시 반에 창구를 연다.':G.phase==='market'?'9시에 파티가 나간 뒤에 쉴 수 있다.':'지금은 건너뛸 수 없다.'}</p><div class="strow"><button class="primary" data-skip ${canSkip?'':'disabled'}>오후까지 쉰다</button></div>`;}
   return `<h2>계산대</h2><div class="tabs">${tabs}</div>${body}`;}
 function deskBind(el){el.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{DESKTAB=b.dataset.tab;renderStation();});
   const take=(k,n=1)=>{if(ITEM[k].kind==='ing'){for(let i=0;i<n;i++){let j=G.shelf.findIndex(u=>u.k===k);if(j<0&&k==='mush')j=G.shelf.findIndex(u=>u.k==='spore'&&!u.seen);if(j>=0)G.shelf.splice(j,1);}refreshShelf();}else addInv(k,-n);};
@@ -1167,7 +1166,7 @@ function deskBind(el){el.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=
   el.querySelectorAll('[data-deliver]').forEach(b=>b.onclick=()=>{const q=G.pending.filter(x=>x.req.need&&!x.done)[+b.dataset.deliver];take(q.req.need,q.req.qty);money(q.req.reward,q.req.by+' 의뢰 보상');q.done=true;G.log.delivered.push(q.req.id);if(q.req.enoch){thread(CAMP.thread.enoch,'에녹 의뢰');G.log.enoch++;}sub(q.req.by,`"고맙다." ${q.req.reward}G를 받았다.`,1);renderStation();});
   el.querySelectorAll('[data-repair]').forEach(b=>b.onclick=()=>{const r=+b.dataset.repair;if(G.money<CAMP.fees.repair)return;money(-CAMP.fees.repair,'수선');G.stained=G.stained.filter(x=>x!==r);ROOMST[r].stain=false;sub('계산대',`${r}호를 수선했다.`);renderStation();});
   const sk=el.querySelector('[data-skip]');if(sk)sk.onclick=()=>{skipTo(phAt(CAMP.timeline.find(p=>p.id==='evening'))-1);closeStation();};}
-function skipTo(dmTarget){const cur=dm();if(dmTarget<=cur)return;$('black').classList.add('on');setTimeout(()=>{G.t+=dmTarget-cur;$('black').classList.remove('on');sub('여관','오후가 지나갔다. 창구를 열 시간이다.');},700);}
+function skipTo(dmTarget){const cur=dm();if(dmTarget<=cur)return;G.t+=dmTarget-cur;$('black').classList.add('on');setTimeout(()=>{$('black').classList.remove('on');sub('여관','오후가 지나갔다. 창구를 열 시간이다.');},700);}
 // 틀
 let STCARD='';
 function stationTick(){if(!G.started||G.over||WIN||SEAT){$('stcard').hidden=true;return;}const f=new THREE.Vector3();camera.getWorldDirection(f);let best=null,bd=9;
@@ -1243,30 +1242,41 @@ const OCC={};const ROOMST={};ROOMS.forEach(r=>ROOMST[r]={stain:false,moss:0});  
 const G={t:0,day:1,speed:60/CAMP.HOUR_SEC,scale:1,started:false,over:false,fired:{},phase:'',shake:0,mouse:false,danger:0,
   dinner:false,served:null,lightsOut:false,night:false,morning:false,free:false,tutSlow:false,
   money:CAMP.MONEY0,thread:CAMP.THREAD0,inv:{},shelf:[],regs:{},stained:[],struck:[],rulesKnown:[],oilPick:'oil',
-  sent:[],pending:[],cases:[],guestsToday:[],knock3:false,limits:{},
+  sent:[],pending:[],cases:[],guestsToday:[],knock3:false,limits:{},requests:[],promises:{},epQueue:[],
   log:{},days:[]};
 function dm(){return ((G.t-DAY0)%1440+1440)%1440;}          // 그날 06:00부터 흐른 분
 const atMin=h=>((h*60-DAY0)%1440+1440)%1440;               // 시각(시) → dm
 const phAt=ph=>((ph.at-DAY0)%1440+1440)%1440;              // 시간표의 시각(분) → dm
-function newLog(){return{admit:[],refuse:[],refusedReal:[],missing:[],spread:0,killed:[],barred:[],fled:[],lured:false,woke:0,late:[],evicted:false,enoch:0,cursed:[],served:null,delivered:[],notes:[]};}
+function newLog(){return{admit:[],refuse:[],refusedReal:[],missing:[],spread:0,killed:[],barred:[],fled:[],lured:false,woke:0,late:[],evicted:false,enoch:0,cursed:[],served:null,delivered:[],notes:[],
+  quiet:[],fizzle:[],expelled:[],left:[],gifts:[],calm:[],worse:[],joined:[]};}
 function freshState(){if(SPOTS.on)goSpot(SPD.START,{instant:true});G.t=(CAMP.START.day-1)*1440+CAMP.START.min;G.day=CAMP.START.day;G.fired={};G.money=CAMP.MONEY0;G.thread=CAMP.THREAD0;
   G.inv={};Object.entries(CAMP.INV0).forEach(([k,n])=>{if(ITEM[k].kind==='ing')for(let i=0;i<n;i++)G.shelf.push({k,seen:false});else G.inv[k]=n;});
   G.shelf=CAMP.SHELF0.map(k=>({k,seen:false})).concat(G.shelf);
-  G.regs={};REG_IDS.forEach(id=>G.regs[id]={grudge:0,hurt:null,gone:null,cured:false});
+  G.regs={};REG_IDS.forEach(id=>G.regs[id]={grudge:0,hurt:null,gone:null,cured:false,joined:false,stay:null,promise:null,talked:0});
   G.stained=[];G.struck=[];G.rulesKnown=RULES.filter(r=>!r.day||r.day<=1).map(r=>r.id);G.oilPick='oil';G.sent=[];G.pending=[];G.cases=[];G.log=newLog();G.days=[];G.limits={...CAMP.LIMITS};
-  // 첫날은 점호(dawn) 없이 아침 장사에서 시작한다
-  CAMP.timeline.forEach(ph=>{if(phAt(ph)<CAMP.START.min-DAY0)G.fired[G.day+':'+ph.id]=1;});}
+  G.requests=[];G.promises={};G.epQueue=[];
+  // 첫날은 점호(dawn) 없이 아침 준비에서 시작한다. 로스터 첫 묶음이 합류하고 첫 에피소드가 뜬다
+  CAMP.timeline.forEach(ph=>{if(phAt(ph)<CAMP.START.min-DAY0)G.fired[G.day+':'+ph.id]=1;});
+  rosterTick();}
+// 로스터: 그날까지 합류한 단골만 게임에 있다
+const ACTIVE=()=>REG_IDS.filter(id=>G.regs[id]&&G.regs[id].joined);
+function rosterTick(){const R=CAMP.roster||[{day:1,ids:REG_IDS}];const today=[];
+  R.forEach(b=>{if(b.day>G.day)return;b.ids.forEach(id=>{if(G.regs[id]&&!G.regs[id].joined){G.regs[id].joined=true;G.regs[id].joinDay=G.day;today.push(id);}});if(b.day===G.day&&b.ep&&STORY.episodes[b.ep])G.epQueue.push(b.ep);});
+  const ex=(CAMP.episodes||{})[G.day];if(ex&&STORY.episodes[ex])G.epQueue.push(ex);
+  if(today.length)G.log.joined=today;return today;}
 // 창고·선반
 const inv=k=>G.inv[k]||0;
 function addInv(k,n=1){if(ITEM[k]&&ITEM[k].kind==='ing'){for(let i=0;i<n;i++)G.shelf.push({k,seen:false});if(n<0){for(let i=0;i<-n;i++){const j=G.shelf.findIndex(u=>u.k===k);if(j>=0)G.shelf.splice(j,1);}}return;}
   G.inv[k]=(G.inv[k]||0)+n;if(G.inv[k]<=0)delete G.inv[k];}
 function shelfCount(k){return G.shelf.filter(u=>u.k===k||(k==='mush'&&u.k==='spore'&&!u.seen)).length;}
 function haveIng(k){return G.shelf.some(u=>u.k===k)||(P.held===k);}
-const alive=id=>G.regs[id]&&!G.regs[id].gone;
-const canSend=id=>alive(id)&&!G.regs[id].hurt;
+const alive=id=>G.regs[id]&&G.regs[id].joined&&!G.regs[id].gone;
+const canSend=id=>alive(id)&&!G.regs[id].hurt&&!G.regs[id].stay;
 function thread(d,why){const b=G.thread;G.thread=Math.max(0,Math.min(CAMP.THREAD_MAX,G.thread+d));if(why)G.log.notes.push({t:why,d});if(G.thread!==b)G.threadFlash=d>0?1:-1;}
 function money(d,why){G.money+=d;if(d>0)sfx('coin');if(why)G.log.notes.push({t:why,g:d});renderBelt();}
-function grudge(id,d=1){if(G.regs[id])G.regs[id].grudge+=d;}
+// 원망 사다리: 1 요구가 까다로워짐 / 2 그날 안 나감 / 3 길드를 떠남 (아침에 stayReason 이 읽는다)
+function grudge(id,d=1){const s=G.regs[id];if(!s)return;s.grudge=Math.max(0,s.grudge+d);const L=CAMP.grudge||{leave:3};
+  if(s.grudge>=L.leave&&!s.gone){s.gone='left';G.log.left.push(id);const n=ACTOR&&ACTOR[id];if(n){if(n.room&&OCC[n.room]===n)OCC[n.room]=null;n.room=null;n.visible=false;n.state='gone';}}}
 // 저장·이어하기 (아침·소등 때 스냅숏)
 const SAVE_KEY='srg3d_save';
 function snapshot(tag){const s={tag,at:Date.now(),G:JSON.parse(JSON.stringify({...G,cases:[],threadFlash:0})),P:{oil:P.oil,hp:P.hp,bars:P.bars,heal:P.heal,held:P.held},spot:SPOTS.cur,spot:SPOTS.cur,
@@ -1284,21 +1294,41 @@ function clearSave(){try{localStorage.removeItem(SAVE_KEY);}catch(e){}}
 function partyRisk(req,mem,p){if(!mem.length)return null;let r=FLOOR[req.fl].risk+(req.risky?1:0);r-=mem.reduce((a,id)=>a+(REG[id].apt[req.fl]||0),0)/mem.length;
   if(mem.length===2){const twins=mem.every(id=>REG[id].twin&&mem.includes(REG[id].twin));r+=twins?.5:-.5;}if(p&&p.lunch)r-=1;return r;}
 const omen=r=>r===null?['—','none']:r<=0?['좋음','good']:r<=1?['보통','mid']:['불길','bad'];
-const todayQuests=()=>QUESTS[Math.min(G.day-1,QUESTS.length-1)];
+// 오늘의 의뢰: 열린 층의 풀에서 날짜로 돌려 가며 3장 (위험 의뢰 1장 보장, 층마다 1장, 에녹은 enochFrom 일째부터)
+const openFloorsToday=()=>{const O=SRG.openFloors||[Object.keys(FLOOR)];return O[Math.min(G.day-1,O.length-1)];};
+const rot=(a,k)=>a.length?a.slice(k%a.length).concat(a.slice(0,k%a.length)):a;
+let QCACHE={key:'',list:[]};
+function todayQuests(){const heads=ACTIVE().filter(canSend).length;const want=Math.max(QRULE.perDay||3,Math.ceil(heads/2));const key=G.day+':'+want;if(QCACHE.key===key)return QCACHE.list;const open=openFloorsToday(),d=G.day-1;
+  const pool=open.flatMap(fl=>QUESTS[fl]||[]).filter(q=>!q.enoch||G.day>=QRULE.enochFrom);const picks=[];
+  const take=arr=>{const q=rot(arr.filter(x=>!picks.includes(x)),d)[0];if(q)picks.push(q);};
+  take(pool.filter(q=>q.risky));open.forEach(fl=>{if(!picks.some(q=>q.fl===fl))take(pool.filter(q=>q.fl===fl&&!q.risky));});
+  while(picks.length<want&&picks.length<pool.length)take(rot(pool.filter(q=>!q.risky),d+1));
+  QCACHE={key,list:picks};return picks;}
 const todayPlan=()=>CAMP.days[Math.min(G.day-1,CAMP.days.length-1)];
+// 자동 편성: 아침에 나갈 수 있는 사람은 전부 나간다. 쌍둥이는 같이, 선호 층 우선, 의뢰당 최대 2명, 위험 의뢰에는 적성이 가장 낮은 사람이 먼저 자원한다
+function autoParties(){const qs=todayQuests();const ps=qs.map(q=>({req:q,mem:[],lunch:false,recall:false,on:true}));
+  let ids=ACTIVE().filter(canSend);const twinsDone=new Set();const order=[];
+  ids.forEach(id=>{if(twinsDone.has(id))return;const t=REG[id].twin;if(t&&ids.includes(t)){order.push([id,t]);twinsDone.add(id);twinsDone.add(t);}else order.push([id]);});
+  const room=p=>2-p.mem.length;
+  order.sort((a,b)=>(REG[a[0]].apt.B1+REG[a[0]].apt.B2)-(REG[b[0]].apt.B1+REG[b[0]].apt.B2));   /* 적성 낮은 사람부터 자리를 잡는다 */
+  order.forEach(g=>{const pref=REG[g[0]].pref;let cands=ps.filter(p=>room(p)>=g.length);if(!cands.length)cands=ps.slice().sort((a,b)=>a.mem.length-b.mem.length).slice(0,1);if(!cands.length)return;   /* 자리가 없으면 제일 적은 파티에 셋째로 */
+    const risky=cands.find(p=>p.req.risky&&!p.mem.length);const same=cands.filter(p=>p.req.fl===pref);
+    const p=risky&&!REG[g[0]].twin&&(REG[g[0]].apt[risky.req.fl]||0)<=0?risky:(same[0]||cands.sort((a,b)=>a.mem.length-b.mem.length)[0]);p.mem.push(...g);});
+  return ps;}
 const todayPW=()=>CAMP.passwords[(G.day-1)%CAMP.passwords.length];
 const yesterdayPW=()=>CAMP.passwords[(G.day-2+CAMP.passwords.length)%CAMP.passwords.length];
 // 출발: 파티마다 결과(전리품·부상)를 미리 정하고 저녁 귀환 줄을 만든다
 function dispatch(parties){const out=[];
   parties.forEach(p=>{if(!p.mem.length)return;const r=partyRisk(p.req,p.mem,p);
-    if(p.lunch)addInv('lunch',-1);if(p.recall)addInv('recall',-1);
+    if(p.lunch)addInv('lunch',-1);if(p.recall){addInv('recall',-1);if(p.mem.some(id=>G.regs[id].promise==='norecall'))p.recall=false;}   /* "물약은 필요 없다"고 한 사람이 있으면 물약이 소용없다 */
     const loot=[];if(p.req.need)for(let i=0;i<p.req.qty;i++)loot.push(p.req.need);
     const extra=1+(r>=1?1:0);for(let i=0;i<extra;i++)loot.push(rpick(FLOOR[p.req.fl].loot));
     const hurt={};p.mem.forEach(id=>{if(!p.recall&&((REG[id].apt[p.req.fl]||0)<0||r>=2)&&rnd()<.55)hurt[id]=FLOOR[p.req.fl].hurt;});
     p.mem.forEach(id=>{G.regs[id].sentTo=p.req.fl;});
     out.push({req:p.req,mem:p.mem.slice(),risk:r,omen:omen(r)[1],loot,hurt,recall:!!p.recall,lunch:!!p.lunch});});
   G.sent=out;G.pending=G.pending.filter(q=>!q.done&&q.req.need).concat(out.map(x=>({req:x.req,done:false,party:true})));
-  G.cases=buildQueue();return out;}
+  const keep=G.cases.filter(c=>c.fake&&c.fake.latent&&c.state==='admitted');   /* 잠복한 가짜의 사례는 다음 날까지 산다 (이어하기용) */
+  G.cases=buildQueue().concat(keep);return out;}
 // 저녁 귀환 줄. 가짜는 위험 의뢰(또는 B2, 또는 가장 위험한 파티)의 적성 낮은 사람을 대신한다
 function buildQueue(){const plan=todayPlan(),parties=G.sent||[],q=[],fakes=[];
   (plan.fake||[]).forEach(f=>{const fam=ANOM[f.fam];if(!fam){console.warn('없는 계열',f.fam);return;}
@@ -1307,7 +1337,7 @@ function buildQueue(){const plan=todayPlan(),parties=G.sent||[],q=[],fakes=[];
     if(f.from==='risky')party=parties.find(p=>p.req.risky&&!fakes.some(x=>x.party===p));
     if(f.from==='B2')party=parties.find(p=>p.req.fl==='B2'&&!fakes.some(x=>x.party===p));
     if(!party)party=parties.filter(p=>!fakes.some(x=>x.party===p)).sort((a,b)=>b.risk-a.risk)[0];
-    if(!party){const idle=REG_IDS.filter(id=>alive(id)&&!parties.some(p=>p.mem.includes(id)));fakes.push({f,fam,uninvited:rpick(idle.length?idle:REG_IDS)});return;}
+    if(!party){const idle=ACTIVE().filter(id=>alive(id)&&!parties.some(p=>p.mem.includes(id)));const act=ACTIVE();fakes.push({f,fam,uninvited:rpick(idle.length?idle:(act.length?act:REG_IDS))});return;}
     const id=party.mem.slice().sort((a,b)=>(REG[a].apt[party.req.fl]||0)-(REG[b].apt[party.req.fl]||0))[0];
     fakes.push({f,fam,id,party});});
   const arr=(kind,extra={})=>{const [a,b]=CAMP.arrive[kind]||CAMP.arrive.mid;return Math.floor(a+rnd()*(b-a))-DAY0;};
@@ -1315,15 +1345,18 @@ function buildQueue(){const plan=todayPlan(),parties=G.sent||[],q=[],fakes=[];
     loot:lootKeys.map(k=>({k,spore:k==='mush'&&rnd()<.35,seen:false})),hurt:null,fake:null,o:{},at:arr(p?(p.recall?'recall':p.omen):'mid'),state:'due',...extra});
   parties.forEach(p=>{const lootBy=p.mem.map(()=>[]);p.loot.forEach((k,i)=>lootBy[i%p.mem.length].push(k));
     p.mem.forEach((id,mi)=>{const fk=fakes.find(x=>x.id===id&&x.party===p);
-      if(fk){const made=fk.fam.make(REG[id]);const cs=mk(id,p,made.loot,{fake:{fam:fk.f.fam,plan:fk.f.plan||fk.fam.night.plan,shape:made.shape,shoes:made.shoes},o:made.o,look:made.look});q.push(cs);
+      if(fk){const made=fk.fam.make(REG[id]);const cs=mk(id,p,made.loot,{fake:fakeSpec(fk,made),o:made.o,look:made.look});q.push(cs);
         if(fk.f.lateReal)q.push(mk(id,p,lootBy[mi],{tally:'none',late:true,at:arr('late')}));}
       else{const cs=mk(id,p,lootBy[mi],{hurt:p.hurt[id]||null});if(cs.hurt)cs.o=cs.hurt==='sand'?{sandEyes:1}:{moss:1};q.push(cs);}});});
-  fakes.filter(x=>x.uninvited).forEach(x=>{const made=x.fam.make(REG[x.uninvited]);q.push(mk(x.uninvited,null,made.loot,{fake:{fam:x.f.fam,plan:x.f.plan||x.fam.night.plan,shape:made.shape,shoes:made.shoes},o:made.o,tally:'none',at:arr('bad')}));});
+  fakes.filter(x=>x.uninvited).forEach(x=>{const made=x.fam.make(REG[x.uninvited]);q.push(mk(x.uninvited,null,made.loot,{fake:fakeSpec(x,made),o:made.o,tally:'none',at:arr('bad')}));});
   // 투숙객 (계산대로 온다) — 가짜 순례자는 손님으로 온다
   (plan.guests||[]).forEach(g=>q.push({kind:'guest',id:g,look:GUEST[g].look,name:GUEST[g].name,guest:g,loot:[],o:{},at:CAMP.guestAt-DAY0,state:'due'}));
-  fakes.filter(x=>x.guest).forEach(x=>{const made=x.fam.make();q.push({kind:'guest',id:x.guest,look:made.look,name:GUEST[x.guest].name,guest:x.guest,loot:[],o:made.o,fake:{fam:x.f.fam,plan:x.f.plan||x.fam.night.plan,shoes:made.shoes},at:CAMP.guestAt-DAY0+40,state:'due'});});
+  fakes.filter(x=>x.guest).forEach(x=>{const made=x.fam.make();q.push({kind:'guest',id:x.guest,look:made.look,name:GUEST[x.guest].name,guest:x.guest,loot:[],o:made.o,fake:fakeSpec(x,made),at:CAMP.guestAt-DAY0+40,state:'due'});});
   if(plan.knock3)q.push({kind:'knock3',name:'???',loot:[],o:{},at:CAMP.knock3At-DAY0,state:'due'});
   q.sort((a,b)=>a.at-b.at);q.forEach((c,i)=>c.cid=G.day*100+i);return q;}
+// 가짜의 계획: latent 면 첫 밤은 조용히 있다가 다음 날 남아서 요구하고 둘째 밤에 then 을 실행한다
+function fakeSpec(fk,made){const plan=fk.f.plan||fk.fam.night.plan;const latent=plan==='latent';
+  return{fam:fk.f.fam,plan:latent?'latent':plan,then:fk.f.then||fk.fam.night.plan,latent,shape:made.shape,shoes:made.shoes};}
 // 창구 대사: 진짜는 단골 대사, 가짜는 계열 훅, 다친 사람은 기침이 섞인다
 function caseLines(c){const pw=todayPW();const r=REG[c.regId]||{name:c.name,lines:{}};const L=r.lines||{};
   if(c.fake){const W=ANOM[c.fake.fam].window;const rr={...r,name:c.name,shape:c.fake.shape};const f=x=>typeof x==='function'?x(rr,pw):x;
@@ -1380,6 +1413,7 @@ function ACT(it,npc){if(!it)return null;const [k,a]=it.split(':');
    if(n.uid==='dora'||n.uid==='enoch')v.push(V('trade','hand',`${n.name}과(와) 거래한다`,()=>openStation('desk')));
    if(G.dinner&&n.state==='sit'&&n.room){v.push(V('watch','eye',`지켜본다 (관찰 ${G.dinnerObs||0}번 남음)`,()=>dinnerWatch(n)),V('talk','mouth','말을 건다',()=>dinnerTalk(n)),V('swap','bar',`방을 바꾼다 (남은 ${G.limits.swaps})`,()=>roomPick(n,true)));}
    else if(co)v.push(V('shout','mouth','"너, 이제 그만 꺼져!"',()=>talk(n)),V('push','hand','문밖으로 떠민다',()=>push(n)));
+   else if(n.stayer&&!G.night){v.push(V('talk','mouth','말을 건다',()=>talk(n),{min:5}),V('watch','eye','지켜본다',()=>dinnerWatch(n),{min:10}),V('expel','hand','내보낸다 — 오늘은 여기 없어야 한다',()=>expel(n),{min:10}));}
    else v.push(V('talk','mouth','말을 건다',()=>talk(n)));
    if(P.heal&&n.hurt&&!n.cured&&(n.lampSeen||n.mossShown||n.case&&n.case.hurt))v.push(V('heal','heal','치료약을 먹인다',()=>heal(n)));
    if(!(G.dinner&&n.state==='sit'))v.push(V('listen','ear','엿듣는다',()=>lean(n.x,n.z,()=>eavesdrop(n)),{min:5}));
@@ -1408,13 +1442,15 @@ function OBJ(){const c=tutCur();if(c){if(c.id==='guest'&&!NPCS.some(n=>n.state==
   if(G.dinner&&!G.served&&P.held&&ITEM[P.held]&&ITEM[P.held].kind==='dish')return{t:`식탁에 ${ITN[P.held]}을(를) 낸다`,w:'홀 북쪽 식당',pos:[11.5,1.1,2.5],hot:1,l:'식당'};
   if(G.dinner&&!G.served)return{t:'저녁을 낼 요리가 필요하다',w:inv('stew')||inv('soup')||inv('roast')?'창고 궤짝에 요리가 있다':'가마솥에서 요리를 만든다 (고기+버섯 등)',pos:[3.5,1.6,2.4],hot:1,l:'가마솥'};
   const ph=G.phase;
-  if(ph==='market'||ph==='dawn'){const sl=NPCS.filter(n=>n.room&&n.state==='sleep'&&!n.lazy);if(sl.length&&G.morning){const r=sl[0].room;return{t:`점호 — ${r}호를 깨운다 ("빨리 일어나!")`,w:'2층 복도',pos:[DOORS[r].x,4.4,DOORS[r].z],hot:1,l:'2층'};}
+  const st=typeof stayers==='function'?stayers():[];
+  if(ph==='market'||ph==='dawn'){const sl=NPCS.filter(n=>n.room&&n.state==='sleep'&&!n.lazy);if(sl.length&&G.morning&&ph==='dawn'){const r=sl[0].room;return{t:`점호 — ${r}호를 깨운다 ("빨리 일어나!")`,w:'2층 복도',pos:[DOORS[r].x,4.4,DOORS[r].z],hot:1,l:'2층'};}
     const sick=NPCS.find(n=>n.breakfast&&n.state==='sit'&&n.hurt&&!n.cured);if(sick)return{t:`식당에서 ${sick.name}을(를) 살핀다 — 치료약`,w:'식당. 등불로 얼굴을 비추고 치료약',pos:[sick.x,1.5,sick.z],hot:1,l:'식당'};
-    if(G.checkout){const lazy=NPCS.find(n=>n.guest&&n.state==='sleep'&&n.lazy);if(lazy)return{t:'안 나가는 손님을 내쫓는다',w:`${lazy.room}호 — "꺼져!" 뒤 떠민다`,pos:[lazy.x,3.8,lazy.z],hot:1,l:'2층'};}
-    if(!G.morning||G.checkout)return{t:'아침 장사 — 계산대',w:'도라에게 팔고, 기름·빵을 사고, 의뢰를 납품한다',pos:[6.2,1.3,9.9],l:'계산대'};
-    return{t:'점호가 끝나면 아침 장사',w:'계산대',pos:[6.2,1.3,9.9],l:'계산대'};}
-  if(ph==='send'){if(!G.sent.length)return{t:'의뢰 게시판에서 파티를 보낸다',w:'홀 남쪽 벽 게시판. 11시 전에',pos:[7.2,1.8,11.8],hot:1,l:'게시판'};return{t:'보냈다. 요리를 준비하거나 계산대에서 오후까지 쉰다',w:'계산대 — 오후까지 쉰다',pos:[6.2,1.3,9.9],l:'계산대'};}
-  if(ph==='noon')return{t:'계산대에서 오후까지 쉰다',w:'또는 요리·기름을 미리 만든다',pos:[6.2,1.3,9.9],l:'계산대'};
+    const open=(G.requests||[]).filter(r=>!r.ans).length;if(ph==='market'&&open)return{t:`출발 줄 — ${open}명이 뭔가를 청한다`,w:'게시판. 평소와 다른 요구는 이유가 있다. 9시에 나간다',pos:[7.2,1.8,11.8],hot:1,l:'게시판'};
+    if(ph==='market')return{t:'9시 출발 전 — 챙겨 줄 것을 만든다',w:'게시판에서 도시락·물약을 붙인다. 계산대에서 장사',pos:[7.2,1.8,11.8],l:'게시판'};
+    return{t:'점호가 끝나면 아침 준비',w:'7시에 게시판에 출발 줄이 선다',pos:[7.2,1.8,11.8],l:'게시판'};}
+  if(ph==='send'||ph==='noon'){if(G.checkout){const lazy=NPCS.find(n=>n.guest&&n.state==='sleep'&&n.lazy);if(lazy)return{t:'안 나가는 손님을 내쫓는다',w:`${lazy.room}호 — "꺼져!" 뒤 떠민다`,pos:[lazy.x,3.8,lazy.z],hot:1,l:'2층'};}
+    if(st.length){const n=st[0];return{t:`남은 사람을 살핀다 — ${st.map(x=>x.name).join(', ')}`,w:'식당. 지켜보고, 말을 걸고, 약을 먹여 본다. 이상하면 내보낸다',pos:[n.x,1.5,n.z],hot:1,l:'식당'};}
+    return{t:'파티가 미궁에 있다. 저녁을 준비한다',w:'요리·기름을 만들거나 계산대에서 오후까지 쉰다',pos:[3.5,1.6,2.4],l:'가마솥'};}
   if(ph==='evening'||ph==='dinner'){const due=G.cases.filter(c=>c.state==='due'||c.state==='queue').length;if(due)return{t:`귀환자를 기다린다 (${due}명 남음)`,w:'창구 종이 울리면 홀 동쪽 벽',pos:[23.6,1.6,9.4],l:'창구'};return{t:G.dinner?'식탁을 지켜본다':'저녁 7시에 식당',w:'식당. 앉은 사람을 조준해 지켜본다·말을 건다',pos:[11.5,1.1,2.5],l:'식당'};}
   if(G.night){const f=fakeOut();if(f)return{t:'복도에 무언가 있다 — 등불(F)을 든다',w:'2층 복도',pos:[f.x,1.7+f.y,f.z],hot:1,l:'2층'};
     return{t:'순찰 — 방마다 문에 귀를 대 본다',w:'2층 복도 (계단은 홀 동쪽 안쪽)',pos:P.y>1.5?null:[20,1.5,6],l:'2층'};}
@@ -1478,9 +1514,11 @@ function doorE(a){const d=DOORS[a];if(d.locked){sub('문','빗장이 걸려 있�
   else if(open&&n&&!n.fake&&G.night&&n.state==='sleep'){if(G.limits.openDoor<=0){sub('문','오늘 밤은 더 열 수 없다.');return;}G.limits.openDoor--;grudge(n.regId||n.uid);sub(roomLabel(a),`${n.name}이(가) 깨어 이쪽을 노려본다. "…뭐야." 진짜다. 원망한다.`,1);n.grudged=true;}
   d.target=open?1:0;d.playerOpen=open;sfx('door');}
 function barDoor(a){const d=DOORS[a];if(d.locked){d.locked=false;P.bars++;sfx('wood');sub(roomLabel(a),'빗장을 풀었다.');renderBelt();return;}if(P.bars<=0){sub('빗장','남은 빗장이 없다.');return;}if(d.open>.3){sub('빗장','문을 닫아야 건다.');return;}
+  if(+a&&promiseOf(+a)==='nobar'){sub(roomLabel(a),'오늘 아침 빗장을 걸지 않기로 약속했다. …약속은 약속이다.',1);return;}
   d.locked=true;P.bars--;sfx('wood');const n=+a?occOf(+a):null;if(n&&!n.fake&&n.state==='sleep')n.barredReal=true;sub(roomLabel(a),'빗장을 걸었다.',1);renderBelt();}
 function hangLamp(a){const d=DOORS[a];if(d.lampHung){d.lampHung=false;G.limits.hangLamp++;d.lampMesh.visible=false;sub(roomLabel(a),'문의 등불을 내렸다.');return;}
-  if(G.limits.hangLamp<=0){sub('등불','걸 등불이 없다.');return;}if(P.oil<10){sub('등불','기름이 모자라 밤새 못 탄다.');return;}G.limits.hangLamp--;P.oil-=10;d.lampHung=true;if(!d.lampMesh){d.lampMesh=hangLantern(d.x+(d.alongX?.55:0),d.y0+2.05,d.z+(RM[+a]&&RM[+a].north?.25:-.25),'door');}d.lampMesh.visible=true;
+  if(G.limits.hangLamp<=0){sub('등불','걸 등불이 없다.');return;}if(P.oil<10){sub('등불','기름이 모자라 밤새 못 탄다.');return;}
+  if(+a&&promiseOf(+a)==='nolamp'){sub(roomLabel(a),'오늘 아침 등불을 걸지 않기로 약속했다. …약속은 약속이다.',1);return;}G.limits.hangLamp--;P.oil-=10;d.lampHung=true;if(!d.lampMesh){d.lampMesh=hangLantern(d.x+(d.alongX?.55:0),d.y0+2.05,d.z+(RM[+a]&&RM[+a].north?.25:-.25),'door');}d.lampMesh.visible=true;
   sub(roomLabel(a),'문 앞에 등불을 걸었다. 이 방은 바꿔치기당하지 않는다.',1);renderBelt();}
 function knock(r){sfx('knock');const n=occOf(r);spend(2);
   if(G.morning){wake(r);return;}
@@ -1499,6 +1537,8 @@ function listenDoor(r){const n=occOf(r),st=ROOMST[r];spend(10);let t;
 function shout(r){const n=occOf(r);sfx('shout');if(G.morning){sub('아리','"빨리 일어나!"');wake(r);return;}sub('아리','"…괜찮아?"');
   if(n&&!n.fake)sub(`${r}호`,n.guest?'"…자요."':'"…응? 괜찮아."',1);else sub(`${r}호`,'대답이 없다.');}
 function wake(r){const n=occOf(r);if(!n){sub(`${r}호`,ROOMST[r].stain?'대답이 없다. 문틈으로 잿빛 얼룩이 보인다.':'빈방이다.',1);return;}
+  if(n.fake&&n.fake.latent&&n.fake.stage!=='act'){   /* 잠복한 것은 진짜처럼 대답하고 아침을 먹으러 내려온다 */
+    if(n.state!=='sleep'){sub(`${r}호`,'이미 일어났다.');return;}n.state='idle';DOORS[r].target=1;DOORS[r].playerOpen=true;const L=(REG[n.regId]||{}).lines||{};sub(`${r}호`,L.wake||'"일어났어."',1);setTimeout(()=>{n.breakfast=true;goEat(n);},900);return;}
   if(n.fake){sfx('scratch');sub(`${r}호`,DOORS[r].locked?'대답 대신 문 안쪽을 긁는 소리. 빗장이 버틴다. 경계청을 불러야겠다.':'"…네." 대답만 하고 나오지 않는다.',1);return;}
   if(n.state!=='sleep'){sub(`${r}호`,'이미 일어났다.');return;}
   if(n.guest){const g=GUEST[n.guest];if(g.lazy){sub(`${r}호`,g.lines.wake,1);n.lazy=true;return;}n.state='idle';DOORS[r].target=1;sub(`${r}호`,g.lines.wake,1);setTimeout(()=>leaveInn(n),900);return;}
@@ -1513,8 +1553,11 @@ function leaveInn(n){const c=n.chair!==undefined?CHAIRS[n.chair]:null;if(n.chair
 function talk(n){n.talkT=1.6;if(n.uid==='helga'&&!TDONE.helga&&!TUT_OVER){tutEvent('helga');return;}
   if(n.guest&&G.checkout&&n.state==='sleep'){sfx('shout');sub('아리','"너, 이제 그만 꺼져!"');n.shouted=true;sub(n.name,GUEST[n.guest].lines.shout||'"…"',1);return;}
   if(G.dinner&&n.state==='sit'&&n.room){dinnerTalk(n);return;}
-  const F=fakeFam(n);let t;if(n.uid==='helga')t=STAFF.helga.lines.talk;else if(F)t=F.dinner.talk({...n,name:n.name});else if(n.guest)t=GUEST[n.guest].lines.talk;else t=(REG[n.regId].lines.hi||'"…"');
-  sub(n.name,t,1);}
+  if(n.guest){sub(n.name,GUEST[n.guest].lines.talk,1);return;}if(n.merchantNPC){sub(n.name,'"물건은 계산대에서."',1);return;}
+  // 상황별 줄(story.js)을 차례로 돌린다. 원망하는 사람은 하루 한 번 말을 들어 주면 풀린다(시간이 든다)
+  const ctx=chatCtx(n);const id=n.regId,s=id&&G.regs[id];
+  if(ctx==='grudge'&&s&&!n.fake&&s.talked!==G.day){s.talked=G.day;spend(10);grudge(id,-1);sub(n.name,chatLine(n,'grudge')+' …조금 풀린 얼굴이다.',1);return;}
+  sub(n.name,chatLine(n,ctx),1);}
 function eavesdrop(n){spend(5);const F=fakeFam(n);let t;if(n.uid==='helga')t=STAFF.helga.lines.listen;else if(F)t=F.patrol.listen({...n,name:n.name},'in');else if(n.guest)t=GUEST[n.guest].lines.listen;else t=REG[n.regId].lines.listen||'…';sub(n.name,t,1);}
 function push(n){if(n.guest&&G.checkout&&n.state==='sleep'){n.pushed=(n.pushed||0)+1;sfx('hit');const g=GUEST[n.guest].lines;if(n.pushed<2||!n.shouted){sub(n.name,n.shouted?'"아얏! 가, 간다니까…"':(g.push1||'"으…"')+' (먼저 소리쳐야 하나?)',1);return;}
     n.state='idle';const fee=GUEST[n.guest].fee||6;money(fee,'숙박비');sub(n.name,(g.push2||'"간다!"')+` (숙박비 ${fee}G)`,1);G.log.evicted=true;const r=n.room;DOORS[r].target=1;OCC[r]=null;n.room=null;walk(n,[RM[r].inside,RM[r].front,[15.5,6],[23.2,6.1],[23.2,8.4],[7.5,10],[4,11],[4,14]],m=>{m.visible=false;m.state='gone';});return;}
@@ -1524,7 +1567,7 @@ function heal(n){if(!P.heal)return;if(n.fake){P.heal--;sub(n.name,'치료약을 
 // ───────── 그것과 전투 ─────────
 let HUNT=null;const fakeOut=()=>NPCS.find(x=>x.fake&&x.out&&x.visible&&x.state!=='gone');
 function startHunt(n){if(n.state==='gone')return;HUNT=n;n.state='hunt';n.out=true;n.huntSpot=null;n.huntT=undefined;n.transit=null;const H=fakeFam(n).hunt||{};n.hp=n.hp||H.hp||3;n.cd=0;sfx('eerie');}
-function killFake(n,msg){n.state='gone';n.visible=false;G.log.killed.push(n.name);HUNT=null;ash(n.x,n.y+1,n.z);sub('그것',msg||'재가 되어 흩어졌다.',1);G.danger=0;if(n.room&&OCC[n.room]===n)OCC[n.room]=null;thread(CAMP.thread.killed,'그것을 처치');}
+function killFake(n,msg){n.state='gone';n.visible=false;G.log.killed.push({name:n.name,fam:n.fake&&n.fake.fam,room:n.room});HUNT=null;ash(n.x,n.y+1,n.z);sub('그것',msg||'재가 되어 흩어졌다.',1);G.danger=0;if(n.room&&OCC[n.room]===n)OCC[n.room]=null;thread(CAMP.thread.killed,'그것을 처치');}
 function clubSwing(){if(!HUNT)return false;VM.swing=1;const n=HUNT,dx=n.x-P.x,dz=n.z-P.z,d=Math.hypot(dx,dz);const f=new THREE.Vector3();camera.getWorldDirection(f);const dot=(f.x*dx+f.z*dz)/(d*Math.hypot(f.x,f.z)+1e-6);
   sfx('swing');if(d<2.4&&dot>.75){n.hp--;sfx('hit');G.flick=.8;n.x+=dx/d*1.2;n.z+=dz/d*1.2;if(n.hp<=0)killFake(n,'몽둥이에 그것이 무너져 재가 되었다.');else sub('그것',`퍽! (${n.hp})`);}return true;}
 function huntTick(dt){const n=HUNT;if(!n)return;const H=fakeFam(n).hunt||{};
@@ -1542,11 +1585,13 @@ function ashTick(dt){for(let i=ASH.length-1;i>=0;i--){const m=ASH[i];m.v.y-=dt*1
 function mossDoor(r){const d=DOORS[r];if(d.moss)return;const m=new THREE.Mesh(new THREE.PlaneGeometry(1.1,.35),new THREE.MeshBasicMaterial({color:0x6a8a3a,transparent:true,opacity:.8}));m.rotation.x=-Math.PI/2;m.position.set(d.x,3.02,d.z+(RM[r].north?.3:-.3));scene.add(m);d.moss=m;}
 function clearMoss(){Object.values(DOORS).forEach(d=>{if(d.moss){scene.remove(d.moss);d.moss=null;}});}
 // 식탁 관찰·증언·방 바꾸기
-function dinnerWatch(n){if(!G.served){sub('식탁','먼저 요리를 내자.');return;}if(G.dinnerObs<=0){sub('식탁','더 지켜볼 여유가 없다.');return;}G.dinnerObs--;spend(4);
+function dinnerWatch(n){const day=!G.dinner&&n.stayer;   /* 낮에 남은 사람은 관찰 횟수 없이 시간만 든다 */
+  if(day)spend(10);else{if(!G.served){sub('식탁','먼저 요리를 내자.');return;}if(G.dinnerObs<=0){sub('식탁','더 지켜볼 여유가 없다.');return;}G.dinnerObs--;spend(4);}
   const F=fakeFam(n);let t;
   if(F){const D=F.dinner;const parts=[];if(D.eats===false)parts.push('음식에 손을 대지 않는다.');if(D.hand==='late')parts.push('숟가락을 드는 손이 남들보다 반 박자 늦다.');if(D.shadow==='shape')parts.push('벽의 그림자가 사람 모양이 아니다.');if(D.shadow==='late')parts.push('벽의 그림자가 손을 늦게 따라온다.');t=parts[Math.min(n.watched||0,parts.length-1)]||'평범하게 먹는다.';}
   else if(n.guest)t=n.guest==='merchant'?'술을 청해 마신다. 밥은 뒷전.':'조용히 기도하고 조금 먹는다.';
-  else{const r=REG[n.regId];t=r.noEat?'먹지 않는다. 원래 먹지 않는다. (카드 메모)':(r.lines.eat||'평범하게 먹는다.');if(n.hurt==='moss'&&!n.cured)t+=' 먹다 말고 기침한다.';}
+  else{const r=REG[n.regId];t=day?(r.noEat?'차도 마시지 않는다. 원래 그렇다.':'차를 홀짝이며 창밖을 본다. 평소 그대로다.'):(r.noEat?'먹지 않는다. 원래 먹지 않는다. (카드 메모)':(r.lines.eat||'평범하게 먹는다.'));if(n.hurt==='moss'&&!n.cured)t+=' 먹다 말고 기침한다.';}
+  if(day&&F){t=t.replace('음식에 손을 대지 않는다.','앞에 둔 차에 손을 대지 않는다.');}
   n.watched=(n.watched||0)+1;sub(n.name,t,1);}
 function dinnerTalk(n){if(!G.served){sub('식탁','먼저 요리를 내자.');return;}if(G.dinnerObs<=0){sub('식탁','더 물어볼 여유가 없다.');return;}G.dinnerObs--;spend(4);
   const F=fakeFam(n);let t;if(F)t=F.dinner.talk({...n,name:n.name});else if(n.guest)t=GUEST[n.guest].lines.talk;else{const r=REG[n.regId];t=r.lines.witness||r.lines.hi;
@@ -1567,7 +1612,7 @@ function spawnAll(){
 function dayStart(){return (G.day-1)*1440+DAY0;}
 function resetActor(n){Object.assign(n,{state:'gone',visible:false,room:null,chair:undefined,out:false,targetRoom:null,hurt:null,cured:false,fake:null,case:null,lampSeen:false,mossShown:false,woke:0,woke2:false,breakfast:false,lazy:false,shouted:false,pushed:0,barred:false,healFailed:false,grudged:false,barredReal:false,luring:false,path:[]});n.o=n.o0||{};setLook(n,n.look,n.o);}
 function caseNPC(c){if(c.npc)return c.npc;let n;
-  if(c.kind==='guest'){const g=GUEST[c.guest];n=makeNPC(c.guest+'_'+c.cid,c.look,c.o||{},{name:g.name,guest:c.guest,outfitId:c.guest,hp:3});}
+  if(c.kind==='guest'){const g=GUEST[c.guest];n=makeNPC(c.guest+'_'+c.cid,c.look,c.o||{},{name:g.name,guest:c.guest,outfitId:c.guest,hp:3});if(c.fake){n.fake=c.fake;n.hp=(ANOM[c.fake.fam].hunt||{}).hp||3;if(c.fake.shoes)setShoes(n,c.fake.shoes);}}   /* 가짜 순례자(부르는 것)도 밤 계획을 가진다 */
   else if(c.fake){n=makeNPC(c.regId+'_fake'+c.cid,c.look,c.o||{},{name:c.name,regId:c.regId,outfitId:c.regId,hp:(ANOM[c.fake.fam].hunt||{}).hp||3});n.fake=c.fake;n.o0={};if(c.fake.shoes)setShoes(n,c.fake.shoes);}
   else{n=ACTOR[c.regId];resetActor(n);n.o=c.o||{};n.o0={};setLook(n,n.look,n.o);}
   n.case=c;n.hurt=c.hurt||null;n.cured=false;n.ret=caseLines(c);n.visible=false;n.state='gone';c.npc=n;if(!RETN.includes(n))RETN.push(n);return n;}
@@ -1603,27 +1648,43 @@ function goBed(n){if(!n.room||n.state==='gone')return;const r=n.room;const pre=n
 const PH={};
 PH.dawn=()=>{G.morning=true;G.night=false;G.checkout=false;G.lightsOut=false;G.dinner=false;G.served=null;G.phase='dawn';
   helga.visible=true;if(SPOTS.on)toSlot(helga,'helga_kitchen','idle');else{placeNPC(helga,5.6,3.2);helga.state='idle';helga.face=-2;}
-  // 밤의 결과 정리 → 창고 변화 → 새 수칙 → 저장 → 아침 장면
-  nightResolve();storageMorning();const plan=todayPlan();(plan.newRules||[]).forEach(id=>{if(!G.rulesKnown.includes(id))G.rulesKnown.push(id);});if((plan.newRules||[]).length)tip('rules');
+  // 밤의 결과 정리 → 합류 → 창고 변화 → 새 수칙 → 저장 → 아침 카드·에피소드
+  NPCS.forEach(n=>{n.stayer=false;});ACTIVE().forEach(id=>{const s=G.regs[id];s.promise=null;s.calm=false;s.worse=false;s.stay=null;});G.sent=[];G.pending=G.pending.filter(q=>!q.party);
+  nightResolve();const joined=rosterTick();if(joined.length){G.morningCards.unshift({k:'good',t:DLG.morning.joined(joined.map(nameOf).join(', '))});joinedArrive(joined);}
+  storageMorning();const plan=todayPlan();(plan.newRules||[]).forEach(id=>{if(!G.rulesKnown.includes(id))G.rulesKnown.push(id);});if((plan.newRules||[]).length)tip('rules');
   G.limits={...CAMP.LIMITS};P.bars=CAMP.LIMITS.bars;G.dinnerObs=0;clearMoss();
   sfx('bell');sub('여관',`${G.day}일째 아침 6시. 점호 — 방마다 "빨리 일어나!"`,1);tip('roll');
   if(G.day>CAMP.DAYS){finale();return;}
   snapshot('morning');morningPanel();};
+// 합류한 단골은 벽난로 앞에 서서 인사를 기다린다 (9시에 파티와 함께 나간다)
+function joinedArrive(ids){ids.forEach((id,i)=>{const n=ACTOR[id];if(!n)return;resetActor(n);n.visible=true;if(!toSlot(n,'join'+Math.min(i,2),'idle')){placeNPC(n,2.3+i*.5,10.6-i*.9);n.state='idle';n.face=Math.PI/2;}});}
 PH.market=()=>{G.phase='market';dora.visible=true;if(SPOTS.on)toSlot(dora,'dora','shop');else{placeNPC(dora,4,14);walk(dora,[[4,11],[5.4,10.2]],m=>{m.state='shop';m.face=Math.PI;});}
   if(G.day>=2){enoch.visible=true;if(SPOTS.on)toSlot(enoch,'enoch','shop');else{placeNPC(enoch,4,14.5);walk(enoch,[[4.5,11.2],[7.2,10.3]],m=>{m.state='shop';m.face=Math.PI;});}}
-  if(todayPlan().rent){if(G.money>=CAMP.RENT){money(-CAMP.RENT,'운영비');sub('경계청',`주말 운영비 ${CAMP.RENT}G를 냈다.`,1);}else{sub('경계청',`운영비 ${CAMP.RENT}G를 낼 돈이 없다. 오늘 안에 벌지 못하면 폐업이다.`,1);G.rentDue=true;}}
-  sub('여관','7시. 아침 장사 — 계산대에 도라가 왔다.'+(G.day>=2?' 학자 에녹도.':''),1);};
+  // 남는 사람 정하기 → 요구 → 자동 편성
+  ACTIVE().forEach(id=>{const s=G.regs[id],n=ACTOR[id];if(n.room&&n.hurt&&!n.cured)s.hurt=n.hurt;s.stay=stayReason(id);const m=stayerNPC(id);if(m)seatStayer(m);});
+  const st=stayers();G.requests=buildRequests();SEND.parties=autoParties();SEND.day=G.day;
+  tip('requests');if(st.length)tip('stay');if(G.day>=4&&!todayPlan().soft)tip('moon');
+  sub('여관','7시. 아침 준비 — 게시판에 출발 줄이 섰다. 9시에 나간다. 계산대에 도라'+(G.day>=2?'·에녹':'')+'.',1);};
 PH.send=()=>{G.phase='send';G.checkout=true;tip('checkout');
-  NPCS.forEach(n=>{if(n.room&&n.state==='sleep'&&!n.fake&&!n.guest){n.state='idle';n.woke2=true;setTimeout(()=>leaveInn(n),400);}});   // 못 깨운 사람은 스스로 나간다 (실은 안 오른다)
-  NPCS.filter(n=>n.breakfast&&n.state==='sit').forEach(leaveInn);
-  sub('여관','9시. 체크아웃. 손님들이 떠난다. 11시까지 게시판에서 파티를 보낸다.',1);};
+  const stayIds=stayers().map(n=>n.uid);
+  if(!G.sent.length){if(!SEND.parties.length||SEND.day!==G.day)SEND.parties=autoParties();const ps=SEND.parties.filter(p=>p.on!==false&&p.mem.length);
+    (G.requests||[]).forEach((r,i)=>{if(!r.ans)answerRequest(i,'deny',true);});
+    dispatch(ps);sfx('wood');tutEvent('send');const names=ps.flatMap(p=>p.mem.map(id=>REG[id].name));
+    note('출발',ps.map(p=>`${p.req.fl} ${p.mem.map(id=>REG[id].name).join('·')} (${omen(partyRisk(p.req,p.mem,p))[0]})`).join(' / ')||'아무도 나가지 않았다');
+    ps.forEach(p=>p.mem.forEach(id=>{const n=ACTOR[id];if(n.chair!==undefined){delete CH_USED[n.chair];n.chair=undefined;}if(n.room&&OCC[n.room]===n)OCC[n.room]=null;n.room=null;n.visible=false;n.state='gone';}));
+    SEND.parties=[];sub('게시판',names.length?`9시. ${names.join(', ')}이(가) 부절 반쪽을 받아 나갔다.`:'9시. 오늘은 아무도 나가지 않았다.',1);}
+  NPCS.forEach(n=>{if(stayIds.includes(n.uid))return;if(n.room&&n.state==='sleep'&&!n.fake&&!n.guest){n.state='idle';n.woke2=true;setTimeout(()=>leaveInn(n),400);}});   // 못 깨운 사람은 스스로 나간다 (실은 안 오른다)
+  NPCS.filter(n=>n.breakfast&&n.state==='sit'&&!stayIds.includes(n.uid)).forEach(leaveInn);
+  sub('여관','9시. 파티가 나갔다. 손님들이 떠난다.'+(stayIds.length?' 남은 사람은 식당에 있다.':''),1);};
 PH.noon=()=>{G.phase='noon';G.morning=false;G.checkout=false;[dora,enoch].forEach(m=>{if(m.visible){m.state='walk';walk(m,[[4,11],[4,14]],x=>{x.visible=false;x.state='gone';});}});
   NPCS.forEach(n=>{if(n.guest&&n.room&&n.state!=='gone'){OCC[n.room]=null;n.room=null;n.visible=false;n.state='gone';}});
-  if(!G.sent.length){G.cases=buildQueue();sub('여관','11시. 오늘은 아무도 보내지 않았다. 저녁 창구는 조용할 것이다.',1);}else sub('여관','11시. 파티가 미궁에 있다. 오후까지 쉬거나(계산대) 저녁을 준비한다.',1);tip('noon');};
+  if(!G.sent.length)G.cases=buildQueue().concat(G.cases.filter(c=>c.fake&&c.fake.latent&&c.state==='admitted'));
+  const st=stayers();if(!st.length){sub('여관','11시. 파티가 미궁에 있다. 오후가 지나간다.',1);skipTo(phAt(CAMP.timeline.find(p=>p.id==='evening'))-1);}
+  else sub('여관',`11시. ${st.map(n=>n.name).join(', ')}이(가) 식당에 남아 있다. 살펴볼 시간이다.`,1);};
 PH.evening=()=>{G.phase='evening';G.closedWindow=false;RETN.length=0;G.cases.forEach(c=>{if(c.kind!=='knock3')caseNPC(c);});snapshot('evening');sub('여관','4시 반. 창구를 연다. 보낸 사람들이 돌아올 시간이다.',1);};
 PH.dinner=()=>{G.phase='dinner';G.dinner=true;sub('헬가','"밥 먹자! 다들 식당으로!"',1);tip('dinner');NPCS.forEach(n=>{if(n.room&&n.state==='idle')goEat(n);});};
 PH.lightsOut=()=>{G.phase='lightsOut';G.lightsOut=true;G.night=true;G.dinner=false;sfx('eerie');sub('여관','밤 9시. 등잔이 꺼진다. 이제 복도를 걷는 것은 당신뿐이어야 한다.',1);tip('night');
-  NPCS.forEach(n=>{if(n.room&&n.state!=='gone'&&n.state!=='sleep')goBed(n);});
+  stayersToBed();NPCS.forEach(n=>{if(n.room&&n.state!=='gone'&&n.state!=='sleep')goBed(n);});
   walk(helga,[[3.6,5.8],[4,11],[4,14]],m=>{m.visible=false;m.state='gone';});
   RETN.filter(n=>['queue','atwin','walk'].includes(n.state)&&n.case&&['queue','due'].includes(n.case.state)).forEach(n=>{n.state='walk';n.case.state='late';walk(n,[[29,12],[36,14]],m=>{m.visible=false;m.state='gone';m.outside=true;});if(!n.fake)G.log.late.push(n.regId||n.uid);});
   G.cases.forEach(c=>{if(c.state==='due')c.state='late';if(c.kind==='knock3'&&c.state==='atwin')c.state='gone';});
@@ -1639,39 +1700,54 @@ function schedule(){const d0=Math.floor((G.t-DAY0)/1440)+1;if(d0!==G.day)G.day=d
 // ───────── 밤: 그것의 계획 ─────────
 function neighborsOf(r){const i=ROOMS.indexOf(r);return [ROOMS[i-1],ROOMS[i+1],ROOMS[(i+3)%6]].filter(x=>x!==undefined);}
 function nightTick(){const m=dm();
-  NPCS.forEach(n=>{if(!n.fake||n.state==='gone'||!n.room)return;const F=ANOM[n.fake.fam],N=F.night;const outAt=atMin((N.outAt||90)/60);
+  NPCS.forEach(n=>{if(!n.fake||n.state==='gone'||!n.room)return;if(n.fake.latent&&n.fake.stage!=='act')return;   /* 잠복: 첫 밤은 아무것도 하지 않는다 */
+    const F=ANOM[n.fake.fam],N=F.night;const outAt=atMin((N.outAt||90)/60);
     if(!n.out&&!n.barred&&!n.luring&&n.state==='sleep'&&m>=outAt){
       if(DOORS[n.room].locked){n.barred=true;sfx('scratch');return;}
       const plan=n.fake.plan||N.plan;
       if(plan==='swap'){n.out=true;const cand=neighborsOf(n.room).filter(r=>{const o=occOf(r);return o&&o!==n&&o.state==='sleep'&&!o.fake&&!DOORS[r].lampHung;});n.targetRoom=cand[0]||null;
         DOORS[n.room].target=1;DOORS[n.room].npcHold=2;n.look=n.regId||n.look;tip('fake');
         walk(n,[RM[n.room].front,[8,6],n.targetRoom?RM[n.targetRoom].front:[2,6]],x=>{x.state='scratch';});}
-      else if(plan==='flee'){n.out=true;n.state='gone';n.visible=false;n.fled=true;G.log.fled.push(n.name);if(OCC[n.room]===n){OCC[n.room]=null;}sfx('creak');}
+      else if(plan==='flee'){n.out=true;n.state='gone';n.visible=false;n.fled=true;G.log.fled.push({name:n.name,fam:n.fake.fam,room:n.room});if(OCC[n.room]===n){OCC[n.room]=null;}sfx('creak');}
       else if(plan==='lure'){n.luring=true;n.lureT=0;}}
     if(n.luring&&n.state==='sleep'){n.lureT=(n.lureT||0)+1/60;if(P.y>1.5&&Math.hypot(P.x-n.x,P.z-n.z)<7&&n.lureT>4){n.lureT=0;sfx('eerie');sub(n.name,'"손님… 문 좀 열어 주십시오. 등불은 끄시고."');}}});
   // 03:00 감염이 옆방으로
-  if(m>=atMin(3)&&!G.fired[G.day+':spread']){G.fired[G.day+':spread']=1;NPCS.forEach(n=>{if(!n.room||n.state!=='sleep'||n.hurt!=='moss'||n.cured||n.fake)return;neighborsOf(n.room).forEach(r=>{const o=occOf(r);if(o&&o.state==='sleep'&&!o.fake&&!o.hurt){o.hurt='moss';if(o.regId)G.regs[o.regId].hurt='moss';ROOMST[r].moss=1;mossDoor(r);G.log.spread++;}});});}
+  if(m>=atMin(3)&&!G.fired[G.day+':spread']){G.fired[G.day+':spread']=1;NPCS.forEach(n=>{if(!n.room||n.state!=='sleep'||n.hurt!=='moss'||n.cured||n.fake)return;
+    const s=n.regId&&G.regs[n.regId];if(s&&s.calm){G.log.calm.push(n.regId);return;}if(s&&s.worse)G.log.worse.push(n.regId);   /* 등불을 곁에 둔 사람은 번지지 않는다 */
+    neighborsOf(n.room).forEach(r=>{const o=occOf(r);if(o&&o.state==='sleep'&&!o.fake&&!o.hurt){o.hurt='moss';if(o.regId)G.regs[o.regId].hurt='moss';ROOMST[r].moss=1;mossDoor(r);G.log.spread++;}});});}
   const f=NPCS.find(x=>x.fake&&x.state==='scratch');if(f&&!HUNT){const d=Math.hypot(P.x-f.x,P.z-f.z);if(P.y>1.5&&d<7)startHunt(f);else if(Math.random()<.01)sfx('scratch');}}
-function nightPlansResolve(){NPCS.forEach(n=>{if(!n.fake||n.state==='gone')return;
+function nightPlansResolve(){const soft=!!todayPlan().soft;NPCS.forEach(n=>{if(!n.fake||n.state==='gone')return;
+  if(n.fake.latent&&n.fake.stage!=='act'){if(n.room)G.log.quiet.push(n.room);n.fake.stage='stay';return;}   /* 잠복: 조용한 밤. 아침에 단골의 얼굴로 남는다 */
   if(n.state==='scratch'||n.state==='wander'||n.state==='hunt'){const t=n.targetRoom,v=t?occOf(t):null;
-    if(v&&v.state==='sleep'&&!DOORS[t].locked&&!DOORS[t].lampHung){OCC[t]=null;v.visible=false;v.state='gone';v.missing=true;G.log.missing.push(v.regId||v.uid);if(v.regId)G.regs[v.regId].gone='missing';ROOMST[t].stain=true;if(!G.stained.includes(t))G.stained.push(t);}
+    if(v&&v.state==='sleep'&&!DOORS[t].locked&&!DOORS[t].lampHung){ROOMST[t].stain=true;if(!G.stained.includes(t))G.stained.push(t);
+      if(soft){G.log.fizzle.push({fam:n.fake.fam,room:n.room,victim:v.regId||v.uid});if(v.regId)G.regs[v.regId].shock=G.day+1;}   /* 달이 차기 전: 새벽을 넘기지 못한다 */
+      else{OCC[t]=null;v.visible=false;v.state='gone';v.missing=true;G.log.missing.push({id:v.regId||v.uid,fam:n.fake.fam,room:n.room});if(v.regId)G.regs[v.regId].gone='missing';}}
+    else if(soft)G.log.fizzle.push({fam:n.fake.fam,room:n.room,victim:null});
     n.state='gone';n.visible=false;if(n.room&&OCC[n.room]===n)OCC[n.room]=null;HUNT=null;}
   else if(n.luring){n.luring=false;n.state='gone';n.visible=false;if(OCC[n.room]===n)OCC[n.room]=null;G.log.lured=true;}
-  else if(n.barred){G.log.barred.push(n.name);}});}
+  else if(n.barred){G.log.barred.push({name:n.name,fam:n.fake.fam,room:n.room});}});}
 // ───────── 아침: 결과와 창고 ─────────
-function nightResolve(){const L=G.log,T=CAMP.thread,R=[];
-  L.missing.forEach(id=>{thread(T.missing);const n=NPCS.find(x=>x.uid===id);R.push({k:'bad',t:DLG.morning.missing(n?n.name:nameOf(id))});});
-  G.stained.forEach(r=>{if(!L.stainedSeen)R.push({k:'bad',t:DLG.morning.stain(r)});});
-  L.fled.forEach(nm=>{thread(-1);R.push({k:'bad',t:DLG.morning.fled(nm)});});
-  L.barred.forEach(nm=>{thread(T.barred);R.push({k:'good',t:DLG.morning.barred(nm)});});
-  L.killed.forEach(nm=>R.push({k:'good',t:DLG.morning.killed}));
-  if(L.lured)R.push({k:'warn',t:'순례자의 방이 비어 있다. 방바닥에 잿빛 발자국.'});
-  L.late.forEach(id=>{thread(T.late);grudge(id);R.push({k:'warn',t:DLG.morning.late(nameOf(id))});});
-  L.refusedReal.forEach(id=>{thread(T.refusedReal);if(rnd()<.5&&G.regs[id]&&!G.regs[id].hurt)G.regs[id].hurt='moss';R.push({k:'warn',t:DLG.morning.refused(nameOf(id))});});
-  if(L.enoch)R.push({k:'bad',t:DLG.morning.enoch});
-  NPCS.forEach(n=>{if(n.room&&n.state==='sleep'&&n.hurt&&!n.cured&&!n.fake)R.push({k:'warn',t:DLG.morning.sick(n.name)});});
-  NPCS.forEach(n=>{if(n.room&&n.state==='sleep'&&n.fake&&!n.barred)R.push({k:'warn',t:`${n.room}호는 밤새 조용했다. …너무 조용했다.`});});
-  // 바꿔치기: 옆방 단골이 사라진 뒤에도 방에 남은 "그것"은 아침에 없다
+// 아침 카드: 틀렸다는 걸 아는 순간은 언제나 여기다. 정체를 밝힌다
+function nightResolve(){const L=G.log,T=CAMP.thread,R=[];const M=DLG.morning,famN=f=>(ANOM[f]||{}).name||f;const nm=x=>{const n=NPCS.find(y=>y.uid===x);return n?n.name:nameOf(x);};
+  L.missing.forEach(m=>{thread(T.missing);R.push({k:'bad',t:M.missing(nm(m.id))+' '+M.reveal(famN(m.fam),m.room)});});
+  L.fizzle.forEach(f=>{thread(T.fizzle||-1);R.push({k:'warn',t:f.victim?M.fizzle(famN(f.fam),f.room,nm(f.victim)):M.reveal(famN(f.fam),f.room)+' 새벽을 넘기지 못하고 재가 됐다.'});});
+  G.stained.forEach(r=>{if(!L.stainedSeen)R.push({k:'bad',t:M.stain(r)});});
+  L.fled.forEach(x=>{thread(-1);R.push({k:'bad',t:M.fled(x.name)+' '+M.reveal(famN(x.fam),x.room)});});
+  L.barred.forEach(x=>{thread(T.barred);R.push({k:'good',t:M.barred(x.name)+' '+M.reveal(famN(x.fam),x.room)});});
+  L.killed.forEach(x=>R.push({k:'good',t:M.killed+(x.room?' '+M.reveal(famN(x.fam),x.room):'')}));
+  if(L.lured)R.push({k:'warn',t:`순례자의 방이 비어 있다. 방바닥에 잿빛 발자국. ${famN('lure')}이 다녀갔다.`});
+  L.quiet.forEach(r=>R.push({k:'warn',t:M.latentQuiet(r)}));
+  L.expelled.forEach(x=>R.push({k:x.fam?'good':'warn',t:M.expelled(x.name,x.fam)}));
+  L.left.forEach(id=>R.push({k:'bad',t:M.left(nameOf(id))}));
+  L.gifts.forEach(g=>R.push({k:'bad',t:M.cursedGift(nameOf(g.id),g.k)}));
+  L.calm.forEach(id=>R.push({k:'good',t:M.calm(nameOf(id))}));
+  L.worse.forEach(id=>{grudge(id,1);R.push({k:'warn',t:M.worse(nameOf(id))});});
+  L.late.forEach(id=>{thread(T.late);grudge(id);R.push({k:'warn',t:M.late(nameOf(id))});});
+  L.refusedReal.forEach(id=>{thread(T.refusedReal);if(rnd()<.5&&G.regs[id]&&!G.regs[id].hurt)G.regs[id].hurt='moss';R.push({k:'warn',t:M.refused(nameOf(id))});});
+  if(L.enoch)R.push({k:'bad',t:M.enoch});
+  ACTIVE().forEach(id=>{if(G.regs[id].shock===G.day)R.push({k:'warn',t:M.shaken(nameOf(id))});});
+  NPCS.forEach(n=>{if(n.room&&n.state==='sleep'&&n.hurt&&!n.cured&&!n.fake)R.push({k:'warn',t:M.sick(n.name)});});
+  NPCS.forEach(n=>{if(n.room&&n.state==='sleep'&&n.fake&&!n.barred&&!n.fake.latent)R.push({k:'warn',t:M.latentQuiet(n.room)});});
   G.morningCards=R;G.days.push({day:G.day-1,thread:G.thread,money:G.money,cards:R});
   G.log=newLog();G.stainedSeen=true;}
 function storageMorning(){const R=G.morningCards;
@@ -1682,17 +1758,21 @@ function storageMorning(){const R=G.morningCards;
 function morningPanel(){const cards=G.morningCards||[];const html=`<div class="endc"><h2>${G.day}일째 아침</h2>
    <div class="sum"><div><b>${G.thread}</b>경계의 실</div><div><b>${G.money}G</b>돈</div><div><b>${NPCS.filter(n=>n.room&&n.state==='sleep').length}</b>깨울 방</div><div><b>${G.stained.length}</b>얼룩진 방</div></div>
    <ul class="mcards">${cards.length?cards.map(c=>`<li class="${c.k}">${josa(c.t)}</li>`).join(''):'<li class="good">조용한 밤이었다.</li>'}</ul>
-   <p class="nobuy">점호로 깨운 사람마다 실이 한 땀 꿰매진다. 9시 체크아웃, 11시까지 파티 보내기.</p><button class="primary" id="mOk">점호를 시작한다</button></div>`;
-  openWin('morning',josa(html),0);$('mOk').onclick=()=>{closeWin();relock();};}
+   <p class="nobuy">점호로 깨운 사람마다 실이 한 땀 꿰매진다. 7시부터 게시판에 출발 줄, 9시에 파티가 나간다.</p><button class="primary" id="mOk">${(G.epQueue||[]).length?'다음':'점호를 시작한다'}</button></div>`;
+  openWin('morning',josa(html),0);$('mOk').onclick=runEpisodes;}
+// 아침 에피소드 카드 (합류·달이 찼다). 큐가 비면 창을 닫는다
+function runEpisodes(){const k=(G.epQueue||[]).shift();if(!k||!STORY.episodes[k]){closeWin();relock();return;}const e=STORY.episodes[k];
+  openWin('episode',`<div class="endc ep"><h2>${e.title}</h2>${(e.text||[]).map(t=>`<p>${t}</p>`).join('')}<button class="primary" id="epOk">${G.epQueue.length?'다음':'시작한다'}</button></div>`,0);$('epOk').onclick=runEpisodes;}
 // ───────── 붉은 끝과 마지막 결산 ─────────
 function redEnd(msg){G.over=true;controls.unlock();const snap=loadSave();
   openWin('red',`<div class="endc red"><h2>붉은 수칙</h2><p>${msg}</p><p class="nobuy">붉은 줄을 어기면 그 저녁 처음부터다.</p><button class="primary" id="redRetry">${snap&&snap.tag?'그 '+({morning:'아침',evening:'저녁',night:'밤'}[snap.tag]||'때')+'부터 다시':'처음부터'}</button></div>`,0);
   $('redRetry').onclick=()=>{location.reload();};}
-function finale(){G.over=true;controls.unlock();const lost=REG_IDS.filter(id=>G.regs[id].gone);const rentFail=G.rentDue&&G.money<0;
-  const h=`<div class="endc"><h2>${CAMP.DAYS}일이 지났다 — 결산</h2>
-   <div class="sum"><div><b>${G.thread}/${CAMP.THREAD_MAX}</b>경계의 실</div><div><b>${G.money}G</b>돈</div><div><b>${lost.length}</b>사라진 단골</div><div><b>${G.stained.length}</b>얼룩진 방</div><div><b>${REG_IDS.filter(id=>G.regs[id].grudge>0).length}</b>원망하는 단골</div></div>
-   <ul>${G.days.map(d=>`<li><b>${d.day}일째</b> 실 ${d.thread} · ${d.money}G — ${d.cards.filter(c=>c.k!=='good').slice(0,2).map(c=>c.t).join(' / ')||'조용한 밤'}</li>`).join('')}${lost.map(id=>`<li><b>${nameOf(id)}</b>: ${G.regs[id].gone==='missing'?'방에서 사라졌다. 벽에 잿빛 얼룩. 다시 보낼 수 없다.':'길드를 떠났다.'}</li>`).join('')}</ul>
-   <p class="nobuy">${G.thread<=0?'실이 다 풀렸다. 여관이 미궁에 먹힌다.':G.thread>=CAMP.THREAD_MAX?'실이 팽팽하다. 마그다가 좋아했을 것이다.':'실은 아직 버틴다.'} 느낌(조작·시간 흐름·밤의 분위기)이 어땠는지 알려 주세요.</p>
+function finale(){G.over=true;controls.unlock();const act=ACTIVE(),lost=act.filter(id=>G.regs[id].gone),safe=act.length-lost.length;
+  const verdict=!lost.length?'단골 전원이 제 얼굴로 식탁에 앉았다. 마그다가 좋아했을 것이다.':lost.length<=2?`빈 의자가 ${lost.length}개. 이름은 장부에 남았다.`:'식탁이 반이나 비었다. 여관은 버텼지만 길드는 아니다.';
+  const h=`<div class="endc"><h2>${CAMP.DAYS}일이 지났다 — ${lost.length?`${lost.length}명을 잃었다`:'전원 무사귀환'}</h2>
+   <div class="sum"><div><b>${safe}/${act.length}</b>제 얼굴로 앉은 단골</div><div><b>${G.thread}/${CAMP.THREAD_MAX}</b>경계의 실</div><div><b>${G.money}G</b>돈</div><div><b>${G.stained.length}</b>얼룩진 방</div><div><b>${act.filter(id=>G.regs[id].grudge>0).length}</b>원망하는 단골</div></div>
+   <ul>${G.days.map(d=>`<li><b>${d.day}일째</b> 실 ${d.thread} · ${d.money}G — ${d.cards.filter(c=>c.k!=='good').slice(0,2).map(c=>c.t).join(' / ')||'조용한 밤'}</li>`).join('')}${lost.map(id=>`<li><b>${nameOf(id)}</b>: ${G.regs[id].gone==='missing'?'방에서 사라졌다. 벽에 잿빛 얼룩. 돌아오지 않는다.':'길드를 떠났다.'}</li>`).join('')}</ul>
+   <p class="nobuy">${verdict} ${G.thread<=0?'실이 다 풀렸다. 여관이 미궁에 먹힌다.':G.thread>=CAMP.THREAD_MAX?'실이 팽팽하다.':''} 느낌(조작·시간 흐름·밤의 분위기)이 어땠는지 알려 주세요.</p>
    <button class="primary" onclick="localStorage.removeItem('${SAVE_KEY}');location.reload()">처음부터</button></div>`;
   openWin('end',josa(h),0);clearSave();}
 // ───────── 이어하기: 스냅숏에서 세상을 다시 세운다 ─────────
@@ -1707,8 +1787,80 @@ function restoreFrom(snap){try{if(!snap||!snap.G)return false;
     if(ent){const r=+ent[0];OCC[r]=n;n.room=r;n.visible=true;const st=ent[1].state;if(st==='sleep'){placeNPC(n,RM[r].bed[0],RM[r].bed[1],3);n.state='sleep';n.face=0;}else{placeNPC(n,RM[r].inside[0],RM[r].inside[1],3);n.state='idle';}}
     else if(c.state==='due'||c.state==='queue'){c.state='due';}});
   helga.visible=!G.night;if(SPOTS.on)toSlot(helga,'helga_kitchen','idle');else{placeNPC(helga,5.6,3.2);helga.state='idle';helga.face=-2;}
+  SEND.parties=[];SEND.day=0;if(!G.night&&G.phase!=='dawn')ACTIVE().forEach(id=>{const m=stayerNPC(id);if(m&&m.state!=='sleep')seatStayer(m);});
   if(snap.tag==='morning')setTimeout(morningPanel,300);
   refreshShelf();renderBelt();return true;}catch(e){console.error('restore',e);return false;}}
+
+// ───── 46_requests.js ─────
+// ───────── 아침 요구·남는 사람·대화 변주 ─────────
+// 요구(data/requests.js): 07:00에 여관에 있는 단골마다 한 건. 준다/안 준다/대신. 09:00까지 답이 없으면 거절로 친다.
+// 남는 사람: 상태가 정한다(앓음·원망 2·어젯밤 충격·잠복한 가짜). 낮에 식당 의자에 앉아 있고, 지켜보고·말을 걸고·약을 먹이고·내보낸다.
+const KIND=k=>(REQ.kinds&&REQ.kinds[k])||{n:k};
+// 잠복한 가짜: 어젯밤 들어와 아침에 단골의 얼굴로 앉아 있는 것
+const latentOf=id=>NPCS.find(x=>x.fake&&x.fake.latent&&x.fake.stage!=='act'&&x.regId===id&&x.state!=='gone'&&x.room)||null;
+function stayReason(id){const s=G.regs[id];if(!s||!s.joined||s.gone)return null;
+  if(latentOf(id))return 'latent';if(s.shock===G.day)return 'shock';if(s.hurt)return 'sick';if(s.grudge>=((CAMP.grudge||{}).stay||2))return 'grudge';return null;}
+const stayerNPC=id=>{const st=G.regs[id]&&G.regs[id].stay;if(!st)return null;return st==='latent'?latentOf(id):ACTOR[id];};
+function stayers(){return ACTIVE().map(stayerNPC).filter(n=>n&&n.stayer&&n.state!=='gone');}
+// 남는 사람을 식당 의자에 앉힌다
+function seatStayer(n){if(n.chair===undefined){const i=CHAIRS.findIndex((c,k)=>!CH_USED[k]);if(i>=0){CH_USED[i]=n.uid;n.chair=i;}}
+  n.stayer=true;n.visible=true;n.transit=null;n.path=[];if(n.chair!==undefined){const c=CHAIRS[n.chair];placeNPC(n,c[0],c[1],0);n.face=c[2];}n.state='sit';}
+function buildRequests(){const day=G.day,soft=!!todayPlan().soft,list=[];const R=REQ.deviant||{real:{},fake:{}};
+  ACTIVE().forEach(id=>{const s=G.regs[id];if(s.gone)return;const latent=latentOf(id);let r=null,src='base';
+    const pick=(arr,salt)=>arr&&arr.length?arr[(day*7+salt+id.length)%arr.length]:null;
+    if(latent){r=pick((R.fake||{})[latent.fake.fam],3);src='fake';}
+    else if(s.hurt==='moss'){r=pick((R.real||{}).hurt,1);src='hurt';}
+    else if(!soft&&s.grudge>=1){r=pick((R.real||{}).grudge,2);src='grudge';}
+    else if(!soft&&REG[id].twin&&alive(REG[id].twin)&&G.regs[REG[id].twin].grudge>=1){r=pick((R.real||{}).twin,4);src='twin';}
+    if(!r){r=pick(REQ.base[id],0)||{k:'none',t:'…'};src='base';}
+    list.push({id,name:REG[id].name,k:r.k,n:r.n||1,t:r.t,src,give:r.give||null,deny:r.deny||null,ans:r.k==='none'?'none':null,fake:latent?latent.fake.fam:null});});
+  return list;}
+// 재고에서 빼기. 모자라면 false
+function payKind(K,mult=1){if(!K.cost)return true;const [key,q]=K.cost,need=q*mult;
+  if(key==='oilP'){if(P.oil<need){sub('요구','기름이 모자란다.');return false;}P.oil-=need;}
+  else if(key==='money'){if(G.money<need){sub('요구','돈이 모자란다.');return false;}money(-need);}
+  else{const have=ITEM[key]&&ITEM[key].kind==='ing'?shelfCount(key):inv(key);if(have<need){sub('요구',`${ITN[key]}이(가) 모자란다.`);return false;}addInv(key,-need);if(ITEM[key]&&ITEM[key].kind==='ing')refreshShelf();}
+  renderBelt();return true;}
+function answerRequest(i,ans,silent){const r=(G.requests||[])[i];if(!r||r.ans)return false;const K=KIND(r.k),s=G.regs[r.id];
+  if(ans==='give'){if(!payKind(K,r.n||1))return false;if(K.promise){s.promise=K.promise;}if(r.fake&&K.cost)G.log.gifts.push({id:r.id,k:K.n});
+    if(r.give==='calm')s.calm=true;if(r.give==='appease')grudge(r.id,-1);if(r.give==='twinSulk'&&REG[r.id].twin)grudge(REG[r.id].twin,1);}
+  else if(ans==='alt'){const A=K.alt&&KIND(K.alt);if(!A)return false;if(!payKind(A,1))return false;if(A.promise)s.promise=A.promise;if(r.fake&&A.cost)G.log.gifts.push({id:r.id,k:A.n});}
+  else{ans='deny';if(!r.fake&&r.k!=='none'){if(r.deny==='worse')s.worse=true;if(r.deny!=='none')grudge(r.id,1);}}
+  r.ans=ans;if(!silent){spend(5);sfx(ans==='deny'?'wood':'coin');}return true;}
+// 게시판 패널의 출발 줄
+function requestsHTML(){if(G.phase!=='market')return '';const rs=G.requests||[];if(!rs.length)return '';
+  const ansT={give:'주었다',deny:'거절했다',alt:'대신 주었다',none:'청하는 것이 없다'};
+  return `<h3>출발 줄 — 9시에 나간다</h3><div class="reqs">${rs.map((r,i)=>{const K=KIND(r.k),A=K.alt&&KIND(K.alt),s=G.regs[r.id];
+    const stock=key=>ITEM[key]&&ITEM[key].kind==='ing'?shelfCount(key):inv(key);const enough=Q=>!Q.cost||(Q.cost[0]==='oilP'?P.oil>=Q.cost[1]*(r.n||1):Q.cost[0]==='money'?G.money>=Q.cost[1]*(r.n||1):stock(Q.cost[0])>=Q.cost[1]*(r.n||1));
+    const have=K.cost?(K.cost[0]==='oilP'?`기름 ${Math.round(P.oil)}`:K.cost[0]==='money'?`${G.money}G`:`${ITN[K.cost[0]]} ${stock(K.cost[0])}`):'';
+    return `<div class="req ${r.ans?'done':''}"><svg viewBox="0 0 200 240" width="38" height="46">${fig(r.id)}</svg><div class="rq"><b>${r.name}</b>${s.stay?` <small class="stayTag">오늘 남는다 (${{sick:'앓음',grudge:'원망',shock:'충격',latent:'앓음'}[s.stay]||''})</small>`:''}<div class="bub">${r.t}</div>
+      ${r.ans?`<small class="ans">${ansT[r.ans]}</small>`:`<div class="rbtn"><button data-req="${i}" data-ans="give" ${enough(K)?'':'disabled'}>${K.n}${r.n>1?' ×'+r.n:''} 준다${have?`<small>${have}</small>`:''}</button>${A?`<button data-req="${i}" data-ans="alt" ${enough(A)?'':'disabled'}>대신 ${A.n}</button>`:''}<button class="warn" data-req="${i}" data-ans="deny">안 준다</button></div>`}</div></div>`;}).join('')}</div>`;}
+function requestsBind(el){el.querySelectorAll('[data-req]').forEach(b=>b.onclick=()=>{answerRequest(+b.dataset.req,b.dataset.ans);renderStation();});}
+// 약속(빗장·등불): 그 방 투숙자가 오늘 아침에 약속받은 것
+const promiseOf=r=>{const n=occOf(r);const id=n&&n.regId;return id&&G.regs[id]?G.regs[id].promise:null;};
+// 소등 때: 약속 처리(옆방으로 옮기기·빗장 걸어 주기), 방 없는 남는 사람에게 방 주기, 잠복한 가짜는 오늘 밤 움직인다
+function stayersToBed(){stayers().forEach(n=>{if(!n.room){const r=ROOMS.find(r=>!occOf(r)&&!ROOMST[r].stain);if(r){OCC[r]=n;n.room=r;}}n.stayer=false;});
+  NPCS.forEach(n=>{if(!n.room||n.state==='gone'||!n.regId||!G.regs[n.regId])return;const pr=G.regs[n.regId].promise;
+    if(pr==='swap'){const free=ROOMS.filter(r=>r!==n.room&&!occOf(r)&&!ROOMST[r].stain);const score=r=>neighborsOf(r).filter(q=>occOf(q)&&occOf(q)!==n).length;const best=free.sort((a,b)=>score(b)-score(a))[0];
+      if(best&&score(best)>0){if(OCC[n.room]===n)OCC[n.room]=null;OCC[best]=n;n.room=best;note('방',`${n.name}: 약속대로 ${best}호로 옮겼다.`);}}
+    if(pr==='bar'&&P.bars>0&&!DOORS[n.room].locked){DOORS[n.room].locked=true;P.bars--;note('빗장',`${n.name}의 방(${n.room}호)에 약속대로 빗장을 걸었다.`);}});
+  NPCS.forEach(n=>{if(n.fake&&n.fake.latent&&n.fake.stage==='stay'){n.fake.stage='act';n.fake.plan=n.fake.then;}});renderBelt();}
+// 낮에 내보내기: 가짜면 조용히 나가고 실이 조여진다. 진짜면 원망 2, 밖에서 자고 돌아온다
+function expel(n){if(!n.stayer)return;n.stayer=false;spend(10);const id=n.regId;
+  if(n.chair!==undefined){delete CH_USED[n.chair];n.chair=undefined;}if(n.room&&OCC[n.room]===n)OCC[n.room]=null;n.room=null;n.state='gone';n.visible=false;
+  if(n.fake){G.log.expelled.push({name:n.name,fam:(ANOM[n.fake.fam]||{}).name||n.fake.fam});thread(CAMP.thread.expelFake||1,'잠복한 것을 내보냄');if(n.case)n.case.state='expelled';sub(n.name,'"…" 말없이 골목으로 나간다. 뒤돌아보지 않는다.',1);}
+  else{G.log.expelled.push({name:n.name,fam:null});grudge(id,2);sub(n.name,chatLine(n,'grudge'),1);}
+  if(id&&G.regs[id])G.regs[id].stay=null;renderBelt();}
+// 대화 변주: 상황별 줄을 차례로 돌린다 (가짜는 계열 줄이 있으면 그것, 없으면 흉내 낸 단골의 줄)
+function chatLine(n,ctx){const id=n.regId||n.uid;const fam=n.fake&&STORY.fam&&STORY.fam[n.fake.fam];const ch=STORY.chars&&STORY.chars[id];
+  const pool=(fam&&fam.chat&&fam.chat[ctx])||(ch&&ch.chat&&ch.chat[ctx]);
+  if(!pool||!pool.length){const L=((REG[id]||STAFF[id]||{}).lines)||{};return L.talk||L.hi||'"…"';}
+  n.chatI=n.chatI||{};const i=n.chatI[ctx]||0;n.chatI[ctx]=i+1;return pool[i%pool.length];}
+function chatCtx(n){const id=n.regId,s=id&&G.regs[id];const morning=G.phase==='market'||G.phase==='send'||G.phase==='dawn';
+  if(n.uid==='helga')return G.night?'night':morning?'morning':(stayers().length&&(G.phase==='noon'||G.phase==='send'))?'stay':'evening';
+  if(s&&s.joinDay===G.day&&!(n.chatI&&n.chatI.intro)&&STORY.chars[id]&&STORY.chars[id].chat&&STORY.chars[id].chat.intro)return 'intro';
+  if(n.fake&&n.stayer)return 'stay';   /* 잠복한 것은 계열의 말투가 샌다 */
+  if(s&&s.grudge>=1)return 'grudge';if(n.hurt&&!n.cured)return 'hurt';if(n.stayer)return 'stay';return morning?'morning':'evening';}
 
 // ───── 50_mood.js ─────
 // ───────── 시간대 분위기 ─────────
@@ -1800,6 +1952,9 @@ function hudTick(dt){HT-=dt;SUBT-=dt;if(SUBT<=0)$('sub').classList.remove('show'
   if(POT.state==='burnt')td.push(['hot','솥이 넘쳤다 (부엌)']);else if(POT.state==='cook')td.push(['','솥이 끓는 중…']);else if(POT.state==='ready')td.push(['hot','솥 — 떠낼 것']);
   const dk=NPCS.find(n=>n.state==='atdesk');if(dk)td.push(['hot','계산대에 손님']);
   const w=NPCS.find(n=>n.state==='atwin');if(w)td.push(['hot',`창구에 ${w.name}`]);const q=NPCS.filter(n=>n.state==='queue').length;if(q)td.push(['',`골목에 ${q}명 대기`]);
+  if(G.phase==='market'){const open=(G.requests||[]).filter(r=>!r.ans).length;if(open)td.push(['hot',`출발 줄 ${open}명 (게시판)`]);}
+  const st=stayers();if(st.length&&!G.night)td.push(['',`식당에 남은 사람 ${st.length}명`]);
+  if(G.thread<=0&&G.started&&!G.over)redEnd('실이 다 풀렸다. 여관이 미궁에 먹힌다.<br><b>경계의 실이 0이 되면 그날 처음부터다.</b>');
   if(G.dinner&&!G.served)td.push([P.held&&ITEM[P.held]&&ITEM[P.held].kind==='dish'?'hot':'','식당에 요리 내기']);
   if(G.dinner&&G.served)td.push(['',`식탁 관찰 ${G.dinnerObs}번 · 방 바꾸기 ${G.limits.swaps}번`]);
   if(G.morning){const left=NPCS.filter(n=>n.room&&n.state==='sleep').length;if(left)td.push([left?'hot':'',`점호 — 깨울 방 ${left}곳`]);}
@@ -1844,11 +1999,13 @@ requestAnimationFrame(loop);
 $('startBtn').disabled=true;$('startBtn').textContent='여관을 준비하는 중…';
 function beginGame(cont){$('start').hidden=true;audioInit();if(AC&&AC.state==='suspended')AC.resume();
   const snap=cont?loadSave():null;if(snap&&restoreFrom(snap)){G.started=true;relock();sub('여관',`${G.day}일째 ${({morning:'아침',evening:'저녁',night:'밤'})[snap.tag]||''}부터 이어서.`,1);return;}
-  freshState();G.started=true;relock();G.tutSlow=true;sub('헬가','"아리! 이리 와 봐."');}
+  freshState();G.started=true;G.tutSlow=true;joinedArrive(ACTIVE());sub('헬가','"아리! 이리 와 봐."');if(G.epQueue.length)runEpisodes();else relock();}
 $('startBtn').onclick=()=>beginGame(false);$('contBtn').onclick=()=>beginGame(true);
 if(hasSave()){const sv=loadSave();$('contBtn').hidden=false;$('contBtn').textContent=`이어하기 — ${sv.G.day}일째 ${({morning:'아침',evening:'저녁',night:'밤'})[sv.tag]||''}`;}
-window.__g={G,P,NPCS,RETN,OCC,DOORS,POT,ACTOR,STATIONS,SEND,REG,ITEM,setTime:m=>{G.t=m;},setDM:m=>{G.t=dayStart()+m;},dm,tp:(x,z,y=0)=>{P.x=x;P.z=z;P.y=y;},look:(yaw,pitch=0)=>{camera.rotation.set(pitch,yaw,0,'YXZ');},
-  start:(cont)=>{$('start').hidden=true;const snap=cont?loadSave():null;if(snap&&restoreFrom(snap)){G.started=true;return;}freshState();G.started=true;G.tutSlow=true;},
+window.__g={G,P,NPCS,RETN,OCC,DOORS,POT,ACTOR,STATIONS,SEND,REG,ITEM,PH,setTime:m=>{G.t=m;},setDM:m=>{G.t=dayStart()+m;},dm,tp:(x,z,y=0)=>{P.x=x;P.z=z;P.y=y;},look:(yaw,pitch=0)=>{camera.rotation.set(pitch,yaw,0,'YXZ');},
+  start:(cont)=>{$('start').hidden=true;const snap=cont?loadSave():null;if(snap&&restoreFrom(snap)){G.started=true;return;}freshState();G.started=true;G.tutSlow=true;joinedArrive(ACTIVE());if(G.epQueue.length)runEpisodes();},
+  requests:()=>G.requests,answer:(i,a)=>answerRequest(i,a),active:()=>ACTIVE(),stayers:()=>stayers().map(n=>n.uid),talk:uid=>{const n=NPCS.find(x=>x.uid===uid);talk(n);return $('sub').innerText;},expel:uid=>{const n=NPCS.find(x=>x.uid===uid);expel(n);},
+  parties:()=>SEND.parties.map(p=>({q:p.req.id,mem:p.mem.slice(),lunch:p.lunch,recall:p.recall})),setParty:(pi,mem,opt)=>{const p=SEND.parties[pi];if(!p)return false;p.mem=mem;if(opt){p.lunch=!!opt.lunch;p.recall=!!opt.recall;}return true;},quests:()=>todayQuests().map(q=>q.id),episodes:()=>G.epQueue.slice(),
   admit:(uid,r)=>{const n=NPCS.find(x=>x.uid===uid);admitRet(n,r);},refuse:uid=>{const n=NPCS.find(x=>x.uid===uid);refuseRet(n);},
   doit:(it,k,uid)=>{const n=uid?NPCS.find(x=>x.uid===uid):null;const i=ACT(it,n);const a=i&&i.verbs.find(v=>v.k===k);if(a){if(a.need==='lamp'&&!P.lamp)return 'need-lamp';a.fn();return a.t;}return null;},
   verbs:(it,uid)=>{const n=uid?NPCS.find(x=>x.uid===uid):null;const i=ACT(it,n);return i?i.verbs.map(v=>v.k):null;},lamp:on=>setLamp(on),tut:()=>({cur:(tutCur()||{}).id||null,over:TUT_OVER}),endTut:()=>tutEnd(),obj:()=>OBJ().t,shelf:()=>G.shelf,reveal:()=>{if(AIM)lampReveal(AIM);},
@@ -1857,5 +2014,5 @@ window.__g={G,P,NPCS,RETN,OCC,DOORS,POT,ACTOR,STATIONS,SEND,REG,ITEM,setTime:m=>
   helga:()=>helga,close:()=>closeWin(),leave:()=>closeSeat(),win:()=>WIN,stn:()=>STN,open:id=>openStation(id),closeStn:()=>closeStation(),yaw:()=>+new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ').y.toFixed(3),
   act:(it,k)=>{const i=ACT(it,null);const a=i&&i.verbs.find(v=>v.k===k);if(a){a.fn();return a.t;}return null;},click:()=>doVerb(),drops:()=>DROPS.filter(Boolean).map(d=>d.k),vm:()=>VM.key,vlist:()=>VLIST.map(v=>v.k),aim:()=>AIM,
   send:(plan)=>{const qs=todayQuests();const ps=plan.map(([qi,mem,opt])=>({req:qs[qi],mem,lunch:!!(opt&&opt.lunch),recall:!!(opt&&opt.recall),on:true}));dispatch(ps);tutEvent('send');return G.cases.map(c=>({cid:c.cid,kind:c.kind,id:c.regId||c.guest||c.kind,fake:c.fake&&c.fake.fam,at:c.at,hurt:c.hurt,loot:c.loot.map(x=>x.k)}));},
-  cases:()=>G.cases.map(c=>({cid:c.cid,kind:c.kind,id:c.regId||c.guest||c.kind,name:c.name,fake:c.fake&&c.fake.fam,at:c.at,state:c.state,npc:c.npc&&c.npc.uid,lootN:c.loot?c.loot.length:0,hurt:c.hurt})),
+  cases:()=>G.cases.map(c=>({cid:c.cid,kind:c.kind,id:c.regId||c.guest||c.kind,name:c.name,fake:c.fake&&c.fake.fam,plan:c.fake&&c.fake.plan,at:c.at,state:c.state,npc:c.npc&&c.npc.uid,lootN:c.loot?c.loot.length:0,hurt:c.hurt})),
   startHunt:()=>{const f=NPCS.find(x=>x.fake&&x.state!=='gone');if(f)startHunt(f);},club:clubSwing,mood:mood.uniforms,renderer,scene,camera,snapshot,loadSave,clearSave,MC,ASSETS,inv:()=>({...G.inv}),phase:()=>G.phase};

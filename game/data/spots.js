@@ -8,7 +8,7 @@ SRG.spots={
  HOP_MIN:4,
  START:'hearth',
  list:[
-  {id:'hearth', name:'벽난로', x:4.6,  z:9.9,  y:0, yaw:Math.PI/2, pitch:0,   yawRange:.7,  pitchRange:.35, reach:4.5, floor:1, links:[{id:'desk',dir:'r'}], hot:['npc:helga'], slots:['helga_start']},
+  {id:'hearth', name:'벽난로', x:4.6,  z:9.9,  y:0, yaw:Math.PI/2, pitch:0,   yawRange:.7,  pitchRange:.35, reach:4.5, floor:1, links:[{id:'desk',dir:'r'}], hot:['npc:helga'], slots:['helga_start','join0','join1','join2']},
   {id:'desk',   name:'계산대', x:6.2,  z:10.9, y:0, yaw:0,         pitch:-.1, yawRange:.65, pitchRange:.35, reach:4.6, floor:1, links:[{id:'hearth',dir:'l'},{id:'board',dir:'r'},{id:'pot',dir:'f'},{id:'window',dir:'b'}], hot:['desk','npc:dora','npc:guest'], slots:['guest','dora','enoch']},
   {id:'board',  name:'게시판', x:7.2,  z:10.2, y:0, yaw:Math.PI,   pitch:.05, yawRange:1.15,  pitchRange:.35, reach:3.2, floor:1, links:[{id:'desk',dir:'l'},{id:'dining',dir:'r'}], hot:['board','rulewall'], slots:[]},
   {id:'shelf',  name:'선반',   x:2.6,  z:2.8,  y:0, yaw:0,         pitch:.05, yawRange:.7,  pitchRange:.4,  reach:4.2, floor:1, links:[{id:'pot',dir:'r'},{id:'desk',dir:'b'}], hot:['shelf:0','shelf:5','shelfboard'], slots:[]},
@@ -21,6 +21,7 @@ SRG.spots={
  ],
  slots:{
   helga_start:[2.4,9.4,Math.PI/2],
+  join0:[2.3,10.6,Math.PI/2],join1:[1.8,8.5,Math.PI/2],join2:[1.7,11.1,Math.PI/2],
   helga_kitchen:[5.2,1.9,0],
   guest:[6.7,8.05,0], dora:[5.3,8.05,0], enoch:[7.9,8.05,0],
   chair0:[9.5,1.5,0],chair1:[11.5,1.5,0],chair2:[13.5,1.5,0],chair3:[9.5,3.5,Math.PI],chair4:[11.5,3.5,Math.PI],chair5:[13.5,3.5,Math.PI],

@@ -125,6 +125,8 @@ body.seat #sub{bottom:auto;top:62px}body.seat #tip{bottom:auto;top:70px;left:aut
 .rcps{display:flex;flex-direction:column;gap:6px}.rcp{background:#f5eddb;border:1.5px solid #c9b996;border-radius:6px;padding:6px 8px;font-size:13px;display:flex;flex-wrap:wrap;align-items:center;gap:4px}.rcp b{display:inline-flex;align-items:center;gap:4px}.rcp small{flex-basis:100%;color:var(--pmute);font-size:12px}
 .qlist{display:flex;flex-direction:column;gap:8px}.qcard{background:#f5eddb;border:2px solid #c9b996;border-radius:8px;padding:8px 10px}.qcard.on{border-color:var(--ol);background:#fbf6ea}.qcard.closed{opacity:.5}.qcard.sent{border-color:#3f7a48}.qh{display:flex;flex-wrap:wrap;align-items:center;gap:6px;cursor:pointer}.qh small{flex-basis:100%;color:var(--pmute)}.qh em{font-style:normal;color:var(--inkred);font-weight:800}
 .fl{font-family:var(--mono);font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px;color:#fff;background:#3f6e44}.fl.B2{background:#a8322a}
+.reqs{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}.req{display:flex;gap:10px;align-items:flex-start;background:#fbf6ea;border:2px solid var(--ol);border-radius:8px;padding:8px 10px}.req.done{opacity:.6;border-color:#c9b996}.req .rq{flex:1}.req .rq b{font-size:14px}.req .stayTag{color:var(--inkred);font-weight:800}.req .bub{background:#fff;border:1.5px solid #c9b996;border-radius:8px;padding:5px 9px;margin:4px 0 6px;font-size:13.5px;line-height:1.45}.req .rbtn{display:flex;flex-wrap:wrap;gap:6px}.req .rbtn button{padding:4px 9px;font-size:13px}.req .rbtn button small{display:block;font-weight:500;color:var(--pmute);margin:0}.req .ans{color:var(--pmute)}
+.endc.ep p{font-size:15px;line-height:1.7;margin:6px 0}
 .pty{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}.pty select{font-family:var(--kr);font-size:13px;border:2px solid var(--ol);border-radius:6px;padding:4px 6px;background:#fff;max-width:200px}.pty label{font-size:13px}
 .omen{font-size:13px;padding:2px 8px;border-radius:5px;background:#e2d4b4}.omen.good{background:#cde8c8}.omen.mid{background:#f2e2a8}.omen.bad{background:#f0b8a8}.om.good{color:#3f7a48}.om.mid{color:#a07a20}.om.bad{color:var(--inkred)}
 .roster{display:grid;grid-template-columns:1fr 1fr;gap:6px}.rost{display:flex;gap:8px;align-items:center;background:#f5eddb;border:1.5px solid #c9b996;border-radius:6px;padding:4px 8px;font-size:12.5px}.rost.off{opacity:.5}
@@ -169,7 +171,7 @@ body.big{font-size:118%}body.big #prompt{font-size:16px}body.big #sub{font-size:
 <div id="seat" hidden></div>
 <div id="winWrap" hidden><div class="card3" id="win"></div></div><div id="loupe3" hidden></div>
 <div class="screen" id="start"><div class="card3"><h1><small>무사귀환 · 3D 그레이박스 테스트</small>등불 길드 여관의 하루</h1>
- <p class="lead">사흘 동안 등불 길드 여관을 맡는다. 아침엔 장사·가마솥·보내기, 저녁엔 창구와 식당, 밤엔 순찰. 시간은 <b>실시간</b>으로 흐르고 아침마다 저장된다. 처음엔 <b>헬가가 하나씩 알려 준다.</b></p>
+ <p class="lead">열흘 동안 등불 길드 여관을 맡는다. 목표는 하나 — <b>마지막 날 식탁에 단골 전원이 제 얼굴로 앉아 있게 한다.</b> 아침 9시에 파티는 무조건 나간다. 나가기 전에 뭘 챙겨 줄지, 남는 사람은 누군지 본다. 저녁엔 창구와 식당, 밤엔 순찰. 틀렸다는 건 다음 날 아침에 안다. 시간은 <b>실시간</b>으로 흐르고 아침마다 저장된다.</p>
  <div class="keys"><div><kbd>지도 · 화살표</kbd>장면 옮기기<small>여관은 장면 10개. 왼쪽 아래 지도나 화면 화살표(← → ↑ ↓)로 옮기고, 마우스로 둘러본다</small></div><div><kbd>클릭</kbd>하기<small>조준점 아래 밝은 줄을 한다</small></div><div><kbd>휠</kbd>고르기<small>할 일이 여러 줄일 때 (Q도 된다)</small></div>
   <div><kbd>F</kbd>등불<small>들면 숨은 것이 보인다 · 기름이 준다</small></div><div><kbd>Tab</kbd>장부<small>수칙 · 단골 · 숙박부 · 메모</small></div><div><kbd>H</kbd>힌트<small>막히면 지금 할 일을 다시 본다</small></div></div>
  <p class="nobuy">소리를 켜 주세요. ESC 일시정지 · F2 필터 끄기 · [ ] 시간 속도(디버그)</p><br>
@@ -200,6 +202,8 @@ body.big{font-size:118%}body.big #prompt{font-size:16px}body.big #sub{font-size:
 <script src="game/data/anomalies.js"></script>
 <script src="game/data/campaign.js"></script>
 <script src="game/data/dialogue.js"></script>
+<script src="game/data/requests.js"></script>
+<script src="game/data/story.js"></script>
 <script type="module" src="game/engine.js"></script>
 </body>
 </html>
